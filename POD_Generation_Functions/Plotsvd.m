@@ -27,8 +27,8 @@ for i = 1:num_modes
     if plot_img_num > 4
         % May want to include possibility of saving images  
         plot_img_num = 1;
-        if save_figures == true
-           saveas(h, [direct '\Figures\POD\POD_' varname '_' num2str(i-4) '_' num2str(i-1)], 'fig');
+        if strcmp(save_figures, 'fig') || strcmp(save_figures, 'jpg') 
+           saveas(h, [direct '\Figures\POD\POD_' varname '_' num2str(i-4) '_' num2str(i-1)], save_figures);
         end
         h = figure('Name',['  Variable: ' varname ',  (' num2str(sum(energy),4) '%)'],'color','w');
     end

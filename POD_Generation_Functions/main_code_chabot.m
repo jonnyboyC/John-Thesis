@@ -11,13 +11,26 @@ function main_code_chabot(varargin)
 %
 % MAIN_CODE_CHABOT(NUM_IMAGES, OVERWRITE) loads NUM_IMAGES number of vc7
 % images will overwrite previous .mat files if OVERWRITE = TRUE regardless 
-% of contents
+% of contents (default is FALSE)
 %
-% MAIN_CODE_CHABOT(NUM_IMAGES, OVERWRTIE, SAVE_FIGURES) loads NUM_IMAGES
+% MAIN_CODE_CHABOT(NUM_IMAGES, OVERWRITE, SAVE_POD) loads NUM_IMAGES
 % number of vc7 image will overwrite previous .mat files if OVERWRITE  =
-% TRUE regardless of contents. If SAVE_FIGURES = TRUE will save .fig of
-% each pod mode generated.
+% TRUE regardless of contents. If SAVE_POD = TRUE will save data used in
+% galerkin projection to .mat file (default is TRUE)
+%
+% MAIN_CODE_CHABOT(NUM_IMAGES, OVERWRITE, SAVE_POD, DUMP2WORK)loads 
+% NUM_IMAGES number of vc7 image will overwrite previous .mat files if 
+% OVERWRITE = TRUE regardless of contents. If SAVE_POD = TRUE will save 
+% data used in galerkin projection to .mat file (default is TRUE). If
+% DUMP2WORK = TRUE relavent variables to Galerkin method will be placed
+% into the workspace
+%
+% MAIN_CODE_CHABOT(..., SAVE_FIGURES) in addition to above if SAVE_FIGURES
+% = 'fig' will save images as matlab .fig files if SAVE_FIGURES = 'jpg'
+% will save images as jpgs.
 
+
+% If SAVE_FIGURES = TRUE will save .fig of each pod mode generated.
 % Set format and set to correct directory
 format long g
 close all
@@ -31,22 +44,42 @@ switch nargin
         % Default: read 1000 images, don't overwrite, and don't save figures
         num_images      = 1000;
         overwrite       = false;
-        save_figures    = false;
+        save_pod        = true;
+        dump2work       = false;
+        save_figures    = 'none';
     case 1
         % First parameter select number of images to load
         num_images      = varargin{1};
         overwrite       = false;
-        save_figures    = false;
+        save_pod        = true;
+        dump2work       = false;
+        save_figures    = 'none';
     case 2
         % Second parameter select overwrite status
         num_images      = varargin{1};
         overwrite       = varargin{2};
-        save_figures    = false;
+        save_pod        = true;
+        dump2work       = false;
+        save_figures    = 'none';
     case 3
         % Third parameter select save_figure status
         num_images      = varargin{1};
         overwrite       = varargin{2};
-        save_figures    = varargin{3};
+        save_pod        = varargin{3};
+        dump2work       = false;
+        save_figures    = 'none';
+    case 4
+        num_images      = varargin{1};
+        overwrite       = varargin{2};
+        save_pod        = varargin{3};
+        dump2work       = varargin{4};
+        save_figures    = 'none';
+    case 5
+        num_images      = varargin{1};
+        overwrite       = varargin{2};
+        save_pod        = varargin{3};
+        dump2work       = varargin{4};
+        save_figures    = varargin{5};
     otherwise
         error('Too many input arguments');
 end
@@ -131,9 +164,17 @@ data.yg = y;
 Plotsvd(data, pod_u1(:,1:num_plot), dimensions, 'u', lambda2, direct, save_figures);
 Plotsvd(data, pod_v1(:,1:num_plot), dimensions, 'v', lambda2, direct, save_figures);
 
-save([direct '\POD Data\POD.mat']);
-% Need to look into if grid rotation is needed at all
+%% TODO narrow number of variables save/used
+if save_pod == true
+    save([direct '\POD Data\POD.mat']);
+end
+% Stub
+if dump2work == true
+    TODO = 'Figure out the variables you need';
+    putvar(TODO);
+end
 
+% Need to look into if grid rotation is needed at all
 % Need to ask what voln_piv does
 
 format short g
