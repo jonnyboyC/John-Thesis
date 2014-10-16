@@ -37,7 +37,7 @@ format long g
 close all
 
 %%%%%%%%%%%% ALTER THIS TO MAKE PORTABLE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-cd('D:\shear layer');
+cd('D:\shear layer\sandbox');
 
 %% Set up function for given inputs
 switch nargin 
@@ -172,7 +172,6 @@ if save_pod == true
     save([direct '\POD Data\POD.mat'], 'x', 'y', 'bnd_idx', 'dimensions', ...
         'eig_func_norm', 'lambda2', 'mean_u', 'mean_v', 'pod_u1', 'pod_v1', ...
         'vol_frac');
-    save('derp_city.mat');
 end
 % If requested place relvent galerkin variables in workspace
 if dump2work == true
