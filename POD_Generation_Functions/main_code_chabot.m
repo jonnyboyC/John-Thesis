@@ -28,6 +28,7 @@ function main_code_chabot(varargin)
 % MAIN_CODE_CHABOT(..., SAVE_FIGURES) in addition to above if SAVE_FIGURES
 % = 'fig' will save images as matlab .fig files if SAVE_FIGURES = 'jpg'
 % will save images as jpgs.
+%
 
 
 % If SAVE_FIGURES = TRUE will save .fig of each pod mode generated.
@@ -38,7 +39,7 @@ close all
 %%%%%%%%%%%% ALTER THIS TO MAKE PORTABLE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 cd('D:\shear layer');
 
-% set up function for given inputs
+%% Set up function for given inputs
 switch nargin 
     case 0
         % Default: read 1000 images, don't overwrite, and don't save figures
@@ -90,7 +91,7 @@ end
 % md = 1.296
 % dp = md*mu0^2
 
-
+%% Load and organize data
 % Load velocity images from data, will load from raw files if processing
 % has not been done, will load from .mat file otherwise. Select true to
 % overwrite previous .mat files
@@ -129,7 +130,7 @@ vol_frac    = reshape(vol_frac, data_points, 1);
 % may potetially increase accuracy. Currently calculated modes including
 % these boundaries
 
-% TODO talk to Caraballo about variable names
+%% Perform Proper Orthogonal Decomposition
 covariance = cal_covariance_mat(u, v, mean_u, mean_v, vol_frac);
 [pod_u, pod_v, lambda2, eig_func_norm] =  calc_eig_modes(covariance, num_modes, u, v, mean_u, mean_v); 
 
@@ -151,6 +152,7 @@ end
 pod_u1 = reshape(pod_u1, data_points, num_modes);
 pod_v1 = reshape(pod_v1, data_points, num_modes);
 
+%% Setup for Plotting and Plotting
 if num_modes > 40
     num_plot = 40;
 else
@@ -164,14 +166,18 @@ data.yg = y;
 Plotsvd(data, pod_u1(:,1:num_plot), dimensions, 'u', lambda2, direct, save_figures);
 Plotsvd(data, pod_v1(:,1:num_plot), dimensions, 'v', lambda2, direct, save_figures);
 
-%% TODO narrow number of variables save/used
+%% Save / Dump variables
+% Save variables relavent to Galerkin to .mat files
 if save_pod == true
-    save([direct '\POD Data\POD.mat']);
+    save([direct '\POD Data\POD.mat'], 'x', 'y', 'bnd_idx', 'dimensions', ...
+        'eig_func_norm', 'lambda2', 'mean_u', 'mean_v', 'pod_u1', 'pod_v1', ...
+        'vol_frac');
+    save('derp_city.mat');
 end
-% Stub
+% If requested place relvent galerkin variables in workspace
 if dump2work == true
-    TODO = 'Figure out the variables you need';
-    putvar(TODO);
+    putvar(x, y, bnd_idx, dimensions, eig_func_norm, lambda2, mean_u, mean_v, ...
+        pod_u1, pod_v1, vol_frac);
 end
 
 % Need to look into if grid rotation is needed at all
