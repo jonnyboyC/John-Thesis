@@ -3,6 +3,10 @@ function Galerkin_Proj(varargin)
 %
 % GALERKIN_PROJ(NUM_PODS) generated time coefficients for NUM_PODS number
 % of pod modes
+%
+% Galerkin_PROJ(NUM_PODS, PLOT_PRED) generated time coefficients for
+% NUM_PODS number of pod modes. If plot_pred is true a short move is saved
+% to the data folder of the predicted flow.
 
 %%%%%%%%%%%%%%% VARIABLES USED FROM CHABOT MAIN CODE %%%%%%%%%%%%%%%%%%%%%%
 %
@@ -29,16 +33,20 @@ switch nargin
     case 0 
         % Default: run simulation for 10 pod modes
         num_pods = 10;
+        plot_pred = false;
         %scale = false; may use later
     case 1
         num_pods = varargin{1};
-    %case 2   
+    	plot_pred = false;
+    case 2
+        num_pods = varargin{1};
+        plot_pred = varargin{2};
     otherwise
         error('Too many input arguments');
 end
 
 % matlabpool local 4
-pod_loc = prompt_folder;
+[pod_loc, direct] = prompt_folder;
 load(pod_loc);
 
 %% TODO Chunk of variables need to sort them out
@@ -86,21 +94,22 @@ fcuhi1 = [ci li q];
 
 reduced_model_coeff = ode_coefficients(num_pods, num_pods, fcuhi1);
 options = odeset('RelTol', 1e-6, 'AbsTol', 1e-8);
-tspan = 0:1:1000;
+tspan = 0:0.1:10;
 
 tic;
 [t, modal_amp] = ode45(@(t,y) system_odes(t,y,reduced_model_coeff), tspan, ...
     eig_func_norm(1,1:num_pods), options);
 toc;
 % Provide only modal flucations ie only turblent portion of modes
-modal_amp = modal_amp; %- ones(size(modal_amp,1), 1)*mean(modal_amp);
+% modal_amp = modal_amp - ones(size(modal_amp,1), 1)*mean(modal_amp);
 plot(t, modal_amp(:,1), 'b');
 
-plot_prediction(pod_ut, pod_vt, x, y, modal_amp, num_pods, dimensions)
-
+if plot_pred == true
+    plot_prediction(pod_ut, pod_vt, x, y, modal_amp, num_pods, dimensions, direct)
+end
 end
 
-function pod_loc = prompt_folder()
+function [pod_loc, direct] = prompt_folder()
     % Used by uigetdir to location initial folder    
     start_direct = 'D:\shear layer';
     
@@ -126,7 +135,7 @@ function pod_loc = prompt_folder()
     end
 end
 
-function plot_prediction(pod_u, pod_v, x, y, modal_amp, num_pods, dimensions)
+function plot_prediction(pod_u, pod_v, x, y, modal_amp, num_pods, dimensions, direct)
 
 data_u.pod = [];
 data_u.xg = x;
@@ -160,7 +169,7 @@ axis tight
 set(gca, 'nextplot', 'replacechildren');
 set(gcf, 'Renderer', 'opengl');
 
-writer = VideoWriter('POD_Galerkin.avi');
+writer = VideoWriter([direct '\Figures\Movies\POD_Galerkin.avi']);
 open(writer);
 
 for i = 1:length(modal_amp(:,1))
