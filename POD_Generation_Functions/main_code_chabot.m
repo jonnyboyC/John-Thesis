@@ -37,7 +37,7 @@ format long g
 close all
 
 %%%%%%%%%%%% ALTER THIS TO MAKE PORTABLE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-cd('D:\shear layer\sandbox');
+cd('C:\Users\John-Desktop\Documents\MATLAB\thesis stuff\');
 
 %% Set up function for given inputs
 switch nargin 
@@ -163,8 +163,8 @@ data.xg = x;
 data.yg = y;
 
 % Plot pod modes
-Plotsvd(data, pod_u1(:,1:num_plot), dimensions, 'u', lambda2, direct, save_figures);
-Plotsvd(data, pod_v1(:,1:num_plot), dimensions, 'v', lambda2, direct, save_figures);
+Plotsvd2(data, pod_u1(:,1:num_plot), dimensions, 'u', lambda2, direct, save_figures);
+Plotsvd2(data, pod_v1(:,1:num_plot), dimensions, 'v', lambda2, direct, save_figures);
 
 %% Save / Dump variables
 % Save variables relavent to Galerkin to .mat files

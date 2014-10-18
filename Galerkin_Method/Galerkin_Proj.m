@@ -94,7 +94,7 @@ fcuhi1 = [ci li q];
 
 reduced_model_coeff = ode_coefficients(num_pods, num_pods, fcuhi1);
 options = odeset('RelTol', 1e-6, 'AbsTol', 1e-8);
-tspan = 0:0.1:10;
+tspan = [0 100];
 
 tic;
 [t, modal_amp] = ode45(@(t,y) system_odes(t,y,reduced_model_coeff), tspan, ...
@@ -102,7 +102,7 @@ tic;
 toc;
 % Provide only modal flucations ie only turblent portion of modes
 % modal_amp = modal_amp - ones(size(modal_amp,1), 1)*mean(modal_amp);
-plot(t, modal_amp(:,1), 'b');
+% plot(t, modal_amp(:,1), 'b');
 
 if plot_pred == true
     plot_prediction(pod_ut, pod_vt, x, y, modal_amp, num_pods, dimensions, direct)
@@ -150,22 +150,22 @@ data_m.xg = x;
 data_m.yg = y;
 
 figure(1);
-dummie = zeros(2,2);
-subplot(3,1,1)
-pcolor(dummie);
-axis tight
-set(gca, 'nextplot', 'replacechildren');
-set(gcf, 'Renderer', 'opengl');
+% dummie = zeros(2,2);
+% subplot(3,1,1)
+% pcolor(dummie);
+% axis tight
+% set(gca, 'nextplot', 'replacechildren');
+% set(gcf, 'Renderer', 'opengl');
+% 
+% subplot(3,1,2)
+% pcolor(dummie);
+% axis tight
+% set(gca, 'nextplot', 'replacechildren');
+% set(gcf, 'Renderer', 'opengl');
 
-subplot(3,1,2)
-pcolor(dummie);
-axis tight
-set(gca, 'nextplot', 'replacechildren');
-set(gcf, 'Renderer', 'opengl');
-
-subplot(3,1,3)
-pcolor(dummie);
-axis tight
+% subplot(3,1,3)
+% pcolor(dummie);
+% axis tight
 set(gca, 'nextplot', 'replacechildren');
 set(gcf, 'Renderer', 'opengl');
 
@@ -182,12 +182,16 @@ for i = 1:length(modal_amp(:,1))
         data_v.pod =  data_v.pod + reshape(pod_v(:,j)*modal_amp(i,j),dimensions(1), dimensions(2));
     end
     data_m.pod = sqrt(data_u.pod.^2+data_v.pod.^2);
-    subplot(3,1,1);
-    Plottec(data_u);
-    subplot(3,1,2);
-    Plottec(data_v);
-    subplot(3,1,3);
-    Plottec(data_m);
+%     subplot(3,1,1);
+%     Plottec(data_u);
+%     subplot(3,1,2);
+%     Plottec(data_v);
+%     subplot(3,1,3);
+    if i == 1
+        h = Plottec2(data_m);
+    else
+        h = Plottec2(data_m, h);
+    end
     frame = getframe(gcf);
     writeVideo(writer, frame)
 end

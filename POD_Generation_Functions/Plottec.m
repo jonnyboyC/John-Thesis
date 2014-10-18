@@ -24,8 +24,10 @@ maxy = max(max(data.y));
 % end
 
 hold on
-axis([minx maxx miny maxy])  
-h = pcolor(data.x,data.y,data.pod);
+%axis([minx maxx miny maxy])  
+% h = pcolor(data.x,data.y,data.pod);
+h = imagesc(data.x(:,1),data.y(1,:)',data.pod');
+axis equal
 colormap(jet)
 shading interp  
 axis equal
@@ -34,7 +36,7 @@ if min(min(data.yg)) < 0 && min(min(data.xg)) < 0 && max(max(data.xg)) > 4
     rectangle('position',[minx miny abs(minx) abs(miny)],'facecolor','k')
     rectangle('position',[4 miny (maxx-4) abs(miny)],'facecolor','k')
 end
-drawnow
+drawnow;
 hold off
 
 if nargout == 1
