@@ -34,13 +34,20 @@ switch nargin
         % Default: run simulation for 10 pod modes
         num_pods = 10;
         plot_pred = false;
-        %scale = false; may use later
+        tspan = [0 100];
     case 1
         num_pods = varargin{1};
     	plot_pred = false;
+        tspan = [0 100];
     case 2
         num_pods = varargin{1};
         plot_pred = varargin{2};
+        tspan = [0 100];
+    case 3 
+        num_pods = varargin{1};
+        plot_pred = varargin{2};
+        tspan = varargin{3};
+        
     otherwise
         error('Too many input arguments');
 end
@@ -94,7 +101,6 @@ fcuhi1 = [ci li q];
 
 reduced_model_coeff = ode_coefficients(num_pods, num_pods, fcuhi1);
 options = odeset('RelTol', 1e-6, 'AbsTol', 1e-8);
-tspan = [0 100];
 
 tic;
 [t, modal_amp] = ode45(@(t,y) system_odes(t,y,reduced_model_coeff), tspan, ...
@@ -137,6 +143,7 @@ end
 
 function plot_prediction(pod_u, pod_v, x, y, modal_amp, num_pods, dimensions, direct)
 
+% Begin fill all data structures
 data_u.pod = [];
 data_u.xg = x;
 data_u.yg = y;
@@ -149,51 +156,82 @@ data_m.pod = [];
 data_m.xg = x;
 data_m.yg = y;
 
-figure(1);
-% dummie = zeros(2,2);
-% subplot(3,1,1)
-% pcolor(dummie);
-% axis tight
-% set(gca, 'nextplot', 'replacechildren');
-% set(gcf, 'Renderer', 'opengl');
-% 
-% subplot(3,1,2)
-% pcolor(dummie);
-% axis tight
-% set(gca, 'nextplot', 'replacechildren');
-% set(gcf, 'Renderer', 'opengl');
-
-% subplot(3,1,3)
-% pcolor(dummie);
-% axis tight
+% Fill all plots with blank images to set renderer to opengl
+h = figure(1);
+dummie = zeros(2,2);
+subplot(3,1,1)
+pcolor(dummie);
+axis tight
 set(gca, 'nextplot', 'replacechildren');
-set(gcf, 'Renderer', 'opengl');
+set(h, 'Renderer', 'opengl');
 
+subplot(3,1,2)
+pcolor(dummie);
+axis tight
+set(gca, 'nextplot', 'replacechildren');
+set(h, 'Renderer', 'opengl');
+
+subplot(3,1,3)
+pcolor(dummie);
+axis tight
+set(gca, 'nextplot', 'replacechildren');
+set(h, 'Renderer', 'opengl');
+
+
+% Preallocate size for predicated flow
+data_u.pod = zeros(dimensions(1), dimensions(2), length(modal_amp(:,1)));
+data_v.pod = zeros(dimensions(1), dimensions(2), length(modal_amp(:,1)));
+data_m.pod = zeros(dimensions(1), dimensions(2), length(modal_amp(:,1)));
+
+% Calculate predication by summing modes
+for i = 1:length(modal_amp(:,1))
+    for j = 1:num_pods
+        data_u.pod(:,:,i) =  data_u.pod(:,:,i)...
+            + reshape(pod_u(:,j)*modal_amp(i,j),dimensions(1), dimensions(2));
+        data_v.pod(:,:,i) =  data_v.pod(:,:,i)...
+            + reshape(pod_v(:,j)*modal_amp(i,j),dimensions(1), dimensions(2));
+    end
+    data_m.pod(:,:,i) = sqrt(data_u.pod(:,:,i).^2+data_v.pod(:,:,i).^2);
+end
+
+% Intialize Video creator
 writer = VideoWriter([direct '\Figures\Movies\POD_Galerkin.avi']);
 open(writer);
 
+%% TODO May need to relook at this to make it more memory efficient
+data_temp.xg = x;
+data_temp.yg = y;
+data_temp.pod = zeros(dimensions(1), dimensions(2));
+data = {data_u, data_v, data_m};
+
+% Determine max values for u v and magnitude
+cmax = zeros(3,1);
+cmin = zeros(3,1);
+for i = 1:length(data)
+    cmax(i) = max(max(max(abs(data{i}.pod))));
+    cmin(i) = -cmax(i);
+end
+
+% Preallocated figure handles and axes handles
+h_sub = gobjects(3,1);
+ax_sub = gobjects(3,1);
+
+% Plot results, print current image number, and save images to .avi video
 for i = 1:length(modal_amp(:,1))
     fprintf('image %d of %d\n', i, length(modal_amp(:,1)));
-    data_u.pod = zeros(dimensions(1), dimensions(2));
-    data_v.pod = zeros(dimensions(1), dimensions(2));
-    data_m.pod = zeros(dimensions(1), dimensions(2));
-    for j = 1:num_pods
-        data_u.pod =  data_u.pod + reshape(pod_u(:,j)*modal_amp(i,j),dimensions(1), dimensions(2));
-        data_v.pod =  data_v.pod + reshape(pod_v(:,j)*modal_amp(i,j),dimensions(1), dimensions(2));
-    end
-    data_m.pod = sqrt(data_u.pod.^2+data_v.pod.^2);
-%     subplot(3,1,1);
-%     Plottec(data_u);
-%     subplot(3,1,2);
-%     Plottec(data_v);
-%     subplot(3,1,3);
-    if i == 1
-        h = Plottec2(data_m);
-    else
-        h = Plottec2(data_m, h);
+    for j = 1:length(data);
+        data_temp.pod = squeeze(data{j}.pod(:,:,i));
+        subplot(3,1,j);
+        if i == 1
+            [h_sub(j), ax_sub(j)] = Plottec2(data_temp);
+            colorbar;
+        else
+            h_sub(j) = Plottec2(data_temp, h_sub(j));
+        end
+        ax_sub(j).ZLim = [cmin(j) cmax(j)];
+        ax_sub(j).CLim = [cmin(j) cmax(j)];
     end
     frame = getframe(gcf);
     writeVideo(writer, frame)
 end
-
 end
