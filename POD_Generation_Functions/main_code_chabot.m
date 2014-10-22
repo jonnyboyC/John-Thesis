@@ -37,7 +37,7 @@ format long g
 close all
 
 %%%%%%%%%%%% ALTER THIS TO MAKE PORTABLE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-cd('C:\Users\John-Desktop\Documents\MATLAB\thesis stuff\');
+% cd('C:\Users\John-Desktop\Documents\MATLAB\thesis stuff\');
 
 %% Set up function for given inputs
 switch nargin 
