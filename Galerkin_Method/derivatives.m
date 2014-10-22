@@ -9,19 +9,19 @@ d2x = zeros(dimensions(1), dimensions(2), number2calc);
 d2y = zeros(dimensions(1), dimensions(2), number2calc);
 
 for i = 1:number2calc
-
-    [dxic, detc] = visder(reshape(var(:,i), dimensions(1), dimensions(2)),...
-         dimensions, z, bnd_idx);
-   
+    
+    [dxic, detc] = visder(reshape(var(:,i), size(z,1), size(z,2)),...
+         dimensions(1), dimensions(2), z, bnd_idx);
+     
     % Calculate approximation for first derivative
     [dx(:,:,i), dy(:,:,i)] = derivative_approx(dxic, detc, xxi, yxi, xet, yet, aj);
-   
+
     % Calculate approximation for 2nd derivative for x
-    [dxic, detc] = visder(dx(:,:,i), dimensions, z, bnd_idx);
+    [dxic, detc] = visder(dx(:,:,i), size(z,1), size(z,2), z, bnd_idx);
     [d2x(:,:,i), ~] = derivative_approx(dxic, detc, xxi, yxi, xet, yet, aj);
-   
+
     % Calculate approximation for 2nd derivative for y
-    [dxic, detc] = visder(dy(:,:,i), dimensions, z, bnd_idx);
+    [dxic, detc] = visder(dy(:,:,i), size(z,1), size(z,2), z, bnd_idx);
     [~, d2y(:,:,i)] = derivative_approx(dxic, detc, xxi, yxi, xet, yet, aj);
 end
 end

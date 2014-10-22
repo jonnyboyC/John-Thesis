@@ -52,7 +52,7 @@ for i = 1:length(modal_amp(:,1))
 end
 
 % Intialize Video creator
-writer = VideoWriter([direct '\Figures\Movies\POD_Galerkin.avi']);
+writer = VideoWriter([direct '\Figures\Movies\POD' num2str(num_pods) '_Galerkin.avi']);
 open(writer);
 
 %% TODO May need to relook at this to make it more memory efficient

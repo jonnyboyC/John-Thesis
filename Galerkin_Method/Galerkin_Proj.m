@@ -95,7 +95,7 @@ ci = l_dot/Re0.*niu+q_2dot;
 
 % matrix of niu with extra scaling on off diagonal
 ni = diag(niu) + (ones(num_pods)-eye(num_pods))/Re0;
-li = ni.*l*q_dot;
+li = ni.*l+q_dot;
 fcuhi1 = [ci li q];
 
 
@@ -107,7 +107,7 @@ tic;
     eig_func_norm(1,1:num_pods), options);
 toc;
 % Provide only modal flucations ie only turblent portion of modes
-% modal_amp = modal_amp - ones(size(modal_amp,1), 1)*mean(modal_amp);
+modal_amp = modal_amp - ones(size(modal_amp,1), 1)*mean(modal_amp);
 % plot(t, modal_amp(:,1), 'b');
 
 if plot_pred == true

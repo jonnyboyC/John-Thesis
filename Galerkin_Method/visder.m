@@ -1,4 +1,4 @@
-function [dprdxic,dprdetc]=visder(pr,dimensions,z,bi)
+function [dprdxic,dprdetc]=visder(pr,nx,ny,z,bi)
 %TODO figure out what this thing really does
 dxi=1;
 det=1;
@@ -6,16 +6,14 @@ rdxi=1./dxi;
 rdet=1./det;
 rdxi12=rdxi/12;
 rdet12=rdet/12;
-nx=dimensions(1);
-ny=dimensions(2);
-dprdxic=zeros(size(dimensions));
-dprdetc=zeros(size(dimensions));
+dprdxic=zeros(nx, ny);
+dprdetc=zeros(nx, ny);
 
-for i = 1:dimensions(1)
-    for j = 1:dimensions(2)
+for i = 1:nx
+    for j = 1:ny
         
         % If within a boundary or on it's edge
-        if  (bi(i,j) < 1) 
+        if  (bi(i,j) < 1 || i > 1 && i < nx && bi(i,j) == 0 && bi(i-1,j) < 1 && bi(i+1,j) < 1)
             dprdxic(i,j) = 0;
             
         % Either left side of image or just right of a boundary    
@@ -71,7 +69,7 @@ for i = 1:dimensions(1)
         end
         
         % If within a boundary or on it's edge
-        if  (bi(i,j) < 1) 
+        if  (bi(i,j) < 1 || j > 1 && j < ny && bi(i,j) == 0 && bi(i,j-1) < 1 && bi(i,j+1) < 1)
             dprdetc(i,j) = 0;
             
         % Either bottom of image, or just above a boundary
