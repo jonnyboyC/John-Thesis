@@ -21,7 +21,7 @@ for i = 1:number2calc
     [d2x(:,:,i), ~] = derivative_approx(dxic, detc, xxi, yxi, xet, yet, aj);
    
     % Calculate approximation for 2nd derivative for y
-    [dxic, detc] = visder(dx(:,:,i), dimensions, z, bnd_idx);
+    [dxic, detc] = visder(dy(:,:,i), dimensions, z, bnd_idx);
     [~, d2y(:,:,i)] = derivative_approx(dxic, detc, xxi, yxi, xet, yet, aj);
 end
 end

@@ -74,7 +74,7 @@ cbt = cbt + cbu + cbv;
 
 % TODO Look at Navier Stokes Equation
 qu = mean_u.*udx+mean_v.*udy;
-qv = mean_v.*vdx+mean_v.*vdy;
+qv = mean_u.*vdx+mean_v.*vdy;
 
 % Inner product of pod modes with calculated quantity. Similar situation
 % with cqt we are allowing for a linear offset, may be fudge factor
@@ -98,7 +98,7 @@ vx_pod_u = pod_u.*(vdx*ones(1,num_modes));
 
 % Group 4
 uy_pod_v = pod_v.*(udy*ones(1,num_modes));
-vy_pod_v = pod_v.*(udy*ones(1,num_modes));
+vy_pod_v = pod_v.*(vdy*ones(1,num_modes));
 
 % Sum of terms 
 cu = u_pod_ux + v_pod_uy + ux_pod_u + uy_pod_v;
@@ -121,9 +121,9 @@ cdv = zeros(num_modes, num_modes, num_modes);
 
 for k = 1:num_modes
     pod_u_pod_u_x(:,:,k) = (pod_u(:,k)*ones(1,num_modes)).*pod_udx;
-    pod_v_pod_u_y(:,:,k) = (pod_v(:,k)*ones(1,num_modes)).*pod_udx;
+    pod_v_pod_u_y(:,:,k) = (pod_v(:,k)*ones(1,num_modes)).*pod_udy;
     pod_u_pod_v_x(:,:,k) = (pod_u(:,k)*ones(1,num_modes)).*pod_vdx;
-    pod_v_pod_v_y(:,:,k) = (pod_v(:,k)*ones(1,num_modes)).*pod_vdx;
+    pod_v_pod_v_y(:,:,k) = (pod_v(:,k)*ones(1,num_modes)).*pod_vdy;
 end
 
 for k = 1:num_modes

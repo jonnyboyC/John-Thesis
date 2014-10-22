@@ -1,5 +1,9 @@
 %% This script simply changes the names of some variables in the workspace 
-% so they comply with the naming convenctio of previous code development. 
+% so they comply with the naming convenctio of previous code development.
+clc
+clear all
+
+load('D:\shear layer\PIVData\Data1\POD Data\POD.mat');
 muz = {mean_u};
 mvz = {mean_v};
 phiutc = {pod_u1};

@@ -103,7 +103,7 @@ reduced_model_coeff = ode_coefficients(num_pods, num_pods, fcuhi1);
 options = odeset('RelTol', 1e-6, 'AbsTol', 1e-8);
 
 tic;
-[t, modal_amp] = ode45(@(t,y) system_odes(t,y,reduced_model_coeff), tspan, ...
+[t, modal_amp] = ode45(@(t,y) system_odes(t,y,-reduced_model_coeff), tspan, ...
     eig_func_norm(1,1:num_pods), options);
 toc;
 % Provide only modal flucations ie only turblent portion of modes
