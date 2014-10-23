@@ -32,20 +32,20 @@ close all
 switch nargin
     case 0 
         % Default: run simulation for 10 pod modes, don't plot, run for
-        % 100s, don't save coefficients
+        % 100s, save coefficients
         num_pods = 10;
         plot_pred = false;
-        save_coef = false;
+        save_coef = true;
         tspan = [0 100];
     case 1
         num_pods = varargin{1};
     	plot_pred = false;
-        save_coef = false;
+        save_coef = true;
         tspan = [0 100];
     case 2
         num_pods = varargin{1};
         plot_pred = varargin{2};
-        save_coef = false;        
+        save_coef = true;        
         tspan = [0 100];
     case 3 
         num_pods = varargin{1};
@@ -126,5 +126,5 @@ if plot_pred == true
 end
 
 if save_coef == true
-    save([direct '\Galerkin Coeff\Coeff.mat'], 'ci', 'li', 'qi');
+    save([direct '\Galerkin Coeff\Coeff.mat'], 'ci', 'li', 'qi', 'num_pods');
 end

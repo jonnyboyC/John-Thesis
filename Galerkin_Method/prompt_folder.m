@@ -1,6 +1,8 @@
-function [pod_loc, direct] = prompt_folder(data)
-    data_folder = cell(length(data, 1));
-    for i = 1:length(data)
+function [file_loc, direct] = prompt_folder(data)
+    data_folder = cell(size(data,2),1);
+    file_loc = cell(size(data,1),1);
+
+    for i = 1:size(data,2)
         data_temp = check_data(data, i);
         switch data_temp;
             case 'POD'
@@ -19,7 +21,7 @@ function [pod_loc, direct] = prompt_folder(data)
     direct = uigetdir(start_direct, 'Choose Source Image Directory'); 
     
     % Get file(s) information
-    for i = 1:lenght(data);
+    for i = 1:size(data,2);
         data_temp = check_data(data, i);
         files = dir([direct data_folder{i} '*.mat']);
     
@@ -29,7 +31,7 @@ function [pod_loc, direct] = prompt_folder(data)
        
         % if 1 .mat is found assume it is correct
         elseif size(files, 1) == 1
-            pod_loc = [direct data_folder files(1).name];
+            file_loc{i} = [direct data_folder{i} files(1).name];
     
         % IF 2 or more .mat are found prompt to check for correct .mat
         else
@@ -41,7 +43,7 @@ end
 
 % Check to see if cell array
 function data_temp = check_data(data, i)
-if isCell(data)
+if iscell(data)
     data_temp = data{i};
 else
     data_temp = data;

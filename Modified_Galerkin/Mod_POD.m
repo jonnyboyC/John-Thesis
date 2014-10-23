@@ -8,11 +8,11 @@ switch nargin
     otherwise
         error('Too many input arguments');
 end
-[data, direct] = prompt_folder('POD', 'Galerkin');
-load(data{1}, 'eig_func_norm', 'lambda2', 'num_modes');
+[data, direct] = prompt_folder({'POD', 'Galerkin'});
+load(data{1}, 'eig_func_norm', 'lambda2', 'num_pods');
 load(data{2});
 
-OG_nm = num_modes; % Original number of modes
+OG_nm = num_pods; % Original number of modes
 
 % If less modes exist than are requested, reduced to fewer modes
 if RD_nm > OG_nm
@@ -31,8 +31,8 @@ epst = epsi*1.01;                   % Don't want to rotate worse than initial gu
 figure
 hold on
 while abs(epst) > abs(epsi) %500 %(rep ~= 0 ||)ct < 1 % 
-    [X] = constrained_POD(eig_func_norm',li,OG_nm,RD_nm,epsi);
-    %inputs of constrained_POD are the POD temporal coefficients,psitc',
+    [X, L, epsilon, lambda] = constrained_POD(eig_func_norm',li,OG_nm,RD_nm,epsi);
+    %inputs of constrained_POD are the POD temporal coefficients,eig_func_norm',
     %the linear Galerkin matrix, li, the transformation dimensions N and
     %n, and the transfer term parameter epsi
     Lam_til = X'*diag(lambda2(1:OG_nm))*X;
@@ -61,14 +61,16 @@ while abs(epst) > abs(epsi) %500 %(rep ~= 0 ||)ct < 1 %
     
     in=1; % initial point (to)
     
-    rmct=-odecoe(RD_nm,RD_nm,fc_til);
+    reduced_model_coeff= ode_coefficients(RD_nm,RD_nm,fc_til);
     
     %Solution of the system of equation
     options = odeset('RelTol',1e-6,'AbsTol',1e-8);
     %(Control implicit in the modes)
     
-    tspan = tn(1):dl:tn(2000);
-    [~,Y_til] = ode113(@eqdifvecm, tspan ,psitc(in,1:RD_nm),options,-rmct);   %(base line)(f = 500 Hz)
+    % Look more into tspan;
+    tspan = [0 100]; % tn(1):dl:tn(2000);
+    [~,Y_til] = ode113(@(t, y) system_odes(t, y, -reduced_model_coeff)...
+        , tspan ,eig_func_norm(in,1:RD_nm), options);   %(base line)(f = 500 Hz)
     
     [rep] = error_til(Lam_til,Y_til);
     plot(epsi,rep,'*')
@@ -105,14 +107,14 @@ while abs(epst) > abs(epsi) %500 %(rep ~= 0 ||)ct < 1 %
     end
     
     iter = iter+1;
-    if iter> 10
+    if iter> 200
         break
     end
 end
 
 %calculation with minimum error
 epsi = epsm;
-[X] = constrained_POD(psitc',li,OG_nm,RD_nm,epsi);
+[X, L, epsilon, lambda] = constrained_POD(eig_func_norm',li,OG_nm,RD_nm,epsi);
 Lam_til = X'*diag(lambda2(1:OG_nm))*X;
 
 % Modified redued order model coefficients
@@ -140,15 +142,18 @@ fc_til=[C_til L_til Q_til]; % constant, linear and quadratic terms coefficients
 
 in=1; % initial point (to)
 
-rmct=-odecoe(RD_nm,RD_nm,fc_til);
+reduced_model_coeff= ode_coefficients(RD_nm,RD_nm,fc_til);
 
 %Solution of the system of equation
 options = odeset('RelTol',1e-6,'AbsTol',1e-8);
 %(Control implicit in the modes)
-tspan = tn(1):dl:tn(4*2048);
-[T1,Y1] = ode113(@eqdifvecm,tspan,psitc(in,1:RD_nm),options,-rmct);   %(base line)(f = 500 Hz)
 
-[rep] = error_til(Lam_til,Y1);
+% Again look into tspan
+tspan = [0 100];
+[T1,Y1] = ode113(@(t, y) system_odes(t, y, -reduced_model_coeff)...
+    , tspan ,eig_func_norm(in,1:RD_nm), options);   %(base line)(f = 500 Hz)
+
+rep = error_til(Lam_til,Y1);
   
 figure
   
@@ -161,10 +166,10 @@ for i = 1:2
         end
         hold on
 %         if vd > Nsamples
-            plot((0:size(psitc(in:end,1))-1)*sc/mu0,psitc(in:end,i),'. k')
+            plot((0:size(eig_func_norm(in:end,1))-1)*sc/mu0,eig_func_norm(in:end,i),'. k')
             %                 plot((0:size(psitc1(in:end,1))-1)*sc/mu0,psitc1(in:end,1:ep),'.g')
 %         else
-%             plot((0:vd-1)*sc/mu0,psitc(in:vd,i),'. k')
+%             plot((0:vd-1)*sc/mu0,eig_func_norm(in:vd,i),'. k')
 %             %                 plot((0:size(psitc1,1)-1)*sc/mu0,psitc1(:,1:ep),'.g')
 %         end
         
