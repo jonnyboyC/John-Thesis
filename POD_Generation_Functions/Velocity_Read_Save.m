@@ -165,6 +165,9 @@ function update_folders(direct)
     if ~exist([direct '\POD Data'], 'dir')
         mkdir(direct, '\POD Data');
     end
+    if ~exist([direct '\Galerkin Coeff'], 'dir')
+        mkdir(direct, '\Galerkin Coeff');
+    end
     if ~exist([direct '\Figures'], 'dir')
        mkdir(direct, '\Figures');
        if ~exist([direct '\Figures\POD'], 'dir')

@@ -32,30 +32,38 @@ close all
 switch nargin
     case 0 
         % Default: run simulation for 10 pod modes, don't plot, run for
-        % 100s
+        % 100s, don't save coefficients
         num_pods = 10;
         plot_pred = false;
+        save_coef = false;
         tspan = [0 100];
     case 1
         num_pods = varargin{1};
     	plot_pred = false;
+        save_coef = false;
         tspan = [0 100];
     case 2
         num_pods = varargin{1};
         plot_pred = varargin{2};
+        save_coef = false;        
         tspan = [0 100];
     case 3 
         num_pods = varargin{1};
         plot_pred = varargin{2};
-        tspan = varargin{3};
-        
+        save_coef = varargin{3};
+        tspan = [0 100];
+    case 4
+        num_pods = varargin{1};
+        plot_pred = varargin{2};
+        save_coef = varargin{3};
+        tspan = varargin{4}      
     otherwise
         error('Too many input arguments');
 end
 
 % matlabpool local 4
-[data, direct] = prompt_folder;
-load(data);
+[data, direct] = prompt_folder('POD');
+load(data{1});
 
 %% TODO Chunk of variables need to sort them out
 % List of variables in this function i'm not sure about
@@ -88,18 +96,18 @@ tr=tn;
 pod_ut = pod_u1(:,1:num_pods);
 pod_vt = pod_v1(:,1:num_pods);
 
-[l_dot, l, q_2dot, q_dot, q] = visocity_coefficients(mean_u, mean_v, ...
+[l_dot, l, q_2dot, q_dot, qi] = visocity_coefficients(mean_u, mean_v, ...
     x, y, pod_ut, pod_vt, dimensions, vol_frac, bnd_idx, z);
 
-niu = viscious_dis(eig_func_norm, num_pods, lambda2, l, q_dot, q);
+niu = viscious_dis(eig_func_norm, num_pods, lambda2, l, q_dot, qi);
 ci = l_dot/Re0.*niu+q_2dot;
 
 % matrix of niu with extra scaling on off diagonal
 ni = diag(niu) + (ones(num_pods)-eye(num_pods))/Re0;
 li = ni.*l+q_dot;
-fcuhi1 = [ci li q];
+fcuhi1 = [ci li qi];
 
-
+% Will reduce number of coefficients if we want a smaller model
 reduced_model_coeff = ode_coefficients(num_pods, num_pods, fcuhi1);
 options = odeset('RelTol', 1e-6, 'AbsTol', 1e-8);
 
@@ -107,11 +115,16 @@ tic;
 [t, modal_amp] = ode45(@(t,y) system_odes(t,y,-reduced_model_coeff), tspan, ...
     eig_func_norm(1,1:num_pods), options);
 toc;
+
 % Provide only modal flucations ie only turblent portion of modes
+% TODO check the validity of this statement
 modal_amp = modal_amp - ones(size(modal_amp,1), 1)*mean(modal_amp);
 % plot(t, modal_amp(:,1), 'b');
 
 if plot_pred == true
     plot_prediction(pod_ut, pod_vt, x, y, modal_amp, num_pods, dimensions, direct)
 end
+
+if save_coef == true
+    save([direct '\Galerkin Coeff\Coeff.mat'], 'ci', 'li', 'qi');
 end

@@ -8,32 +8,40 @@ switch nargin
     otherwise
         error('Too many input arguments');
 end
-[data, direct] = prompt_folder;
-load(data);
+[data, direct] = prompt_folder('POD', 'Galerkin');
+load(data{1}, 'eig_func_norm', 'lambda2', 'num_modes');
+load(data{2});
 
-OG_nm = num_modes; %counter; %from plmtc_3_comp_piv_bl
+OG_nm = num_modes; % Original number of modes
 
-rep = 1;                        % residual from epsilon
-epsi = sum(li_i*sgtc2(1:OG_nm));% intial guess for epsilon
-nv = 1;
-ct = 0;
+% If less modes exist than are requested, reduced to fewer modes
+if RD_nm > OG_nm
+    RD_nm = OG_nm;
+end
 
-esc=0;
-epst = epsi*1.01;
+rep = 1;                            % residual from epsilon
+epsi = sum(li*lambda2(1:OG_nm));    % intial guess for epsilon
+nv = 1;                             % Leaving for now will probably delete
+iter = 0;                           % optimization iteratin
+
+esc=0;                              % escape criteria
+epst = epsi*1.01;                   % Don't want to rotate worse than initial guess
+
+% TODO have figure update x and y data ins
 figure
 hold on
 while abs(epst) > abs(epsi) %500 %(rep ~= 0 ||)ct < 1 % 
-    [X] = constrained_POD(psitc',li_i,OG_nm,RD_nm,epsi);
+    [X] = constrained_POD(eig_func_norm',li,OG_nm,RD_nm,epsi);
     %inputs of constrained_POD are the POD temporal coefficients,psitc',
-    %the linear Galerkin matrix, li_i, the transformation dimensions N and
+    %the linear Galerkin matrix, li, the transformation dimensions N and
     %n, and the transfer term parameter epsi
-    Lam_til = X'*diag(sgtc2(1:OG_nm))*X;
+    Lam_til = X'*diag(lambda2(1:OG_nm))*X;
     
     % Modified reduced order model coefficients
-    L_til = X'*li_i*X;
-    C_til = X'*ci_i;
+    L_til = X'*li*X;
+    C_til = X'*ci;
     Q_til=zeros(RD_nm,RD_nm,RD_nm);
-    Q = reshape(q_i,OG_nm,OG_nm,OG_nm);
+    Q = reshape(qi,OG_nm,OG_nm,OG_nm);
     for i = 1:RD_nm
         for j = 1:RD_nm
             for k = 1:RD_nm
@@ -59,7 +67,8 @@ while abs(epst) > abs(epsi) %500 %(rep ~= 0 ||)ct < 1 %
     options = odeset('RelTol',1e-6,'AbsTol',1e-8);
     %(Control implicit in the modes)
     
-    [T_til,Y_til] = ode113(@eqdifvecm,[tn(1):dl:tn(2000)],psitc(in,1:RD_nm),options,-rmct);   %(base line)(f = 500 Hz)
+    tspan = tn(1):dl:tn(2000);
+    [~,Y_til] = ode113(@eqdifvecm, tspan ,psitc(in,1:RD_nm),options,-rmct);   %(base line)(f = 500 Hz)
     
     [rep] = error_til(Lam_til,Y_til);
     plot(epsi,rep,'*')
@@ -95,22 +104,22 @@ while abs(epst) > abs(epsi) %500 %(rep ~= 0 ||)ct < 1 %
         
     end
     
-    ct = ct+1;
-    if ct> 10
+    iter = iter+1;
+    if iter> 10
         break
     end
 end
 
 %calculation with minimum error
 epsi = epsm;
-[X] = constrained_POD(psitc',li_i,OG_nm,RD_nm,epsi);
-Lam_til = X'*diag(sgtc2(1:OG_nm))*X;
+[X] = constrained_POD(psitc',li,OG_nm,RD_nm,epsi);
+Lam_til = X'*diag(lambda2(1:OG_nm))*X;
 
 % Modified redued order model coefficients
-L_til = X'*li_i*X;
-C_til = X'*ci_i;
+L_til = X'*li*X;
+C_til = X'*ci;
 Q_til=zeros(RD_nm,RD_nm,RD_nm);
-Q = reshape(q_i,OG_nm,OG_nm,OG_nm);
+Q = reshape(qi,OG_nm,OG_nm,OG_nm);
 for i = 1:RD_nm
     for j = 1:RD_nm
         for k = 1:RD_nm
@@ -136,8 +145,8 @@ rmct=-odecoe(RD_nm,RD_nm,fc_til);
 %Solution of the system of equation
 options = odeset('RelTol',1e-6,'AbsTol',1e-8);
 %(Control implicit in the modes)
-
-[T1,Y1] = ode113(@eqdifvecm,[tn(1):dl:tn(4*2048)],psitc(in,1:RD_nm),options,-rmct);   %(base line)(f = 500 Hz)
+tspan = tn(1):dl:tn(4*2048);
+[T1,Y1] = ode113(@eqdifvecm,tspan,psitc(in,1:RD_nm),options,-rmct);   %(base line)(f = 500 Hz)
 
 [rep] = error_til(Lam_til,Y1);
   
