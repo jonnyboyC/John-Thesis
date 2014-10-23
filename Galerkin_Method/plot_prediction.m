@@ -53,6 +53,8 @@ end
 
 % Intialize Video creator
 writer = VideoWriter([direct '\Figures\Movies\POD' num2str(num_pods) '_Galerkin.avi']);
+writer.Quality = 100;
+wrtier.FrameRate = 60;
 open(writer);
 
 %% TODO May need to relook at this to make it more memory efficient
