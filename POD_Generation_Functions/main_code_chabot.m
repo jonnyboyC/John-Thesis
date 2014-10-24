@@ -132,7 +132,7 @@ vol_frac    = reshape(vol_frac, data_points, 1);
 
 %% Perform Proper Orthogonal Decomposition
 covariance = cal_covariance_mat(u, v, mean_u, mean_v, vol_frac);
-[pod_u, pod_v, lambda2, eig_func_norm] =  calc_eig_modes(covariance, num_modes, u, v, mean_u, mean_v); 
+[pod_u, pod_v, lambda2, eig_func] =  calc_eig_modes(covariance, num_modes, u, v, mean_u, mean_v); 
 
 pod_u1 = regroup(pod_u, dimensions);
 pod_v1 = regroup(pod_v, dimensions);
@@ -170,12 +170,12 @@ Plotsvd2(data, pod_v1(:,1:num_plot), dimensions, 'v', lambda2, direct, save_figu
 % Save variables relavent to Galerkin to .mat files
 if save_pod == true
     save([direct '\POD Data\POD.mat'], 'x', 'y', 'bnd_idx', 'dimensions', ...
-        'eig_func_norm', 'lambda2', 'mean_u', 'mean_v', 'pod_u1', 'pod_v1', ...
+        'eig_func', 'lambda2', 'mean_u', 'mean_v', 'pod_u1', 'pod_v1', ...
         'vol_frac');
 end
 % If requested place relvent galerkin variables in workspace
 if dump2work == true
-    putvar(x, y, bnd_idx, dimensions, eig_func_norm, lambda2, mean_u, mean_v, ...
+    putvar(x, y, bnd_idx, dimensions, eig_func, lambda2, mean_u, mean_v, ...
         pod_u1, pod_v1, vol_frac);
 end
 

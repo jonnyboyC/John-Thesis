@@ -8,8 +8,9 @@ switch nargin
     otherwise
         error('Too many input arguments');
 end
-[data, direct] = prompt_folder({'POD', 'Galerkin'});
-load(data{1}, 'eig_func_norm', 'lambda2', 'num_pods');
+direct = 'D:\shear layer\dummie';
+[data, ~] = prompt_folder({'POD', 'Galerkin'});
+load(data{1}, 'eig_func', 'lambda2', 'pod_u1', 'pod_v1', 'dimensions');
 load(data{2});
 
 OG_nm = num_pods; % Original number of modes
@@ -19,106 +20,44 @@ if RD_nm > OG_nm
     RD_nm = OG_nm;
 end
 
-rep = 1;                            % residual from epsilon
-epsi = sum(li*lambda2(1:OG_nm));    % intial guess for epsilon
-nv = 1;                             % Leaving for now will probably delete
-iter = 0;                           % optimization iteratin
+pod_ut = pod_u1(:,1:OG_nm);
+pod_vt = pod_v1(:,1:OG_nm);
 
-esc=0;                              % escape criteria
-epst = epsi*1.01;                   % Don't want to rotate worse than initial guess
+epsilon_i = sum(li*lambda2(1:OG_nm)); % intial guess for epsilon
 
-% TODO have figure update x and y data ins
-figure
-hold on
-while abs(epst) > abs(epsi) %500 %(rep ~= 0 ||)ct < 1 % 
-    [X, L, epsilon, lambda] = constrained_POD(eig_func_norm',li,OG_nm,RD_nm,epsi);
-    %inputs of constrained_POD are the POD temporal coefficients,eig_func_norm',
-    %the linear Galerkin matrix, li, the transformation dimensions N and
-    %n, and the transfer term parameter epsi
-    Lam_til = X'*diag(lambda2(1:OG_nm))*X;
-    
-    % Modified reduced order model coefficients
-    L_til = X'*li*X;
-    C_til = X'*ci;
-    Q_til=zeros(RD_nm,RD_nm,RD_nm);
-    Q = reshape(qi,OG_nm,OG_nm,OG_nm);
-    for i = 1:RD_nm
-        for j = 1:RD_nm
-            for k = 1:RD_nm
-                for p = 1:OG_nm
-                    for r = 1:OG_nm
-                        for q = 1:OG_nm
-                            Q_til(i,j,k) = Q_til(i,j,k) + X(p,i)*Q(p,q,r)*X(q,j)*X(r,k);
-                        end
-                    end
-                end
-            end
-        end
-    end
-    % solve new system of equation
-    Q_til=reshape(Q_til,RD_nm,RD_nm*RD_nm);
-    fc_til=[C_til L_til Q_til]; % constant, linear and quadratic terms coefficients
-    
-    in=1; % initial point (to)
-    
-    reduced_model_coeff= ode_coefficients(RD_nm,RD_nm,fc_til);
-    
-    %Solution of the system of equation
-    options = odeset('RelTol',1e-6,'AbsTol',1e-8);
-    %(Control implicit in the modes)
-    
-    % Look more into tspan;
-    tspan = [0 100]; % tn(1):dl:tn(2000);
-    [~,Y_til] = ode113(@(t, y) system_odes(t, y, -reduced_model_coeff)...
-        , tspan ,eig_func_norm(in,1:RD_nm), options);   %(base line)(f = 500 Hz)
-    
-    rep = error_til(Lam_til,Y_til);
-    plot(epsi,rep,'*')
-    drawnow;
-       % saveas(gcf, ['M:\MASTERS\Spring 2014 Thesis figures\alpha',num2str(ia),'_Mod_POD_bl_',num2str(N),' to ',num2str(n),' a POSITIVE EPS CORRECTION'],'fig');
-    
-    if nv == 1
-        rep1 = rep;
-        eps = epsi;
-        epsi = epsi-epsi/100;
-        nv = nv+1;
-        repm = rep;
-        epsm = epsi;
-    else
-       if abs(rep) < abs(repm)
-            repm = rep;
-            epsm=epsi;
-       end
-       
-       if sign(rep1) == sign(rep)
-           if esc > 0 && abs(rep1) < abs(rep)
-               break
-           end
-            eps=epsi;
-            epsi = epsi-epst/100;
-       else
-            teps = (eps+epsi)/2;
-            eps = epsi;
-            epsi = teps;
-            esc=1;
-       end
-       
-       rep1 = rep;
-        
-    end
-    
-    iter = iter+1;
-    if iter> 200
-        break
+[epsilon_final, ~, EXITFLAG, ~] = fzero(@(epsilon) optimal_rotation...
+    (epsilon, ci, li, qi, OG_nm, RD_nm, lambda2, eig_func), epsilon_i);
+
+disp(EXITFLAG);
+
+[~, X] = ...
+    optimal_rotation(epsilon_final, ci, li, qi, OG_nm, RD_nm, lambda2, eig_func);
+
+pod_u_til = zeros(size(pod_vt,1), RD_nm);
+pod_v_til = zeros(size(pod_vt,1), RD_nm);
+for i = 1:RD_nm
+    for j = 1:size(pod_ut,1)
+        pod_u_til(j,i) = sum(X(:,i)'.*pod_ut(j,:));
+        pod_v_til(j,i) = sum(X(:,i)'.*pod_vt(j,:));
+        modal_amp_til(j,i) = sum(X(:,i)'.*modal_amp(j,:));
     end
 end
 
-%calculation with minimum error
-epsi = epsm;
-[X, L, epsilon, lambda] = constrained_POD(eig_func_norm',li,OG_nm,RD_nm,epsi);
+
+plot_prediction(pod_u_til, pod_v_til, x, y, modal_amp_til, RD_nm, dimensions, direct);
+end
+
+
+function [rep, X] = ... %, C_til, L_til, Q_til] = ...
+    optimal_rotation(epsilon, ci, li, qi, OG_nm, RD_nm, lambda2, eig_func)
+    
+X = constrained_POD(eig_func',li,OG_nm,RD_nm,epsilon);
+%inputs of constrained_POD are the POD temporal coefficients,eig_func',
+%the linear Galerkin matrix, li, the transformation dimensions N and
+%n, and the transfer term parameter epsi
 Lam_til = X'*diag(lambda2(1:OG_nm))*X;
 
-% Modified redued order model coefficients
+% Modified reduced order model coefficients
 L_til = X'*li*X;
 C_til = X'*ci;
 Q_til=zeros(RD_nm,RD_nm,RD_nm);
@@ -136,7 +75,6 @@ for i = 1:RD_nm
         end
     end
 end
-
 % solve new system of equation
 Q_til=reshape(Q_til,RD_nm,RD_nm*RD_nm);
 fc_til=[C_til L_til Q_til]; % constant, linear and quadratic terms coefficients
@@ -149,51 +87,10 @@ reduced_model_coeff= ode_coefficients(RD_nm,RD_nm,fc_til);
 options = odeset('RelTol',1e-6,'AbsTol',1e-8);
 %(Control implicit in the modes)
 
-% Again look into tspan
-tspan = [0 100];
-[T1,Y1] = ode113(@(t, y) system_odes(t, y, -reduced_model_coeff)...
-    , tspan ,eig_func_norm(in,1:RD_nm), options);   %(base line)(f = 500 Hz)
+% Look more into tspan;
+tspan = 0:0.05:10;
+[~,Y_til] = ode113(@(t, y) system_odes(t, y, -reduced_model_coeff)...
+    , tspan ,eig_func(in,1:RD_nm), options);   %(base line)(f = 500 Hz)
 
-rep = error_til(Lam_til,Y1);
-  
-figure
-  
-for i = 1:2
-        subplot(2,2,i)%(211)%
-        if RD_nm>4
-            ep=4;
-        else
-            ep =RD_nm;
-        end
-        hold on
-%         if vd > Nsamples
-            plot((0:size(eig_func_norm(in:end,1))-1)*sc/mu0,eig_func_norm(in:end,i),'. k')
-            %                 plot((0:size(psitc1(in:end,1))-1)*sc/mu0,psitc1(in:end,1:ep),'.g')
-%         else
-%             plot((0:vd-1)*sc/mu0,eig_func_norm(in:vd,i),'. k')
-%             %                 plot((0:size(psitc1,1)-1)*sc/mu0,psitc1(:,1:ep),'.g')
-%         end
-        
-        plot(T1*sc/mu0,Y1(:,i),'m','MarkerSize',3);%'color',[ 0.000 0.502 0.000 ],'Marker','o','MarkerSize',4)
-        
-        ylim([-1 1]);
-        
-        title(['a^',num2str(i), '(t); ' num2str(RD_nm) 'POD modes'],'fontname','times new roman','fontsize',11)%,'FontWeight','demi'
-        xlabel('Time (s)','fontname','times new roman','fontsize',11)%,'units', 'norm','position',[.5,-.105])
-        ylabel('Amplitude','fontname','times new roman','fontsize',11)
-        
-        if tn(vd)*sc/mu0 > 0.035
-            xlim([0.03 0.035]);
-        else
-            xlim([0 tn(vd)*sc/mu0]);
-        end
-
-              subplot(2,2,2+i)%(212)%(223)%
-              hold on
-        for mn = 1
-            run  edgarfouriercoeff;%_bl frequency
-        end
-        grid on
-end
-     %   saveas(gcf, ['M:\MASTERS\Spring 2014 Thesis figures\alpha',num2str(ia),'_Mod_POD_',num2str(N),' to POSITIVE EPS CORRECTION',num2str(n)],'fig');
+rep = error_til(Lam_til,Y_til);
 end

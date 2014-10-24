@@ -1,6 +1,4 @@
-function [X, L, epsilon, lambda] = constrained_POD(a,li_i,N,n,epsi)
-L=li_i;
-epsilon = epsi;
+function [X, L, lambda] = constrained_POD(a,L,N,n,epsilon)
 lambda = zeros(N, 1);
 for i=1:N;
     lambda(i) = mean(a(i,:).*a(i,:));
@@ -18,7 +16,7 @@ problem.x0 = x0;
 problem.solver = 'fmincon';
 
 options = optimoptions('fmincon');
-options.Algorithm = 'active-set';
+% options.Algorithm = 'active-set';
 % options.MaxFunEvals = 30000;
 problem.options = options;
 

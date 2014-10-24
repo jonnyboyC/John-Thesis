@@ -56,7 +56,7 @@ switch nargin
         num_pods = varargin{1};
         plot_pred = varargin{2};
         save_coef = varargin{3};
-        tspan = varargin{4}      
+        tspan = varargin{4};    
     otherwise
         error('Too many input arguments');
 end
@@ -99,7 +99,7 @@ pod_vt = pod_v1(:,1:num_pods);
 [l_dot, l, q_2dot, q_dot, qi] = visocity_coefficients(mean_u, mean_v, ...
     x, y, pod_ut, pod_vt, dimensions, vol_frac, bnd_idx, z);
 
-niu = viscious_dis(eig_func_norm, num_pods, lambda2, l, q_dot, qi);
+niu = viscious_dis(eig_func, num_pods, lambda2, l, q_dot, qi);
 ci = l_dot/Re0.*niu+q_2dot;
 
 % matrix of niu with extra scaling on off diagonal
@@ -112,8 +112,8 @@ reduced_model_coeff = ode_coefficients(num_pods, num_pods, fcuhi1);
 options = odeset('RelTol', 1e-6, 'AbsTol', 1e-8);
 
 tic;
-[t, modal_amp] = ode45(@(t,y) system_odes(t,y,-reduced_model_coeff), tspan, ...
-    eig_func_norm(1,1:num_pods), options);
+[~, modal_amp] = ode45(@(t,y) system_odes(t,y,-reduced_model_coeff), tspan, ...
+    eig_func(1,1:num_pods), options);
 toc;
 
 % Provide only modal flucations ie only turblent portion of modes
@@ -126,5 +126,5 @@ if plot_pred == true
 end
 
 if save_coef == true
-    save([direct '\Galerkin Coeff\Coeff.mat'], 'ci', 'li', 'qi', 'num_pods');
+    save([direct '\Galerkin Coeff\Coeff.mat'], 'ci', 'li', 'qi', 'num_pods', 'modal_amp');
 end
