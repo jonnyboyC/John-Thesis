@@ -18,7 +18,8 @@ problem.x0 = x0;
 problem.solver = 'fmincon';
 
 options = optimoptions('fmincon');
-options.Algorithm = 'interior-point';
+options.Algorithm = 'active-set';
+% options.MaxFunEvals = 30000;
 problem.options = options;
 
 [x,~,~,OUTPUT,~] = fmincon(problem);

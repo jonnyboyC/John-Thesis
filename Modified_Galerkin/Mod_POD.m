@@ -72,8 +72,9 @@ while abs(epst) > abs(epsi) %500 %(rep ~= 0 ||)ct < 1 %
     [~,Y_til] = ode113(@(t, y) system_odes(t, y, -reduced_model_coeff)...
         , tspan ,eig_func_norm(in,1:RD_nm), options);   %(base line)(f = 500 Hz)
     
-    [rep] = error_til(Lam_til,Y_til);
+    rep = error_til(Lam_til,Y_til);
     plot(epsi,rep,'*')
+    drawnow;
        % saveas(gcf, ['M:\MASTERS\Spring 2014 Thesis figures\alpha',num2str(ia),'_Mod_POD_bl_',num2str(N),' to ',num2str(n),' a POSITIVE EPS CORRECTION'],'fig');
     
     if nv == 1
