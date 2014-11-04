@@ -35,6 +35,7 @@ function main_code_chabot(varargin)
 % Set format and set to correct directory
 format long g
 close all
+clc
 
 %%%%%%%%%%%% ALTER THIS TO MAKE PORTABLE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % cd('C:\Users\John-Desktop\Documents\MATLAB\thesis stuff\');
@@ -48,6 +49,7 @@ switch nargin
         save_pod        = true;
         dump2work       = false;
         save_figures    = 'none';
+        direct          = '';
     case 1
         % First parameter select number of images to load
         num_images      = varargin{1};
@@ -55,6 +57,7 @@ switch nargin
         save_pod        = true;
         dump2work       = false;
         save_figures    = 'none';
+        direct          = '';
     case 2
         % Second parameter select overwrite status
         num_images      = varargin{1};
@@ -62,6 +65,7 @@ switch nargin
         save_pod        = true;
         dump2work       = false;
         save_figures    = 'none';
+        direct          = '';
     case 3
         % Third parameter select save_figure status
         num_images      = varargin{1};
@@ -69,18 +73,28 @@ switch nargin
         save_pod        = varargin{3};
         dump2work       = false;
         save_figures    = 'none';
+        direct          = '';
     case 4
         num_images      = varargin{1};
         overwrite       = varargin{2};
         save_pod        = varargin{3};
         dump2work       = varargin{4};
         save_figures    = 'none';
+        direct          = '';
     case 5
         num_images      = varargin{1};
         overwrite       = varargin{2};
         save_pod        = varargin{3};
         dump2work       = varargin{4};
         save_figures    = varargin{5};
+        direct          = '';
+    case 6
+        num_images      = varargin{1};
+        overwrite       = varargin{2};
+        save_pod        = varargin{3};
+        dump2work       = varargin{4};
+        save_figures    = varargin{5};
+        direct          = varargin{6};
     otherwise
         error('Too many input arguments');
 end
@@ -95,7 +109,7 @@ end
 % Load velocity images from data, will load from raw files if processing
 % has not been done, will load from .mat file otherwise. Select true to
 % overwrite previous .mat files
-[x, y, u, v, direct] = Velocity_Read_Save(num_images, overwrite);
+[x, y, u, v, direct] = Velocity_Read_Save(num_images, overwrite, direct);
 mean_u = mean(u,3);
 mean_v = mean(v,3);
 dimensions = size(x);   
@@ -163,8 +177,8 @@ data.xg = x;
 data.yg = y;
 
 % Plot pod modes
-Plotsvd2(data, pod_u1(:,1:num_plot), dimensions, 'u', lambda2, direct, save_figures);
-Plotsvd2(data, pod_v1(:,1:num_plot), dimensions, 'v', lambda2, direct, save_figures);
+Plotsvd2(data, pod_u1(:,1:num_plot), dimensions, 'u', lambda2, bnd_idx, direct, save_figures);
+Plotsvd2(data, pod_v1(:,1:num_plot), dimensions, 'v', lambda2, bnd_idx, direct, save_figures);
 
 %% Save / Dump variables
 % Save variables relavent to Galerkin to .mat files

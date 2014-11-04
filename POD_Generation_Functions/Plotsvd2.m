@@ -1,4 +1,4 @@
-function Plotsvd2(data,pod,sz,varname,sigma, direct, save_figures)
+function Plotsvd2(data,pod,sz,varname,sigma, bnd_idx, direct, save_figures)
 % Determine number of modes
 [~,num_modes] = size(pod);
 
@@ -38,7 +38,7 @@ for i = 1:num_modes
     % plot individual plots
     subplot(2,2,plot_img_num)
     if i <= 4
-        [h_sub(i), ax_sub(i)] = Plottec2(data);
+        [h_sub(i), ax_sub(i)] = Plottec2(data, 0, bnd_idx);
         colorbar;
     else
         h_sub(plot_img_num) = Plottec2(data,h_sub(plot_img_num));

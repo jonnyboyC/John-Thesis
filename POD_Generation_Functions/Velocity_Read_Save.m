@@ -1,4 +1,4 @@
-function [xi, yi, ui, vi, direct] = Velocity_Read_Save(num_images, overwrite)
+function [xi, yi, ui, vi, direct] = Velocity_Read_Save(num_images, overwrite, direct)
 % VELOCITY_READ_PLOT_SAVE read num_images number of images from a selected
 % directory.
 %   [x, y, u, v, num_x, num_y] = VELOCITY_READ_PLOT_SAVE(num_images)
@@ -43,7 +43,9 @@ start_direct = 'D:\shear layer';
 
 % Prompt the user for location of Test Folder
 fprintf(1, 'Please choose test data directory\n');
-direct = uigetdir(start_direct, 'Choose Source Image Directory');
+if strcmp(direct, '')
+    direct = uigetdir(start_direct, 'Choose Source Image Directory');
+end
 
 % Set up the folders properly
 update_folders(direct);
@@ -55,6 +57,21 @@ overwrite = update_overwrite(overwrite, num_images, direct);
 saved_files = dir([direct '\Processed Data\*.mat']);
 img_files = dir([direct '\Raw Data\*.vc7']);
 num_files = length(img_files);
+file_type = 'vc7';
+
+% If files of the .vc7 are not found look for .im7 files
+if num_files == 0
+    img_files = dir([direct '\Raw Data\*.im7']);
+    num_files = length(img_files);
+    file_type = 'im7';
+end 
+
+% File no vc7 files are found look for .mat files
+if num_files == 0
+    img_files = dir([direct '\Raw Data\*.mat']);
+    num_files = length(img_files);
+    file_type = 'mat';
+end
 
 % Check to see if a saved file exists
 if (overwrite == false && size(saved_files,1) == 2)
@@ -62,40 +79,74 @@ if (overwrite == false && size(saved_files,1) == 2)
     return
 end
 
-% If files of the .vc7 are not found look for .im7 files
-if num_files == 0
-    img_files = dir([direct '\Raw Data\*.im7']);
-    num_files = length(img_files);
-end 
-
 if num_images < num_files
     num_files = num_images;
 end
 
-% Preallocat array size for number of image files
-img_num = zeros(1,length(img_files));
+if strcmp(file_type, 'mat')
+    [xi, yi, ui, vi] = load_mat(img_files, num_files, num_images,  direct);
+else
+    [xi, yi, ui, vi] = load_vc7(img_files, num_files, num_images,  direct);
+end
+end
 
+% Function to load files of .mat format
+function [xi, yi, ui, vi] = load_mat(img_files, num_files, num_images, direct)
+
+% Get dimensions of image
+load([direct '\Raw Data\' img_files(1).name], 'x', 'y');
+num_x = size(x,1);
+num_y = size(x,2);
+
+% Preallocate Matrices
+ui = zeros(num_x, num_y, num_files);
+vi = zeros(num_x, num_y, num_files);
+
+% Load images
+for i = 1:num_files
+   if ~img_files(i).isdir
+       
+        % Show current progress
+        [~, img_num(i)] = update_progress(img_files(i));
+        
+        % Load individual images
+        load([direct '\Raw Data\' img_files(i).name], 'u', 'v');
+        
+        % Perform image rotation if necessary
+        [xi, yi, ui(:,:,i), vi(:,:,i)] = image_rotation(x, y, u, v);
+   end
+end
+
+% Save Data to processed folder
+num_processed = num_images;
+save([direct '\Processed Data\Processed.mat'], 'xi', 'yi', 'ui', 'vi', 'num_x', 'num_y');
+save([direct '\Processed Data\Num_Processed.mat'], 'num_processed');
+end
+
+% Function to load files of the .vc7/.im7 format
+function [xi, yi, ui, vi] = load_vc7(img_files, num_files, num_images, direct)
+
+% Get dimensions of image
 lavdata = readimx([direct '\Raw Data\' img_files(1).name]);
 num_x = lavdata.Nx;
 num_y = lavdata.Ny;
 
-xi = zeros(num_x, num_y, length(num_files));  
-yi = zeros(num_x, num_y, length(num_files));
-ui = zeros(num_x, num_y, length(num_files));
-vi = zeros(num_x, num_y, length(num_files));
+% Preallocate matrices 
+xi = zeros(num_x, num_y);  
+yi = zeros(num_x, num_y);
+ui = zeros(num_x, num_y, num_files);
+vi = zeros(num_x, num_y, num_files);
 
 % TODO original file was able to process multiple folders of data, will
 % potentially want to add back in
 
-% TODO potentially to make parfor need to investigate more currently much
-% faster than original impementation
-
+% Load images
 for i = 1:num_files
     % process if the file isn't a directory
     if ~img_files(i).isdir
         
         % Show current progress
-        [file_name, img_num(i)] = update_progress(img_files(i));
+        file_name = update_progress(img_files(i));
         
         % Original file also takes the any additional files that contain a
         % * concatentated onto the end; such as B00001.vc7*. It also took
@@ -103,21 +154,19 @@ for i = 1:num_files
         
         lavdata = readimx([direct '\Raw Data\' file_name]);
         [x,y,u,v] = showimx_mod(lavdata);
-        % Need to check if this ever changes
-        
-        [xi(:,:,i), yi(:,:,i), ui(:,:,i), vi(:,:,i)] = image_rotation(x,y,u,v);            
+
+        % Rotate images to proper orientation
+        [xi, yi, ui(:,:,i), vi(:,:,i)] = image_rotation(x,y,u,v);            
     end
 end
 
+% Save Data to processed folder
 num_processed = num_images;
-xi = xi(:,:,1);
-yi = yi(:,:,1);
 save([direct '\Processed Data\Processed.mat'], 'xi', 'yi', 'ui', 'vi', 'num_x', 'num_y');
 save([direct '\Processed Data\Num_Processed.mat'], 'num_processed');
 
 % TODO if we need to return to gathering data from multiple runs we should
 % return u to a cell
-
 end
 
 % determine if the image is inverted in one or both of the axis
@@ -128,26 +177,31 @@ function [xn, yn, un, vn] = image_rotation(x, y, u, v)
     un = zeros(size(u));
     vn = zeros(size(v));
     
+    % TODO come up with more elegant solution
+    if all(x <= 0)
+        x = x*-1;
+    end
+    
     % create vector of indexes to avoid loops
     x_idx = 1:size(x,1);
     y_idx = 1:size(y,2);
     
     % perform flips
     if x(1,1) > x(end,1) && y(1,1) > y(1,end)
-        xn(x_idx, y_idx) = x(end - x_idx + 1, end - y_idx + 1);
-        yn(x_idx, y_idx) = y(end - x_idx + 1, end - y_idx + 1);
-        un(x_idx, y_idx) = u(end - x_idx + 1, end - y_idx + 1);
-        vn(x_idx, y_idx) = v(end - x_idx + 1, end - y_idx + 1);
+        xn(x_idx, y_idx) = x(size(x,1) - x_idx + 1, size(x,2) - y_idx + 1);
+        yn(x_idx, y_idx) = y(size(y,1) - x_idx + 1, size(y,2) - y_idx + 1);
+        un(x_idx, y_idx) = u(size(u,1) - x_idx + 1, size(u,2) - y_idx + 1);
+        vn(x_idx, y_idx) = v(size(v,1) - x_idx + 1, size(v,2) - y_idx + 1);
     elseif x(1,1) > x(end,1) && y(1,1) < y(1, end)
-        xn(x_idx,:) = x(end-x_idx+1,:);
-        yn(x_idx,:) = y(end-x_idx+1,:);
-        un(x_idx,:) = u(end-x_idx+1,:);
-        vn(x_idx,:) = v(end-x_idx+1,:);
+        xn(x_idx,:) = x(size(x,1)-x_idx+1,:);
+        yn(x_idx,:) = y(size(y,1)-x_idx+1,:);
+        un(x_idx,:) = u(size(u,1)-x_idx+1,:);
+        vn(x_idx,:) = v(size(v,1)-x_idx+1,:);
     elseif x(1,1) < x(end,1) && y(1,1) > y(1,end)
-        xn(:,y_idx) = x(:,end-y_idx+1);
-        yn(:,y_idx) = y(:,end-y_idx+1);
-        un(:,y_idx) = u(:,end-y_idx+1);
-        vn(:,y_idx) = v(:,end-y_idx+1);
+        xn(:,y_idx) = x(:,size(x,2)-y_idx+1);
+        yn(:,y_idx) = y(:,size(y,2)-y_idx+1);
+        un(:,y_idx) = u(:,size(u,2)-y_idx+1);
+        vn(:,y_idx) = v(:,size(v,2)-y_idx+1);
     end
 end
 
@@ -180,8 +234,10 @@ function update_folders(direct)
            mkdir(direct, '\Figures\Movies');
        end 
     end
-    % Move any vc7 files into the Raw data folder
+    % Move any vc7 or mat files into the Raw data folder
     [~, ~, ~] = movefile([direct '\*.vc7'], [direct '\Raw Data']); 
+    [~, ~, ~] = movefile([direct '\*.im7'], [direct '\Raw Data']); 
+    [~, ~, ~] = movefile([direct '\*.mat'], [direct '\Raw Data']); 
 end
 
 % Check to see if number of images processed last time is same as this
