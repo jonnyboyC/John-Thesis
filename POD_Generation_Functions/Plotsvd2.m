@@ -22,6 +22,7 @@ h_sub = gobjects(4, 1);
 ax_sub = gobjects(4, 1);
 
 h = figure('Name',['  Variable: ' varname ',  (' num2str(sum(energy),4) '%)'],'color','w');
+h.Position = [500, 500, 800, 400];
 for i = 1:num_modes
     data.pod = reshape(pod(:,i),sz(1),sz(2));
     

@@ -3,14 +3,20 @@ function Mod_POD(varargin)
 switch nargin
     case 0
         RD_nm = 8;
+        plot_type = 'none';
     case 1
         RD_nm = varargin{1};
+        plot_type = 'none';
+    case 2
+        RD_nm = varargin{1};
+        plot_type = varargin{2};
     otherwise
         error('Too many input arguments');
+        
 end
 direct = 'D:\shear layer\dummie';
 [data, ~] = prompt_folder({'POD', 'Galerkin'});
-load(data{1}, 'eig_func', 'lambda2', 'pod_u1', 'pod_v1', 'dimensions');
+load(data{1}, 'eig_func', 'lambda2', 'pod_u1', 'pod_v1', 'dimensions', 'x', 'y');
 load(data{2});
 
 OG_nm = num_pods; % Original number of modes
@@ -25,31 +31,43 @@ pod_vt = pod_v1(:,1:OG_nm);
 
 epsilon_i = sum(li*lambda2(1:OG_nm)); % intial guess for epsilon
 
+options = optimset('PlotFcns', {@optimplotx, @optimplotfval});
 [epsilon_final, ~, EXITFLAG, ~] = fzero(@(epsilon) optimal_rotation...
-    (epsilon, ci, li, qi, OG_nm, RD_nm, lambda2, eig_func), epsilon_i);
+    (epsilon, ci, li, qi, OG_nm, RD_nm, lambda2, eig_func, t), epsilon_i, options);
 
 disp(EXITFLAG);
 
 [~, X] = ...
-    optimal_rotation(epsilon_final, ci, li, qi, OG_nm, RD_nm, lambda2, eig_func);
+    optimal_rotation(epsilon_final, ci, li, qi, OG_nm, RD_nm, lambda2, eig_func, t);
 
 pod_u_til = zeros(size(pod_vt,1), RD_nm);
 pod_v_til = zeros(size(pod_vt,1), RD_nm);
+modal_amp_til = zeros(size(modal_amp,1), RD_nm);
 for i = 1:RD_nm
     for j = 1:size(pod_ut,1)
         pod_u_til(j,i) = sum(X(:,i)'.*pod_ut(j,:));
         pod_v_til(j,i) = sum(X(:,i)'.*pod_vt(j,:));
+    end
+    for j = 1:size(modal_amp,1)
         modal_amp_til(j,i) = sum(X(:,i)'.*modal_amp(j,:));
     end
 end
 
-
-plot_prediction(pod_u_til, pod_v_til, x, y, modal_amp_til, RD_nm, dimensions, direct);
+if strcmp(plot_type, 'amp')
+    plot_amp(modal_amp_til, t);
+elseif strcmp(plot_type, 'video')
+    plot_prediction(pod_u_til, pod_v_til, x, y, modal_amp_til, RD_nm, dimensions, direct);
+elseif strcmp(plot_type, 'both');
+    plot_prediction(pod_u_til, pod_v_til, x, y, modal_amp_til, RD_nm, dimensions, direct);
+    plot_amp(modal_amp, t);
+elseif strcmp(plot_pred, 'none')
+else
+    error('When specifying plot type, choose either amp, video, both or none');
+end
 end
 
-
 function [rep, X] = ... %, C_til, L_til, Q_til] = ...
-    optimal_rotation(epsilon, ci, li, qi, OG_nm, RD_nm, lambda2, eig_func)
+    optimal_rotation(epsilon, ci, li, qi, OG_nm, RD_nm, lambda2, eig_func, t)
     
 X = constrained_POD(eig_func',li,OG_nm,RD_nm,epsilon);
 %inputs of constrained_POD are the POD temporal coefficients,eig_func',
@@ -88,7 +106,7 @@ options = odeset('RelTol',1e-6,'AbsTol',1e-8);
 %(Control implicit in the modes)
 
 % Look more into tspan;
-tspan = 0:0.05:10;
+tspan = t;
 [~,Y_til] = ode113(@(t, y) system_odes(t, y, -reduced_model_coeff)...
     , tspan ,eig_func(in,1:RD_nm), options);   %(base line)(f = 500 Hz)
 

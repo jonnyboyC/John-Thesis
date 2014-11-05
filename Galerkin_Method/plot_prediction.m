@@ -54,7 +54,7 @@ end
 % Intialize Video creator
 writer = VideoWriter([direct '\Figures\Movies\POD' num2str(num_pods) '_Galerkin.avi']);
 writer.Quality = 100;
-wrtier.FrameRate = 60;
+writer.FrameRate = 60;
 open(writer);
 
 %% TODO May need to relook at this to make it more memory efficient
@@ -87,8 +87,8 @@ for i = 1:length(modal_amp(:,1))
         else
             h_sub(j) = Plottec2(data_temp, h_sub(j));
         end
-        ax_sub(j).ZLim = [cmin(j) cmax(j)];
-        ax_sub(j).CLim = [cmin(j) cmax(j)];
+        ax_sub(j).ZLim = [cmin(j), cmax(j)];
+        ax_sub(j).CLim = [cmin(j), cmax(j)];
     end
     frame = getframe(gcf);
     writeVideo(writer, frame)

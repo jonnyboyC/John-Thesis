@@ -34,12 +34,12 @@ switch nargin
         % Default: run simulation for 10 pod modes, don't plot, run for
         % 100s, save coefficients
         num_pods = 10;
-        plot_pred = false;
+        plot_pred = 'none';
         save_coef = true;
         tspan = [0 100];
     case 1
         num_pods = varargin{1};
-    	plot_pred = false;
+    	plot_pred = 'none';
         save_coef = true;
         tspan = [0 100];
     case 2
@@ -112,7 +112,7 @@ reduced_model_coeff = ode_coefficients(num_pods, num_pods, fcuhi1);
 options = odeset('RelTol', 1e-6, 'AbsTol', 1e-8);
 
 tic;
-[~, modal_amp] = ode45(@(t,y) system_odes(t,y,-reduced_model_coeff), tspan, ...
+[t, modal_amp] = ode45(@(t,y) system_odes(t,y,-reduced_model_coeff), tspan, ...
     eig_func(1,1:num_pods), options);
 toc;
 
@@ -121,10 +121,18 @@ toc;
 modal_amp = modal_amp - ones(size(modal_amp,1), 1)*mean(modal_amp);
 % plot(t, modal_amp(:,1), 'b');
 
-if plot_pred == true
+if strcmp(plot_pred, 'amp')
+    plot_amp(modal_amp(:, 1:8), t);
+elseif strcmp(plot_pred, 'video')
     plot_prediction(pod_ut, pod_vt, x, y, modal_amp, num_pods, dimensions, direct)
+elseif strcmp(plot_pred, 'both');
+    plot_amp(modal_amp(:, 1:8), t);
+    plot_prediction(pod_ut, pod_vt, x, y, modal_amp, num_pods, dimensions, direct)
+elseif strcmp(plot_pred, 'none')
+else
+    error('When specifying plot type, choose either amp, video, both or none');
 end
 
 if save_coef == true
-    save([direct '\Galerkin Coeff\Coeff.mat'], 'ci', 'li', 'qi', 'num_pods', 'modal_amp');
+    save([direct '\Galerkin Coeff\Coeff.mat'], 'ci', 'li', 'qi', 'num_pods', 'modal_amp', 't');
 end
