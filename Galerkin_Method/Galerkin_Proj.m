@@ -120,15 +120,14 @@ toc;
 
 % modal_amp = modal_amp - ones(size(modal_amp,1), 1)*mean(modal_amp);
 
-h1 = figure(1);
+
 if strcmp(plot_pred, 'amp')
-    plot_amp(modal_amp(:, 1:3), t, h1);
+    plot_amp(modal_amp(:, 1:6), t);
 elseif strcmp(plot_pred, 'video')
-    plot_prediction(pod_ut, pod_vt, x, y, modal_amp, num_pods, dimensions, direct, h1)
+    plot_prediction(pod_ut, pod_vt, x, y, modal_amp, num_pods, dimensions, direct)
 elseif strcmp(plot_pred, 'both');
-    h2 = figure(2);
-    plot_amp(modal_amp(:, 1:3), t, h1);
-    plot_prediction(pod_ut, pod_vt, x, y, modal_amp, num_pods, dimensions, direct, h2)
+    plot_amp(modal_amp(:, 1:6), t);
+    plot_prediction(pod_ut, pod_vt, x, y, modal_amp, num_pods, dimensions, direct)
 elseif strcmp(plot_pred, 'none')
 else
     error('When specifying plot type, choose either amp, video, both or none');

@@ -1,4 +1,4 @@
-function plot_prediction(pod_u, pod_v, x, y, modal_amp, num_pods, dimensions, direct, h)
+function plot_prediction(pod_u, pod_v, x, y, modal_amp, num_pods, dimensions, direct)
 
 % Check to match sure requested image instead too large
 if size(modal_amp,1) > 10000
@@ -22,6 +22,7 @@ data_m.yg = y;
 
 % Fill all plots with blank images to set renderer to opengl
 dummie = zeros(2,2);
+h = figure;
 subplot(3,1,1)
 pcolor(dummie);
 axis tight
@@ -39,11 +40,6 @@ pcolor(dummie);
 axis tight
 set(gca, 'nextplot', 'replacechildren');
 set(h, 'Renderer', 'opengl');
-
-% Calculate predication by summing modes
-for i = 1:length(modal_amp(:,1))
-
-end
 
 % Intialize Video creator
 writer = VideoWriter([direct '\Figures\Movies\POD' num2str(num_pods) '_Galerkin.avi']);
@@ -89,6 +85,7 @@ for i = 1:length(modal_amp(:,1))
     fprintf('image %d of %d\n', i, length(modal_amp(:,1)));
     for j = 1:length(data);
         data_temp.pod = squeeze(data{j}(:,:,i));
+        data_temp.cmax = cmax(j);
         subplot(3,1,j);
         if i == 1
             [h_sub(j), ax_sub(j)] = Plottec2(data_temp);

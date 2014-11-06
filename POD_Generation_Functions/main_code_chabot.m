@@ -189,6 +189,7 @@ data.yg = y;
 Plotsvd2(data, pod_u1(:,1:num_plot), dimensions, 'u', lambda2, bnd_idx, direct, save_figures);
 Plotsvd2(data, pod_v1(:,1:num_plot), dimensions, 'v', lambda2, bnd_idx, direct, save_figures);
 
+
 %% Save / Dump variables
 % Save variables relavent to Galerkin to .mat files
 if save_pod == true

@@ -17,14 +17,15 @@ maxy = max(max(data.y));
 %    data.x = rmghost(data.x);
 % end
 
-if nargin == 1 || nargin == 3
+if nargin == 1 || nargin == 3 || nargin == 4
     ax = newplot;
     h = surf(ax, data.x, data.y, data.pod);
     h.FaceColor = 'interp';
     h.EdgeColor = 'none';
     if nargin == 3
         hold on
-        h2 = surf(ax, data.x, data.y, ones(size(data.pod)));
+        scale = data.cmax;
+        h2 = surf(ax, data.x, data.y, scale*ones(size(data.pod)));
         hold off
         bnd_idx = double((bnd_idx == -1));
         h2.AlphaDataMapping = 'none';

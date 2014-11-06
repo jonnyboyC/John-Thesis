@@ -16,6 +16,7 @@ end
 % Believe this is passed to scale colors
 cma=1;
 cmi=-cma;
+data.cmax = cma;
 
 % Preallocate figure plot handles
 h_sub = gobjects(4, 1);
