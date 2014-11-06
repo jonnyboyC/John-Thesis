@@ -18,8 +18,6 @@ function Galerkin_Proj(varargin)
 % x: matrix of x values
 % y: matrix of y values
 % bnd_idx: matrix of -1's , 0's, 1's defining the detected boundaries
-%
-%
 
 % Set format, clear figures, and set up correct directory
 format long g
@@ -112,22 +110,25 @@ reduced_model_coeff = ode_coefficients(num_pods, num_pods, fcuhi1);
 options = odeset('RelTol', 1e-6, 'AbsTol', 1e-8);
 
 tic;
-[t, modal_amp] = ode45(@(t,y) system_odes(t,y,-reduced_model_coeff), tspan, ...
+[t, modal_amp] = ode113(@(t,y) system_odes(t,y,-reduced_model_coeff), tspan, ...
     eig_func(1,1:num_pods), options);
 toc;
 
 % Provide only modal flucations ie only turblent portion of modes
 % TODO check the validity of this statement
-modal_amp = modal_amp - ones(size(modal_amp,1), 1)*mean(modal_amp);
-% plot(t, modal_amp(:,1), 'b');
 
+
+% modal_amp = modal_amp - ones(size(modal_amp,1), 1)*mean(modal_amp);
+
+h1 = figure(1);
 if strcmp(plot_pred, 'amp')
-    plot_amp(modal_amp(:, 1:8), t);
+    plot_amp(modal_amp(:, 1:3), t, h1);
 elseif strcmp(plot_pred, 'video')
-    plot_prediction(pod_ut, pod_vt, x, y, modal_amp, num_pods, dimensions, direct)
+    plot_prediction(pod_ut, pod_vt, x, y, modal_amp, num_pods, dimensions, direct, h1)
 elseif strcmp(plot_pred, 'both');
-    plot_amp(modal_amp(:, 1:8), t);
-    plot_prediction(pod_ut, pod_vt, x, y, modal_amp, num_pods, dimensions, direct)
+    h2 = figure(2);
+    plot_amp(modal_amp(:, 1:3), t, h1);
+    plot_prediction(pod_ut, pod_vt, x, y, modal_amp, num_pods, dimensions, direct, h2)
 elseif strcmp(plot_pred, 'none')
 else
     error('When specifying plot type, choose either amp, video, both or none');

@@ -131,13 +131,22 @@ end
 % multiple data
 
 [~, ~, ~, ~, ~, ~, bnd_idx] = boundary_check_chabot(x, y, mean_u);
-vol_frac = voln_piv(x, y, bnd_idx);
+vol_frac = voln_piv2(x, y, bnd_idx);
+
+% Find fluxating velocity of flow
+u_flux = zeros(size(u));
+v_flux = zeros(size(v));
+
+for i = 1:size(u,3);
+    u_flux(:,:,i) = u(:,:,i) - mean_u;
+    v_flux(:,:,i) = v(:,:,i) - mean_v;
+end
 
 % Create a stacked data matrix for u and v velocities
 u           = reshape(u, data_points, num_images);
 v           = reshape(v, data_points, num_images);
-mean_u     = reshape(mean_u, data_points, 1);
-mean_v     = reshape(mean_v, data_points, 1);
+mean_u      = reshape(mean_u, data_points, 1);
+mean_v      = reshape(mean_v, data_points, 1);
 vol_frac    = reshape(vol_frac, data_points, 1);
 
 % TODO calculate POD modes only for data points that not in the boundary,
@@ -146,7 +155,7 @@ vol_frac    = reshape(vol_frac, data_points, 1);
 
 %% Perform Proper Orthogonal Decomposition
 covariance = cal_covariance_mat(u, v, mean_u, mean_v, vol_frac);
-[pod_u, pod_v, lambda2, eig_func] =  calc_eig_modes(covariance, num_modes, u, v, mean_u, mean_v); 
+[pod_u, pod_v, lambda2, eig_func] =  calc_eig_modes2(covariance, num_modes, u, v, mean_u, mean_v); 
 
 pod_u1 = regroup(pod_u, dimensions);
 pod_v1 = regroup(pod_v, dimensions);
@@ -183,9 +192,9 @@ Plotsvd2(data, pod_v1(:,1:num_plot), dimensions, 'v', lambda2, bnd_idx, direct, 
 %% Save / Dump variables
 % Save variables relavent to Galerkin to .mat files
 if save_pod == true
-    save([direct '\POD Data\POD.mat'], 'x', 'y', 'bnd_idx', 'dimensions', ...
-        'eig_func', 'lambda2', 'mean_u', 'mean_v', 'pod_u1', 'pod_v1', ...
-        'vol_frac');
+    save([direct '\POD Data\POD.mat'], 'x', 'y', 'u_flux', 'v_flux', 'bnd_idx', ...
+        'dimensions', 'eig_func', 'lambda2', 'mean_u', 'mean_v', 'pod_u1', ...
+        'pod_v1', 'vol_frac');
 end
 % If requested place relvent galerkin variables in workspace
 if dump2work == true

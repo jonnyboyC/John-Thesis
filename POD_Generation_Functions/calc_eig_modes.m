@@ -5,7 +5,7 @@ sz_co_var = length(co_var);
 
 % Perform single value decomposition to get empirial eigenfunctions
 
-[eig_func, lambda2, qa] = svd(co_var);
+[eig_func, lambda2, qa] = svds(co_var, num_modes);
 
 % Normalize
 eig_func = eig_func*sqrt(lambda2)*sqrt(sz_co_var);

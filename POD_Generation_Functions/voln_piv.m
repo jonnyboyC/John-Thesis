@@ -10,8 +10,8 @@ y_range = 1:sz(2)-1;
 
 % Determine the interstitial averaged values between the centers of each
 % point
-xm(x_range, y_range)= x(x_range,y_range)+x(x_range,y_range+1)+x(x_range+1,y_range)+x(x_range+1,y_range+1)/4;
-ym(x_range, y_range)= y(x_range,y_range)+y(x_range,y_range+1)+y(x_range+1,y_range)+y(x_range+1,y_range+1)/4;
+xm(x_range, y_range)= (x(x_range,y_range)+x(x_range,y_range+1)+x(x_range+1,y_range)+x(x_range+1,y_range+1))/4;
+ym(x_range, y_range)= (y(x_range,y_range)+y(x_range,y_range+1)+y(x_range+1,y_range)+y(x_range+1,y_range+1))/4;
 
 % Determine vol elements for the whole grid
 % TODO may want to look at this later, for additional speed up

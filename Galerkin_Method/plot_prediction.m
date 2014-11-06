@@ -1,4 +1,11 @@
-function plot_prediction(pod_u, pod_v, x, y, modal_amp, num_pods, dimensions, direct)
+function plot_prediction(pod_u, pod_v, x, y, modal_amp, num_pods, dimensions, direct, h)
+
+% Check to match sure requested image instead too large
+if size(modal_amp,1) > 10000
+    disp(['Size of prediction is too large until further work is preformed' ...
+        'on the plot_prediction function']);
+    return;
+end
 
 % Begin fill all data structures
 data_u.pod = [];
@@ -14,7 +21,6 @@ data_m.xg = x;
 data_m.yg = y;
 
 % Fill all plots with blank images to set renderer to opengl
-h = figure(1);
 dummie = zeros(2,2);
 subplot(3,1,1)
 pcolor(dummie);
@@ -34,21 +40,9 @@ axis tight
 set(gca, 'nextplot', 'replacechildren');
 set(h, 'Renderer', 'opengl');
 
-
-% Preallocate size for predicated flow
-data_u.pod = zeros(dimensions(1), dimensions(2), length(modal_amp(:,1)));
-data_v.pod = zeros(dimensions(1), dimensions(2), length(modal_amp(:,1)));
-data_m.pod = zeros(dimensions(1), dimensions(2), length(modal_amp(:,1)));
-
 % Calculate predication by summing modes
 for i = 1:length(modal_amp(:,1))
-    for j = 1:num_pods
-        data_u.pod(:,:,i) =  data_u.pod(:,:,i)...
-            + reshape(pod_u(:,j)*modal_amp(i,j),dimensions(1), dimensions(2));
-        data_v.pod(:,:,i) =  data_v.pod(:,:,i)...
-            + reshape(pod_v(:,j)*modal_amp(i,j),dimensions(1), dimensions(2));
-    end
-    data_m.pod(:,:,i) = sqrt(data_u.pod(:,:,i).^2+data_v.pod(:,:,i).^2);
+
 end
 
 % Intialize Video creator
@@ -61,13 +55,28 @@ open(writer);
 data_temp.xg = x;
 data_temp.yg = y;
 data_temp.pod = zeros(dimensions(1), dimensions(2));
+
+data_u = zeros(dimensions(1), dimensions(2), size(modal_amp,1));
+data_v = zeros(dimensions(1), dimensions(2), size(modal_amp,1));
+data_m = zeros(dimensions(1), dimensions(2), size(modal_amp,1));
+
+% calculate predicted images
+for i = 1:size(modal_amp,1)
+    for j = 1:num_pods
+        data_u(:,:,i) =  data_u(:,:,i)...
+            + reshape(pod_u(:,j)*modal_amp(i,j),dimensions(1), dimensions(2));
+        data_v(:,:,i) =  data_v(:,:,i)...
+            + reshape(pod_v(:,j)*modal_amp(i,j),dimensions(1), dimensions(2));
+    end
+    data_m(:,:,i) = sqrt(data_u(:,:,i).^2+data_v(:,:,i).^2);
+end
 data = {data_u, data_v, data_m};
 
 % Determine max values for u v and magnitude
 cmax = zeros(3,1);
 cmin = zeros(3,1);
 for i = 1:length(data)
-    cmax(i) = max(max(max(abs(data{i}.pod))));
+    cmax(i) = max(data{i}(:));
     cmin(i) = -cmax(i);
 end
 
@@ -76,10 +85,10 @@ h_sub = gobjects(3,1);
 ax_sub = gobjects(3,1);
 
 % Plot results, print current image number, and save images to .avi video
-for i = 1:length(modal_amp(:,1))
+for i = 1:length(modal_amp(:,1))  
     fprintf('image %d of %d\n', i, length(modal_amp(:,1)));
     for j = 1:length(data);
-        data_temp.pod = squeeze(data{j}.pod(:,:,i));
+        data_temp.pod = squeeze(data{j}(:,:,i));
         subplot(3,1,j);
         if i == 1
             [h_sub(j), ax_sub(j)] = Plottec2(data_temp);

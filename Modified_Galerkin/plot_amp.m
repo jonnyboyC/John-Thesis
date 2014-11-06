@@ -1,6 +1,4 @@
-function handle = plot_amp(modal_amp, t)
-
-h = figure;
+function handle = plot_amp(modal_amp, t, h)
 ax = newplot;
 plot(ax, t, modal_amp);
 ax.XLabel.String = ('time (s)');

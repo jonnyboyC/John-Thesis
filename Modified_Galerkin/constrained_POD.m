@@ -16,8 +16,8 @@ problem.x0 = x0;
 problem.solver = 'fmincon';
 
 options = optimoptions('fmincon');
-% options.Algorithm = 'active-set';
-% options.MaxFunEvals = 30000;
+% options.Algorithm = 'sqp';
+options.MaxFunEvals = 16000;
 problem.options = options;
 
 [x,~,~,OUTPUT,~] = fmincon(problem);

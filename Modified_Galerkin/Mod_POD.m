@@ -34,6 +34,7 @@ epsilon_i = sum(li*lambda2(1:OG_nm)); % intial guess for epsilon
 options = optimset('PlotFcns', {@optimplotx, @optimplotfval});
 [epsilon_final, ~, EXITFLAG, ~] = fzero(@(epsilon) optimal_rotation...
     (epsilon, ci, li, qi, OG_nm, RD_nm, lambda2, eig_func, t), epsilon_i, options);
+close all;
 
 disp(EXITFLAG);
 
