@@ -1,4 +1,4 @@
-function [dprdxic,dprdetc]=visder(pr,nx,ny,z,bi)
+function [dprdxic,dprdetc]=visder2(pr,nx,ny,z,bi)
 %TODO figure out what this thing really does
 dxi=1;
 det=1;

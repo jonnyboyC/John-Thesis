@@ -1,4 +1,4 @@
-function [xxi,yxi,xet,yet,aj] = metric(x,y)
+function [xxi,yxi,xet,yet,aj] = metric2(x,y)
 % This function Appears to simply take an advanced approach to determining
 % the spacing between nodes of the pvi image, currently should come out
 % exactly the same as taking the difference between neighbors.
