@@ -114,6 +114,8 @@ tic;
     eig_func(1,1:num_pods), options);
 toc;
 
+% Was previously using eig_func_norm
+
 % Provide only modal flucations ie only turblent portion of modes
 % TODO check the validity of this statement
 
@@ -122,12 +124,12 @@ toc;
 
 
 if strcmp(plot_pred, 'amp')
-    plot_amp(modal_amp(:, 1:6), t);
+    plot_amp(modal_amp(:, 1:6), t, direct);
 elseif strcmp(plot_pred, 'video')
-    plot_prediction(pod_ut, pod_vt, x, y, modal_amp, num_pods, dimensions, direct)
+    plot_prediction(pod_ut, pod_vt, x, y, modal_amp, t, num_pods, dimensions, direct)
 elseif strcmp(plot_pred, 'both');
-    plot_amp(modal_amp(:, 1:6), t);
-    plot_prediction(pod_ut, pod_vt, x, y, modal_amp, num_pods, dimensions, direct)
+    plot_amp(modal_amp(:, 1:6), t, direct);
+    plot_prediction(pod_ut, pod_vt, x, y, modal_amp, t, num_pods, dimensions, direct)
 elseif strcmp(plot_pred, 'none')
 else
     error('When specifying plot type, choose either amp, video, both or none');

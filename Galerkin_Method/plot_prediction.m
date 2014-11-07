@@ -1,4 +1,4 @@
-function plot_prediction(pod_u, pod_v, x, y, modal_amp, num_pods, dimensions, direct)
+function plot_prediction(pod_u, pod_v, x, y, modal_amp, t, num_pods, dimensions, direct)
 
 % Check to match sure requested image instead too large
 if size(modal_amp,1) > 10000
@@ -41,8 +41,11 @@ axis tight
 set(gca, 'nextplot', 'replacechildren');
 set(h, 'Renderer', 'opengl');
 
+Hz = 1/(t(2) - t(1));
+
 % Intialize Video creator
-writer = VideoWriter([direct '\Figures\Movies\POD' num2str(num_pods) '_Galerkin.avi']);
+writer = VideoWriter([direct '\Figures\Movies\POD' num2str(num_pods) '_' ...
+   num2str(t(1)) '_' num2str(t(end)) 's_' num2str(ceil(Hz)) 'Hz_Galerkin.avi']);
 writer.Quality = 100;
 writer.FrameRate = 60;
 open(writer);

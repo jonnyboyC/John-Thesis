@@ -37,8 +37,8 @@ for i = 1:num_modes
         h.Name = ['  Variable: ' varname ',  (' num2str(sum(energy),4) '%)'];
     end
     
-    % plot individual plots
     subplot(2,2,plot_img_num)
+    % plot individual plots
     if i <= 4
         [h_sub(i), ax_sub(i)] = Plottec2(data, 0, bnd_idx);
         colorbar;

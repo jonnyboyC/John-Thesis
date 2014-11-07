@@ -109,7 +109,33 @@ end
 % Load velocity images from data, will load from raw files if processing
 % has not been done, will load from .mat file otherwise. Select true to
 % overwrite previous .mat files
-[x, y, u, v, direct] = Velocity_Read_Save(num_images, overwrite, direct);
+% [x, y, u, v, direct] = Velocity_Read_Save(num_images, overwrite, direct);
+
+%%%%%%%%%%%%%%%%%% Temporary for testing will delete
+% load('r1140i20aB002x10v80f1250p0_20100728b_n4.mat');
+load('r1140i20aB002x10v0f0p0_20100728b_n1.mat');
+[xcorrect,ycorrect, ~]=airfoil_rotation(20);
+x=x+xcorrect;
+y=y+ycorrect;
+num_images = 1000;
+u = u(:,1:num_images);
+v = v(:,1:num_images);
+u = reshape(u, Nx, Ny, num_images);
+v = reshape(v, Nx, Ny, num_images);
+x = reshape(x, Nx, Ny, 1);
+y = reshape(y, Nx, Ny, 1);
+for i = 1:size(u,3)
+    [xn, yn, un(:,:,i), vn(:,:,i)] = image_rotation(x, y, u(:,:,i), v(:,:,i));
+end
+x = xn;
+y = yn;
+u = un;
+v = vn;
+clear xn yn un vn
+direct = 'D:\shear layer\PIVData\Old Data';
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 mean_u = mean(u,3);
 mean_v = mean(v,3);
 dimensions = size(x);   
@@ -188,7 +214,6 @@ data.yg = y;
 % Plot pod modes
 Plotsvd2(data, pod_u1(:,1:num_plot), dimensions, 'u', lambda2, bnd_idx, direct, save_figures);
 Plotsvd2(data, pod_v1(:,1:num_plot), dimensions, 'v', lambda2, bnd_idx, direct, save_figures);
-
 
 %% Save / Dump variables
 % Save variables relavent to Galerkin to .mat files
