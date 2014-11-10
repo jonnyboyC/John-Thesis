@@ -33,17 +33,17 @@ end
 pod_ut = pod_u1(:,1:OG_nm);
 pod_vt = pod_v1(:,1:OG_nm);
 
-epsilon_i = sum(li*lambda2(1:OG_nm)); % intial guess for epsilon
+epsilon_i = sum(l*lambda2(1:OG_nm)); % intial guess for epsilon
 
 options = optimset('PlotFcns', {@optimplotx, @optimplotfval});
 [epsilon_final, ~, EXITFLAG, ~] = fzero(@(epsilon) optimal_rotation...
-    (epsilon, ci, li, qi, OG_nm, RD_nm, lambda2, eig_func, t), epsilon_i, options);
+    (epsilon, ci, l, qi, OG_nm, RD_nm, lambda2, eig_func, t), epsilon_i, options);
 close all;
 
 disp(EXITFLAG);
 
 [~, X] = ...
-    optimal_rotation(epsilon_final, ci, li, qi, OG_nm, RD_nm, lambda2, eig_func, t);
+    optimal_rotation(epsilon_final, ci, l, qi, OG_nm, RD_nm, lambda2, eig_func, t);
 
 pod_u_til = zeros(size(pod_vt,1), RD_nm);
 pod_v_til = zeros(size(pod_vt,1), RD_nm);
@@ -73,16 +73,16 @@ delete(group);
 end
 
 function [rep, X] = ... %, C_til, L_til, Q_til] = ...
-    optimal_rotation(epsilon, ci, li, qi, OG_nm, RD_nm, lambda2, eig_func, t)
+    optimal_rotation(epsilon, ci, l, qi, OG_nm, RD_nm, lambda2, eig_func, t)
     
-X = constrained_POD(eig_func',li,OG_nm,RD_nm,epsilon);
+X = constrained_POD(eig_func',l,OG_nm,RD_nm,epsilon);
 %inputs of constrained_POD are the POD temporal coefficients,eig_func',
-%the linear Galerkin matrix, li, the transformation dimensions N and
+%the linear Galerkin matrix, l, the transformation dimensions N and
 %n, and the transfer term parameter epsi
 Lam_til = X'*diag(lambda2(1:OG_nm))*X;
 
 % Modified reduced order model coefficients
-L_til = X'*li*X;
+L_til = X'*l*X;
 C_til = X'*ci;
 Q_til=zeros(RD_nm,RD_nm,RD_nm);
 Q = reshape(qi,OG_nm,OG_nm,OG_nm);
@@ -113,7 +113,7 @@ options = odeset('RelTol',1e-6,'AbsTol',1e-8);
 
 % Look more into tspan;
 tspan = t;
-[~,Y_til] = ode113(@(t, y) system_odes(t, y, -reduced_model_coeff)...
+[~,Y_til] = ode15s(@(t, y) system_odes(t, y, -reduced_model_coeff)...
     , tspan ,eig_func(in,1:RD_nm), options);   %(base line)(f = 500 Hz)
 
 rep = error_til(Lam_til,Y_til);
