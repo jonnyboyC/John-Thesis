@@ -13,7 +13,7 @@ num_elem = numel(x);
 num_modes = size(pod_u, 2);
 
 % TODO figure out what is really being calculated here
-[xxi, yxi, xet, yet, aj] = metric(x, y);
+[xxi, yxi, xet, yet, aj] = metric2(x, y);
 
 % Calculate coefficients for u's & v's derivatives
 [udx, ud2x, udy, ud2y] = derivatives(mean_u, dimensions, z, xxi, yxi,...

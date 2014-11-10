@@ -1,4 +1,5 @@
 function [X, L, lambda] = constrained_POD(a,L,N,n,epsilon)
+tic;
 lambda = zeros(N, 1);
 for i=1:N;
     lambda(i) = mean(a(i,:).*a(i,:));
@@ -16,7 +17,7 @@ problem.x0 = x0;
 problem.solver = 'fmincon';
 
 options = optimoptions('fmincon');
-% options.Algorithm = 'sqp';
+options.UseParallel = 'true';
 options.MaxFunEvals = 16000;
 problem.options = options;
 
@@ -24,4 +25,5 @@ problem.options = options;
 OUTPUT.message
 
 X = x*(x'*x)^(-1/2);
+toc;
 end

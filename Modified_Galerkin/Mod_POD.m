@@ -14,6 +14,10 @@ switch nargin
         error('Too many input arguments');
         
 end
+
+% See if the use of parrallel minimization actually is benificial
+group = parpool('local', 4);
+
 direct = 'D:\shear layer\dummie';
 [data, ~] = prompt_folder({'POD', 'Galerkin'});
 load(data{1}, 'eig_func', 'lambda2', 'pod_u1', 'pod_v1', 'dimensions', 'x', 'y');
@@ -65,6 +69,7 @@ elseif strcmp(plot_pred, 'none')
 else
     error('When specifying plot type, choose either amp, video, both or none');
 end
+delete(group);
 end
 
 function [rep, X] = ... %, C_til, L_til, Q_til] = ...

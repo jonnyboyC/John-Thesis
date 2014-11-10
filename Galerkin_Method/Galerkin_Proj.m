@@ -35,26 +35,37 @@ switch nargin
         plot_pred = 'none';
         save_coef = true;
         tspan = [0 100];
+        init = 1;
     case 1
         num_pods = varargin{1};
     	plot_pred = 'none';
         save_coef = true;
         tspan = [0 100];
+        init = 1;
     case 2
         num_pods = varargin{1};
         plot_pred = varargin{2};
         save_coef = true;        
         tspan = [0 100];
+        init = 1;
     case 3 
         num_pods = varargin{1};
         plot_pred = varargin{2};
         save_coef = varargin{3};
         tspan = [0 100];
+        init = 1;
     case 4
         num_pods = varargin{1};
         plot_pred = varargin{2};
         save_coef = varargin{3};
-        tspan = varargin{4};    
+        tspan = varargin{4};  
+        init = 1;
+    case 5
+        num_pods = varargin{1};
+        plot_pred = varargin{2};
+        save_coef = varargin{3};
+        tspan = varargin{4};  
+        init = varargin{5};
     otherwise
         error('Too many input arguments');
 end
@@ -94,41 +105,41 @@ tr=tn;
 pod_ut = pod_u1(:,1:num_pods);
 pod_vt = pod_v1(:,1:num_pods);
 
-[l_dot, l, q_2dot, q_dot, qi] = visocity_coefficients(mean_u, mean_v, ...
+[l_dot, l, q_2dot, q_dot, q] = visocity_coefficients(mean_u, mean_v, ...
     x, y, pod_ut, pod_vt, dimensions, vol_frac, bnd_idx, z);
 
-niu = viscious_dis(eig_func, num_pods, lambda2, l, q_dot, qi);
+niu = viscious_dis(eig_func, num_pods, lambda2, l, q_dot, q);
 ci = l_dot/Re0.*niu+q_2dot;
 
 % matrix of niu with extra scaling on off diagonal
 ni = diag(niu) + (ones(num_pods)-eye(num_pods))/Re0;
 li = ni.*l+q_dot;
-fcuhi1 = [ci li qi];
+fcuhi1 = [ci li q];
 
 % Will reduce number of coefficients if we want a smaller model
-reduced_model_coeff = ode_coefficients(num_pods, num_pods, fcuhi1);
-options = odeset('RelTol', 1e-6, 'AbsTol', 1e-8);
+reduced_model_coeff = -ode_coefficients(num_pods, num_pods, fcuhi1);
+options = odeset('RelTol', 1e-7, 'AbsTol', 1e-9);
 
+% Was previously using ode113 now using 15s, preformance up 4x, may need to
+% change in the future.
 tic;
-[t, modal_amp] = ode113(@(t,y) system_odes(t,y,-reduced_model_coeff), tspan, ...
-    eig_func(1,1:num_pods), options);
+[t, modal_amp] = ode15s(@(t,y) system_odes(t,y,reduced_model_coeff), tspan, ...
+    eig_func(init,1:num_pods), options);
 toc;
 
 % Was previously using eig_func_norm
 
 % Provide only modal flucations ie only turblent portion of modes
 % TODO check the validity of this statement
-
-
 % modal_amp = modal_amp - ones(size(modal_amp,1), 1)*mean(modal_amp);
 
 
 if strcmp(plot_pred, 'amp')
-    plot_amp(modal_amp(:, 1:6), t, direct);
+    plot_amp(modal_amp(:, 1:30), t, direct);
 elseif strcmp(plot_pred, 'video')
     plot_prediction(pod_ut, pod_vt, x, y, modal_amp, t, num_pods, dimensions, direct)
 elseif strcmp(plot_pred, 'both');
-    plot_amp(modal_amp(:, 1:6), t, direct);
+    plot_amp(modal_amp(:, 1:30), t, direct);
     plot_prediction(pod_ut, pod_vt, x, y, modal_amp, t, num_pods, dimensions, direct)
 elseif strcmp(plot_pred, 'none')
 else
@@ -136,5 +147,6 @@ else
 end
 
 if save_coef == true
-    save([direct '\Galerkin Coeff\Coeff.mat'], 'ci', 'li', 'qi', 'num_pods', 'modal_amp', 't');
+    save([direct '\Galerkin Coeff\Coeff.mat'], 'ci', 'li', 'q', 'num_pods', 'modal_amp', 't', ...
+        'l_dot', 'l', 'q_2dot', 'q_dot', 'q');
 end
