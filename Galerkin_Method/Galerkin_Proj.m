@@ -36,42 +36,59 @@ switch nargin
         save_coef = true;
         tspan = [0 100];
         init = 1;
+        direct = ''
     case 1
         num_pods = varargin{1};
     	plot_pred = 'none';
         save_coef = true;
         tspan = [0 100];
         init = 1;
+        direct = '';
     case 2
         num_pods = varargin{1};
         plot_pred = varargin{2};
         save_coef = true;        
         tspan = [0 100];
         init = 1;
+        direct = '';  
     case 3 
         num_pods = varargin{1};
         plot_pred = varargin{2};
         save_coef = varargin{3};
         tspan = [0 100];
         init = 1;
+        direct = '';
     case 4
         num_pods = varargin{1};
         plot_pred = varargin{2};
         save_coef = varargin{3};
         tspan = varargin{4};  
         init = 1;
+        direct = '';
     case 5
         num_pods = varargin{1};
         plot_pred = varargin{2};
         save_coef = varargin{3};
         tspan = varargin{4};  
         init = varargin{5};
+        direct = '';
+    case 6
+        num_pods = varargin{1};
+        plot_pred = varargin{2};
+        save_coef = varargin{3};
+        tspan = varargin{4};  
+        init = varargin{5};
+        direct = varargin{6};
     otherwise
         error('Too many input arguments');
 end
 
 % matlabpool local 4
-[data, direct] = prompt_folder('POD');
+if strcmp(direct, '');
+    [data, direct] = prompt_folder('POD');
+else
+    [data, direct] = prompt_folder('POD', direct);
+end
 load(data{1});
 
 %% TODO Chunk of variables need to sort them out
@@ -135,11 +152,11 @@ toc;
 
 
 if strcmp(plot_pred, 'amp')
-    plot_amp(modal_amp(:, 1:30), t, direct);
+    plot_amp(modal_amp(:, 1:num_pods), t, direct, init);
 elseif strcmp(plot_pred, 'video')
     plot_prediction(pod_ut, pod_vt, x, y, modal_amp, t, num_pods, dimensions, direct)
 elseif strcmp(plot_pred, 'both');
-    plot_amp(modal_amp(:, 1:30), t, direct);
+    plot_amp(modal_amp(:, 1:num_pods), t, direct, init);
     plot_prediction(pod_ut, pod_vt, x, y, modal_amp, t, num_pods, dimensions, direct)
 elseif strcmp(plot_pred, 'none')
 else
@@ -147,6 +164,6 @@ else
 end
 
 if save_coef == true
-    save([direct '\Galerkin Coeff\Coeff.mat'], 'ci', 'li', 'q', 'num_pods', 'modal_amp', 't', ...
-        'l_dot', 'l', 'q_2dot', 'q_dot', 'q');
+    save([direct '\Galerkin Coeff\Coeff_m' num2str(num_pod) 'i' num2str(init) '.mat'],...
+        'ci', 'li', 'q', 'num_pods', 'modal_amp', 't', 'l_dot', 'l', 'q_2dot', 'q_dot', 'q');
 end

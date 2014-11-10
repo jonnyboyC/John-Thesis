@@ -4,19 +4,26 @@ switch nargin
     case 0
         RD_nm = 8;
         plot_type = 'none';
+        init = 1;
     case 1
         RD_nm = varargin{1};
         plot_type = 'none';
+        init = 1;
     case 2
         RD_nm = varargin{1};
         plot_type = varargin{2};
+        init = 1;
+    case 3
+        RD_nm = varargin{1};
+        plot_type = varargin{2};
+        init = varargin{3};
     otherwise
         error('Too many input arguments');
         
 end
 
 % See if the use of parrallel minimization actually is benificial
-group = parpool('local', 4);
+% group = gcp();
 
 direct = 'D:\shear layer\dummie';
 [data, ~] = prompt_folder({'POD', 'Galerkin'});
@@ -37,13 +44,13 @@ epsilon_i = sum(l*lambda2(1:OG_nm)); % intial guess for epsilon
 
 options = optimset('PlotFcns', {@optimplotx, @optimplotfval});
 [epsilon_final, ~, EXITFLAG, ~] = fzero(@(epsilon) optimal_rotation...
-    (epsilon, ci, l, qi, OG_nm, RD_nm, lambda2, eig_func, t), epsilon_i, options);
+    (epsilon, ci, l, q, OG_nm, RD_nm, lambda2, eig_func, t), epsilon_i, options, init);
 close all;
 
 disp(EXITFLAG);
 
 [~, X] = ...
-    optimal_rotation(epsilon_final, ci, l, qi, OG_nm, RD_nm, lambda2, eig_func, t);
+    optimal_rotation(epsilon_final, ci, l, q, OG_nm, RD_nm, lambda2, eig_func, t, init);
 
 pod_u_til = zeros(size(pod_vt,1), RD_nm);
 pod_v_til = zeros(size(pod_vt,1), RD_nm);
@@ -69,11 +76,10 @@ elseif strcmp(plot_pred, 'none')
 else
     error('When specifying plot type, choose either amp, video, both or none');
 end
-delete(group);
 end
 
 function [rep, X] = ... %, C_til, L_til, Q_til] = ...
-    optimal_rotation(epsilon, ci, l, qi, OG_nm, RD_nm, lambda2, eig_func, t)
+    optimal_rotation(epsilon, ci, l, q, OG_nm, RD_nm, lambda2, eig_func, t, init)
     
 X = constrained_POD(eig_func',l,OG_nm,RD_nm,epsilon);
 %inputs of constrained_POD are the POD temporal coefficients,eig_func',
@@ -85,7 +91,7 @@ Lam_til = X'*diag(lambda2(1:OG_nm))*X;
 L_til = X'*l*X;
 C_til = X'*ci;
 Q_til=zeros(RD_nm,RD_nm,RD_nm);
-Q = reshape(qi,OG_nm,OG_nm,OG_nm);
+Q = reshape(q,OG_nm,OG_nm,OG_nm);
 for i = 1:RD_nm
     for j = 1:RD_nm
         for k = 1:RD_nm
@@ -103,8 +109,6 @@ end
 Q_til=reshape(Q_til,RD_nm,RD_nm*RD_nm);
 fc_til=[C_til L_til Q_til]; % constant, linear and quadratic terms coefficients
 
-in=1; % initial point (to)
-
 reduced_model_coeff= ode_coefficients(RD_nm,RD_nm,fc_til);
 
 %Solution of the system of equation
@@ -114,7 +118,7 @@ options = odeset('RelTol',1e-6,'AbsTol',1e-8);
 % Look more into tspan;
 tspan = t;
 [~,Y_til] = ode15s(@(t, y) system_odes(t, y, -reduced_model_coeff)...
-    , tspan ,eig_func(in,1:RD_nm), options);   %(base line)(f = 500 Hz)
+    , tspan ,eig_func(init,1:RD_nm), options);   %(base line)(f = 500 Hz)
 
 rep = error_til(Lam_til,Y_til);
 end

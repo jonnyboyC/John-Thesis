@@ -17,8 +17,9 @@ problem.x0 = x0;
 problem.solver = 'fmincon';
 
 options = optimoptions('fmincon');
-options.UseParallel = 'true';
+options.UseParallel = true;
 options.MaxFunEvals = 16000;
+%options.Algorithm = 'active-set';
 problem.options = options;
 
 [x,~,~,OUTPUT,~] = fmincon(problem);

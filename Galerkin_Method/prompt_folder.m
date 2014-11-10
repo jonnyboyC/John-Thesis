@@ -1,7 +1,8 @@
-function [file_loc, direct] = prompt_folder(data)
+function [file_loc, direct] = prompt_folder(data, direct)
     data_folder = cell(size(data,2),1);
     file_loc = cell(size(data,1),1);
-
+    
+    % Select correct subfolder
     for i = 1:size(data,2)
         data_temp = check_data(data, i);
         switch data_temp;
@@ -13,12 +14,16 @@ function [file_loc, direct] = prompt_folder(data)
                 data_folder{i} = '\Galerkin Coeff\';
         end
     end
-    % Used by uigetdir to location initial folder    
-    start_direct = 'D:\shear layer';
     
-    % Prompt the user for location of Test folder
-    fprintf(1, 'Please choose test data directory\n');
-    direct = uigetdir(start_direct, 'Choose Source Image Directory'); 
+    % If only one one input given prompt for directory
+    if nargin == 1
+        % Used by uigetdir to location initial folder    
+        start_direct = 'D:\shear layer';
+
+        % Prompt the user for location of Test folder
+        fprintf(1, 'Please choose test data directory\n');
+        direct = uigetdir(start_direct, 'Choose Source Image Directory'); 
+    end
     
     % Get file(s) information
     for i = 1:size(data,2);
