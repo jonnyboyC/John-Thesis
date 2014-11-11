@@ -1,5 +1,5 @@
 %% This script simply changes the names of some variables in the workspace 
-% so they comply with the naming convenctio of previous code development.
+% so they comply with the naming convenction of previous code development.
 clc
 clear all
 

@@ -36,7 +36,7 @@ switch nargin
         save_coef = true;
         tspan = [0 100];
         init = 1;
-        direct = ''
+        direct = '';
     case 1
         num_pods = varargin{1};
     	plot_pred = 'none';
@@ -83,7 +83,6 @@ switch nargin
         error('Too many input arguments');
 end
 
-% matlabpool local 4
 if strcmp(direct, '');
     [data, direct] = prompt_folder('POD');
 else

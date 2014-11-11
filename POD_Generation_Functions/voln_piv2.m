@@ -18,7 +18,8 @@ ym(x_range, y_range)= (y(x_range,y_range)+y(x_range,y_range+1)+y(x_range+1,y_ran
 for i = 1:size(x,1)
     for j=1:size(x,2)
         if  bnd_idx(i,j)== -1
-            vt(i,j)=0;            
+            vt(i,j)=0;
+                 
         elseif (i == 1 && (j == size(x,2)|| bnd_idx(i,j) == 0 && bnd_idx(i+1,j) == 0 && bnd_idx(i+1,j-1) > 0))  % Top Left Corner
             wd=(xm(i,j-1)-x(i,j));
             lh=y(i,j)-ym(i,j-1);

@@ -23,7 +23,7 @@ switch nargin
 end
 
 % See if the use of parrallel minimization actually is benificial
-% group = gcp();
+gcp();
 
 direct = 'D:\shear layer\dummie';
 [data, ~] = prompt_folder({'POD', 'Galerkin'});

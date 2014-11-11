@@ -109,30 +109,30 @@ end
 % Load velocity images from data, will load from raw files if processing
 % has not been done, will load from .mat file otherwise. Select true to
 % overwrite previous .mat files
-% [x, y, u, v, direct] = Velocity_Read_Save(num_images, overwrite, direct);
+[x, y, u, v, direct] = Velocity_Read_Save(num_images, overwrite, direct);
 
 %%%%%%%%%%%%%%%%%% Temporary for testing will delete
 % load('r1140i20aB002x10v80f1250p0_20100728b_n4.mat');
-load('r1140i20aB002x10v0f0p0_20100728b_n1.mat');
-[xcorrect,ycorrect, ~]=airfoil_rotation(20);
-x=x+xcorrect;
-y=y+ycorrect;
-num_images = 1000;
-u = u(:,1:num_images);
-v = v(:,1:num_images);
-u = reshape(u, Nx, Ny, num_images);
-v = reshape(v, Nx, Ny, num_images);
-x = reshape(x, Nx, Ny, 1);
-y = reshape(y, Nx, Ny, 1);
-for i = 1:size(u,3)
-    [xn, yn, un(:,:,i), vn(:,:,i)] = image_rotation(x, y, u(:,:,i), v(:,:,i));
-end
-x = xn;
-y = yn;
-u = un;
-v = vn;
-clear xn yn un vn
-direct = 'D:\shear layer\PIVData\Old Data';
+% load('r1140i20aB002x10v0f0p0_20100728b_n1.mat');
+% [xcorrect,ycorrect, ~]=airfoil_rotation(20);
+% x=x+xcorrect;
+% y=y+ycorrect;
+% num_images = 1000;
+% u = u(:,1:num_images);
+% v = v(:,1:num_images);
+% u = reshape(u, Nx, Ny, num_images);
+% v = reshape(v, Nx, Ny, num_images);
+% x = reshape(x, Nx, Ny, 1);
+% y = reshape(y, Nx, Ny, 1);
+% for i = 1:size(u,3)
+%     [xn, yn, un(:,:,i), vn(:,:,i)] = image_rotation(x, y, u(:,:,i), v(:,:,i));
+% end
+% x = xn;
+% y = yn;
+% u = un;
+% v = vn;
+% clear xn yn un vn
+% direct = 'D:\shear layer\PIVData\Old Data';
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -157,20 +157,24 @@ end
 % multiple data
 
 [~, ~, ~, ~, ~, ~, bnd_idx] = boundary_check_chabot(x, y, mean_u);
+% [~, ~, ~, ~, ~, ~, bnd_idx] = boundary_check(x, y, mean_u);
+
 vol_frac = voln_piv2(x, y, bnd_idx);
 
 % Find fluxating velocity of flow
-u_flux = zeros(size(u));
-v_flux = zeros(size(v));
+flux_u = zeros(size(u));
+flux_v = zeros(size(v));
 
 for i = 1:size(u,3);
-    u_flux(:,:,i) = u(:,:,i) - mean_u;
-    v_flux(:,:,i) = v(:,:,i) - mean_v;
+    flux_u(:,:,i) = u(:,:,i) - mean_u;
+    flux_v(:,:,i) = v(:,:,i) - mean_v;
 end
 
 % Create a stacked data matrix for u and v velocities
 u           = reshape(u, data_points, num_images);
 v           = reshape(v, data_points, num_images);
+flux_u      = reshape(flux_u, data_points, num_images);
+flux_v      = reshape(flux_v, data_points, num_images);
 mean_u      = reshape(mean_u, data_points, 1);
 mean_v      = reshape(mean_v, data_points, 1);
 vol_frac    = reshape(vol_frac, data_points, 1);
@@ -180,8 +184,8 @@ vol_frac    = reshape(vol_frac, data_points, 1);
 % these boundaries
 
 %% Perform Proper Orthogonal Decomposition
-covariance = cal_covariance_mat(u, v, mean_u, mean_v, vol_frac);
-[pod_u, pod_v, lambda2, eig_func] =  calc_eig_modes2(covariance, num_modes, u, v, mean_u, mean_v); 
+covariance = cal_covariance_mat(flux_u, flux_v, vol_frac);
+[pod_u, pod_v, lambda2, eig_func] =  calc_eig_modes2(covariance, num_modes, flux_u, flux_v); 
 
 pod_u1 = regroup(pod_u, dimensions);
 pod_v1 = regroup(pod_v, dimensions);
@@ -218,13 +222,15 @@ Plotsvd2(data, pod_v1(:,1:num_plot), dimensions, 'v', lambda2, bnd_idx, direct, 
 %% Save / Dump variables
 % Save variables relavent to Galerkin to .mat files
 if save_pod == true
-    save([direct '\POD Data\POD.mat'], 'x', 'y', 'u_flux', 'v_flux', 'bnd_idx', ...
+    save([direct '\POD Data\POD.mat'], 'x', 'y', 'flux_u', 'flux_v', 'bnd_idx', ...
         'dimensions', 'eig_func', 'lambda2', 'mean_u', 'mean_v', 'pod_u1', ...
         'pod_v1', 'vol_frac');
 end
 % If requested place relvent galerkin variables in workspace
+x2 = x;
+y2 = y;
 if dump2work == true
-    putvar(x, y, bnd_idx, dimensions, eig_func, lambda2, mean_u, mean_v, ...
+    putvar(x2, y2, bnd_idx, dimensions, eig_func, lambda2, mean_u, mean_v, ...
         pod_u1, pod_v1, vol_frac);
 end
 
