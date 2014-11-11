@@ -164,6 +164,6 @@ else
 end
 
 if save_coef == true
-    save([direct '\Galerkin Coeff\Coeff_m' num2str(num_pod) 'i' num2str(init) '.mat'],...
+    save([direct '\Galerkin Coeff\Coeff_m' num2str(num_pods) 'i' num2str(init) '.mat'],...
         'ci', 'li', 'q', 'num_pods', 'modal_amp', 't', 'l_dot', 'l', 'q_2dot', 'q_dot', 'q');
 end
