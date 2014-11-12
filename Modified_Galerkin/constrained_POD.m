@@ -1,5 +1,4 @@
-function [X, L, lambda] = constrained_POD(a,L,N,n,epsilon)
-tic;
+function [X] = constrained_POD(a,L,N,n,epsilon,evals)
 lambda = zeros(N, 1);
 for i=1:N;
     lambda(i) = mean(a(i,:).*a(i,:));
@@ -17,8 +16,8 @@ problem.x0 = x0;
 problem.solver = 'fmincon';
 
 options = optimoptions('fmincon');
-options.UseParallel = true;
-options.MaxFunEvals = 16000;
+%options.UseParallel = true;
+options.MaxFunEvals = evals;
 %options.Algorithm = 'active-set';
 problem.options = options;
 
@@ -26,5 +25,4 @@ problem.options = options;
 OUTPUT.message
 
 X = x*(x'*x)^(-1/2);
-toc;
 end

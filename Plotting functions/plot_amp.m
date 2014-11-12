@@ -1,4 +1,4 @@
-function handle = plot_amp(modal_amp, t, direct, init)
+function handle = plot_amp(modal_amp, t, direct, init, MOD)
 % Create figure handle and axis handle
 h = figure;
 ax = newplot;
@@ -15,10 +15,16 @@ end
 legend(leg_names);
 Hz = 1/(t(2) - t(1));
 
+file_name = [direct '\Figures\Galerkin\Galerkin_'];
+if nargin == 5 && MOD == true
+    file_name = [file_name 'MOD_'];
+end
+file_name = [file_name num2str(size(modal_amp,2)) '_modes_init' num2str(init) ...
+    '_t' num2str(ceil(t(1))) '_' num2str(ceil(t(end))) 's_' num2str(ceil(Hz)) 'Hz'];
+
+
 % Save figure in Figure\Galerkin folder
-saveas(h, [direct '\Figures\Galerkin\Galerkin_' num2str(size(modal_amp,2)) '_modes_init' ...
-    num2str(init) '_t' num2str(ceil(t(1))) '_' num2str(ceil(t(end))) 's_' ...
-    num2str(ceil(Hz)) 'Hz'], 'fig');
+saveas(h, file_name, 'fig');
 drawnow;
 
 if nargout == 1

@@ -88,6 +88,7 @@ if strcmp(direct, '');
 else
     [data, direct] = prompt_folder('POD', direct);
 end
+update_folders(direct);
 load(data{1});
 
 %% TODO Chunk of variables need to sort them out
@@ -97,7 +98,7 @@ load(data{1});
 
 mu0=1;
 sc=1;
-Re0=1140;                   %Reynolds number
+Re0=0.28e6;                   %Reynolds number
 z=ones(size(x));            %Depth of velocity field 
 M0=.25;
 

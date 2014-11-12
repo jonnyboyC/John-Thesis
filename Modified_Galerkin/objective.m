@@ -4,5 +4,5 @@ sum_lambda = sum(lambda);
 lambda_tilde = diag(X'*diag(lambda)*X);
 sum_lambda_tilde = sum(lambda_tilde);
 
-f = (sum_lambda - sum_lambda_tilde); %/sum_lambda;
+f = (sum_lambda - sum_lambda_tilde)/sum_lambda;
 end

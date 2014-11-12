@@ -38,6 +38,11 @@ function [file_loc, direct] = prompt_folder(data, direct)
         elseif size(files, 1) == 1
             file_loc{i} = [direct data_folder{i} files(1).name];
     
+        elseif size(files, 1) > 1 && strcmp(data_temp, 'Galerkin')
+            fprintf(1, 'Please choose .mat file for Galerkin\n');
+            direct_gal = uigetfile({'*.mat'}, 'Choose .mat file');
+            file_loc{i} = [direct data_folder{i} direct_gal];
+            
         % IF 2 or more .mat are found prompt to check for correct .mat
         else
             error(['Multiple .mat files found in ' direct data_folder{i}...

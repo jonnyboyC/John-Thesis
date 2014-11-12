@@ -6,7 +6,7 @@ freq_response = fft(modal_amp, NFFT, 1);
 freq_response = freq_response(1:ceil((NFFT+1)/2), :)/samples;
 
 ax = newplot;
-h = semilogy(ax, freq', abs(freq_response(:, num_plot)));
+h = loglog(ax, freq', abs(freq_response(:, num_plot)));
 ax.XLabel.String = 'frequency (Hz)';
 ax.YLabel.String = 'Modal Amplitude';
 ax.Title.String  = 'Modal Frequency Response';
