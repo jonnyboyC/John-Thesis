@@ -134,7 +134,8 @@ end
 % clear xn yn un vn
 % direct = 'D:\shear layer\PIVData\Old Data';
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-
+x = x./1000;
+y = y./1000;
 
 mean_u = mean(u,3);
 mean_v = mean(v,3);

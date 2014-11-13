@@ -110,7 +110,7 @@ for i = 1:length(search_space)-1
         epsilon_temp(j) = epsilon_0*(1-amp*flip);
         transfer_temp(j) = optimal_rotation(epsilon_temp(j), ci, li, q, OG_nm, RD_nm, lambda2, eig_func, t, init, 3000);
     end
-
+    
     epsilon_i       = [epsilon_i; epsilon_temp];
     transfer_i      = [transfer_i; transfer_temp];
 
@@ -210,7 +210,7 @@ end
 % Save important coefficients
 if save_mod == true
     save([direct '\Mod Galerkin Coeff\Coeff_m' num2str(RD_nm) 'i' num2str(init) '.mat'], ...
-        'X', 'C_til', 'L_til', 'Q_til', 'pod_u_til', 'pod_v_til', 'modal_amp_til');
+        'X', 'C_til', 'L_til', 'Q_til', 'pod_u_til', 'pod_v_til', 'modal_amp_til' ,'epsilon_final');
 end
 end
 

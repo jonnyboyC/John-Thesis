@@ -19,13 +19,13 @@ maxy = max(max(data.y));
 
 if nargin == 1 || nargin == 3 || nargin == 4
     ax = newplot;
-    h = surf(ax, data.x, data.y, data.pod);
+    h = surf(ax, data.x, data.y, zeros(size(data.x)), data.pod);
     h.FaceColor = 'interp';
     h.EdgeColor = 'none';
     if nargin == 3
         hold on
         scale = data.cmax;
-        h2 = surf(ax, data.x, data.y, scale*ones(size(data.pod)));
+        h2 = surf(ax, data.x, data.y, zeros(size(data.x)), scale*ones(size(data.pod)));
         hold off
         bnd_idx = double((bnd_idx == -1));
         h2.AlphaDataMapping = 'none';

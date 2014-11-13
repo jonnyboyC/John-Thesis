@@ -96,6 +96,8 @@ load(data{1});
 % dl   tn   tm   acm   plm   pqm   fr   tr
 % l   q   niu   ci   ni   li   fcuhi1
 
+x = x./1000;
+y = y./1000;
 mu0=1;
 sc=1;
 Re0=0.28e6;                   %Reynolds number
@@ -140,7 +142,7 @@ options = odeset('RelTol', 1e-7, 'AbsTol', 1e-9);
 % Was previously using ode113 now using 15s, preformance up 4x, may need to
 % change in the future.
 tic;
-[t, modal_amp] = ode15s(@(t,y) system_odes(t,y,reduced_model_coeff), tspan, ...
+[t, modal_amp] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff), tspan, ...
     eig_func(init,1:num_pods), options);
 toc;
 
