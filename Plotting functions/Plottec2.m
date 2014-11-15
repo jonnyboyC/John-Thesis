@@ -41,7 +41,7 @@ if nargin == 1 || nargin == 3 || nargin == 4
     axis(ax, 'equal')
     axis(ax, 'tight');
 else
-    h.ZData = data.pod;
+    h.CData = data.pod;
 end
 drawnow;
     
