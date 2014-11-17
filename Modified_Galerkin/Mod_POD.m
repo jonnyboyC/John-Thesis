@@ -49,7 +49,7 @@ pool = gcp();
 [data, direct] = prompt_folder({'POD', 'Galerkin'});
 update_folders(direct);
 data1 = load(data{1}, 'eig_func', 'lambda2', 'pod_u1', 'pod_v1', 'dimensions', 'x', 'y');
-data2 = load(data{2}, 'num_pods', 'q', 'ci', 'li', 't', 'modal_amp');
+data2 = load(data{2}, 'num_pods', 'q', 'ci', 'l', 't', 'modal_amp_l');
 
 % Need to explictly declare all the loaded variables for parfor loop
 eig_func    = data1.eig_func;
@@ -106,7 +106,7 @@ for i = 1:length(search_space)-1
         else 
             flip = -1;
         end
-        amp = floor((j)/2)/4;
+        amp = floor((j)/2)/8;
         epsilon_temp(j) = epsilon_0*(1-amp*flip);
         transfer_temp(j) = optimal_rotation(epsilon_temp(j), ci, li, q, OG_nm, RD_nm, lambda2, eig_func, t, init, 3000);
     end
@@ -183,14 +183,14 @@ end
 % Transform pod modes and modal amplitudes 
 pod_u_til = zeros(size(pod_vt,1), RD_nm);
 pod_v_til = zeros(size(pod_vt,1), RD_nm);
-modal_amp_til = zeros(size(modal_amp,1), RD_nm);
+modal_amp_til = zeros(size(modal_amp_l,1), RD_nm);
 for i = 1:RD_nm
     for j = 1:size(pod_ut,1)
         pod_u_til(j,i) = sum(X(:,i)'.*pod_ut(j,:));
         pod_v_til(j,i) = sum(X(:,i)'.*pod_vt(j,:));
     end
-    for j = 1:size(modal_amp,1)
-        modal_amp_til(j,i) = sum(X(:,i)'.*modal_amp(j,:));
+    for j = 1:size(modal_amp_l,1)
+        modal_amp_til(j,i) = sum(X(:,i)'.*modal_amp_l(j,:));
     end
 end
 
@@ -198,10 +198,10 @@ end
 if strcmp(plot_type, 'amp')
     plot_amp(modal_amp_til, t, direct, init, true);
 elseif strcmp(plot_type, 'video')
-    plot_prediction(pod_u_til, pod_v_til, x, y, modal_amp_til, RD_nm, dimensions, direct);
+    plot_prediction(pod_u_til, pod_v_til, x, y, modal_amp_til, t, RD_nm, dimensions, direct);
 elseif strcmp(plot_type, 'both');
-    plot_prediction(pod_u_til, pod_v_til, x, y, modal_amp_til, RD_nm, dimensions, direct);
-    plot_amp(modal_amp, t, direct, init, true);
+    plot_prediction(pod_u_til, pod_v_til, x, y, modal_amp_til, t, RD_nm, dimensions, direct);
+    plot_amp(modal_amp_l, t, direct, init, true);
 elseif strcmp(plot_pred, 'none')
 else
     epi_error('When specifying plot type, choose either amp, video, both or none');
@@ -256,7 +256,7 @@ options = odeset('RelTol',1e-6,'AbsTol',1e-8);
 
 % Look more into tspan;
 tspan = t;
-[~,Y_til] = ode15s(@(t, y) system_odes(t, y, -reduced_model_coeff)...
+[~,Y_til] = ode113(@(t, y) system_odes(t, y, -reduced_model_coeff)...
     , tspan ,eig_func(init,1:RD_nm), options);   %(base line)(f = 500 Hz)
 
 rep = error_til(Lam_til,Y_til);

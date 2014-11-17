@@ -117,6 +117,15 @@ for i = 1:num_files
    end
 end
 
+% Scale velocity by the inlet fast side streamwise velocity
+u_scale = mean(squeeze(mean(ui(22,100:130,:))));
+ui = ui./u_scale;
+vi = ui./v_scale;
+
+% Change x & y from mm to meters
+x = x/1000;
+y = y/1000;
+
 % Save Data to processed folder
 num_processed = num_images;
 save([direct '\Processed Data\Processed.mat'], 'xi', 'yi', 'ui', 'vi', 'num_x', 'num_y');
@@ -159,6 +168,15 @@ for i = 1:num_files
         [xi, yi, ui(:,:,i), vi(:,:,i)] = image_rotation(x,y,u,v);            
     end
 end
+
+% Scale velocity by the inlet fast side streamwise velocity
+u_scale = mean(squeeze(mean(ui(22,100:130,:))));
+ui = ui./u_scale;
+vi = vi./u_scale;
+
+% Change x & y from mm to meters
+xi = x/1000;
+yi = y/1000;
 
 % Save Data to processed folder
 num_processed = num_images;

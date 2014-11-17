@@ -16,8 +16,8 @@ legend(leg_names);
 Hz = 1/(t(2) - t(1));
 
 file_name = [direct '\Figures\Galerkin\Galerkin_'];
-if nargin == 5 && MOD == true
-    file_name = [file_name 'MOD_'];
+if nargin == 5 
+    file_name = [file_name MOD '_'];
 end
 file_name = [file_name num2str(size(modal_amp,2)) '_modes_init' num2str(init) ...
     '_t' num2str(ceil(t(1))) '_' num2str(ceil(t(end))) 's_' num2str(ceil(Hz)) 'Hz'];

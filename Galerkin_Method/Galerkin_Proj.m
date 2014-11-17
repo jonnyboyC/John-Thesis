@@ -96,26 +96,8 @@ load(data{1});
 % dl   tn   tm   acm   plm   pqm   fr   tr
 % l   q   niu   ci   ni   li   fcuhi1
 
-x = x./1000;
-y = y./1000;
-mu0=1;
-sc=1;
-Re0=0.28e6;                   %Reynolds number
+Re0=1500;                   %Reynolds number
 z=ones(size(x));            %Depth of velocity field 
-M0=.25;
-
-%Solution of the time coefficient
-sf=50000;                   %Sampling frequency
-Ns=2048;                    %Number samples?
-dl=mu0/(sc*sf);             
-tn=0:dl:dl*Ns*6*40;         
-tm=zeros(10,size(tn,2));
-acm=zeros(10,size(tn,2),4);
-plm=zeros(10,size(tn,2));
-pqm=zeros(10,size(tn,2));
-
-fr=1000*sc/mu0;
-tr=tn;
 
 % TODO if we decide we want to calculate for range of number of pod modes,
 % place for loop here
@@ -127,39 +109,50 @@ pod_vt = pod_v1(:,1:num_pods);
 [l_dot, l, q_2dot, q_dot, q] = visocity_coefficients(mean_u, mean_v, ...
     x, y, pod_ut, pod_vt, dimensions, vol_frac, bnd_idx, z);
 
+
 niu = viscious_dis(eig_func, num_pods, lambda2, l, q_dot, q);
+ni  = diag(niu) + (ones(num_pods)-eye(num_pods))/Re0;
+
+c  =  l_dot/Re0 + q_2dot;
 ci = l_dot/Re0.*niu+q_2dot;
 
-% matrix of niu with extra scaling on off diagonal
-ni = diag(niu) + (ones(num_pods)-eye(num_pods))/Re0;
 li = ni.*l+q_dot;
-fcuhi1 = [ci li q];
+l  = l+q_dot;
+
+% Gal_coeff     = [c  l  q];
+Gal_coeff_vis = [ci li q];
+
 
 % Will reduce number of coefficients if we want a smaller model
-reduced_model_coeff = -ode_coefficients(num_pods, num_pods, fcuhi1);
+% reduced_model_coeff = -ode_coefficients(num_pods, num_pods, Gal_coeff);
+reduced_model_coeff_vis = -ode_coefficients(num_pods, num_pods, Gal_coeff_vis);
 options = odeset('RelTol', 1e-7, 'AbsTol', 1e-9);
 
-% Was previously using ode113 now using 15s, preformance up 4x, may need to
-% change in the future.
-tic;
-[t, modal_amp] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff), tspan, ...
-    eig_func(init,1:num_pods), options);
-toc;
+% TODO investigate situations where various ode solvers are faster
+% tic1 = tic;
+% [t, modal_amp] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff), tspan, ...
+%     eig_func(init,1:num_pods), options);
+% toc(tic1);
 
-% Was previously using eig_func_norm
+tic2 = tic;
+[t, modal_amp_vis] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff_vis), tspan, ...
+    eig_func(init,1:num_pods), options);
+toc(tic2);
 
 % Provide only modal flucations ie only turblent portion of modes
 % TODO check the validity of this statement
 % modal_amp = modal_amp - ones(size(modal_amp,1), 1)*mean(modal_amp);
 
-
+% TODO update for plot_prediction
 if strcmp(plot_pred, 'amp')
-    plot_amp(modal_amp(:, 1:num_pods), t, direct, init);
+%     plot_amp(modal_amp(:, 1:num_pods), t, direct, init);
+    plot_amp(modal_amp_vis(:, 1:num_pods), t, direct, init, 'vis');
 elseif strcmp(plot_pred, 'video')
-    plot_prediction(pod_ut, pod_vt, x, y, modal_amp, t, num_pods, dimensions, direct)
+    plot_prediction(pod_ut, pod_vt, x, y, modal_amp_vis, t, num_pods, dimensions, direct)
 elseif strcmp(plot_pred, 'both');
-    plot_amp(modal_amp(:, 1:num_pods), t, direct, init);
-    plot_prediction(pod_ut, pod_vt, x, y, modal_amp, t, num_pods, dimensions, direct)
+%     plot_amp(modal_amp(:, 1:num_pods), t, direct, init);
+    plot_amp(modal_amp_vis(:, 1:num_pods), t, direct, init, 'vis');
+    plot_prediction(pod_ut, pod_vt, x, y, modal_amp_vis, t, num_pods, dimensions, direct)
 elseif strcmp(plot_pred, 'none')
 else
     error('When specifying plot type, choose either amp, video, both or none');
@@ -167,5 +160,6 @@ end
 
 if save_coef == true
     save([direct '\Galerkin Coeff\Coeff_m' num2str(num_pods) 'i' num2str(init) '.mat'],...
-        'ci', 'li', 'q', 'num_pods', 'modal_amp', 't', 'l_dot', 'l', 'q_2dot', 'q_dot', 'q');
+        'ci', 'li', 'c', 'l', 'num_pods', 'modal_amp_vis', 't', 'l_dot', ...
+        'q_2dot', 'q_dot', 'q');  %, 'modal_amp'
 end
