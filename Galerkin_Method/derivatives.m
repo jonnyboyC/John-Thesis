@@ -8,7 +8,7 @@ dy = zeros(dimensions(1), dimensions(2), number2calc);
 d2x = zeros(dimensions(1), dimensions(2), number2calc);
 d2y = zeros(dimensions(1), dimensions(2), number2calc);
 
-for i = 1:number2calc
+parfor i = 1:number2calc
     
     [dxic, detc] = visder2(reshape(var(:,i), size(z,1), size(z,2)),...
          dimensions(1), dimensions(2), z, bnd_idx);

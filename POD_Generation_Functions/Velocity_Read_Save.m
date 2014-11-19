@@ -1,4 +1,4 @@
-function [xi, yi, ui, vi, direct] = Velocity_Read_Save(num_images, overwrite, direct)
+function [xi, yi, ui, vi, direct] = Velocity_Read_Save(num_images, overwrite, image_range, direct)
 % VELOCITY_READ_PLOT_SAVE read num_images number of images from a selected
 % directory.
 %   [x, y, u, v, num_x, num_y] = VELOCITY_READ_PLOT_SAVE(num_images)
@@ -84,19 +84,25 @@ if num_images < num_files
 end
 
 if strcmp(file_type, 'mat')
-    [xi, yi, ui, vi] = load_mat(img_files, num_files, num_images,  direct);
+    [xi, yi, ui, vi] = load_mat(img_files, num_files, num_images, image_range, direct);
 else
-    [xi, yi, ui, vi] = load_vc7(img_files, num_files, num_images,  direct);
+    [xi, yi, ui, vi] = load_vc7(img_files, num_files, num_images, image_range, direct);
 end
 end
 
 % Function to load files of .mat format
-function [xi, yi, ui, vi] = load_mat(img_files, num_files, num_images, direct)
+function [xi, yi, ui, vi] = load_mat(img_files, num_files, num_images, image_range, direct)
 
 % Get dimensions of image
 load([direct '\Raw Data\' img_files(1).name], 'x', 'y');
-num_x = size(x,1);
-num_y = size(x,2);
+
+if isempty(image_range)
+    num_x = size(x,1);
+    num_y = size(x,2);
+else
+    num_x = image_range(2)-image_range(1);
+    num_y = image_range(4)-image_range(3);
+end
 
 % Preallocate Matrices
 ui = zeros(num_x, num_y, num_files);
@@ -107,13 +113,21 @@ for i = 1:num_files
    if ~img_files(i).isdir
        
         % Show current progress
-        [~, img_num(i)] = update_progress(img_files(i));
+        filename = update_progress(img_files(i));
         
         % Load individual images
-        load([direct '\Raw Data\' img_files(i).name], 'u', 'v');
+        load([direct '\Raw Data\' filename], 'u', 'v');
         
         % Perform image rotation if necessary
-        [xi, yi, ui(:,:,i), vi(:,:,i)] = image_rotation(x, y, u, v);
+        if isempty(image_range)
+            [xi, yi, ui(:,:,i), vi(:,:,i)] = image_rotation(x, y, u, v);
+        else
+            [x_temp, y_temp, u_temp, v_temp] = image_rotation(x, y, u, v);
+            xi = x_temp(image_range(1):image_range(2), image_range(3):image_range(4));
+            yi = y_temp(image_range(1):image_range(2), image_range(3):image_range(4));
+            ui(:,:,i) = u_temp(image_range(1):image_range(2), image_range(3):image_range(4),i);
+            ui(:,:,i) = v_temp(image_range(1):image_range(2), image_range(3):image_range(4));
+        end
    end
 end
 
@@ -123,8 +137,8 @@ ui = ui./u_scale;
 vi = ui./v_scale;
 
 % Change x & y from mm to meters
-x = x/1000;
-y = y/1000;
+xi = xi/1000;
+yi = yi/1000;
 
 % Save Data to processed folder
 num_processed = num_images;
@@ -133,12 +147,18 @@ save([direct '\Processed Data\Num_Processed.mat'], 'num_processed');
 end
 
 % Function to load files of the .vc7/.im7 format
-function [xi, yi, ui, vi] = load_vc7(img_files, num_files, num_images, direct)
+function [xi, yi, ui, vi] = load_vc7(img_files, num_files, num_images, image_range, direct)
 
 % Get dimensions of image
 lavdata = readimx([direct '\Raw Data\' img_files(1).name]);
-num_x = lavdata.Nx;
-num_y = lavdata.Ny;
+
+if isempty(image_range)
+    num_x = lavdata.Nx;
+    num_y = lavdata.Ny;
+else
+    num_x = image_range(2)-image_range(1)+1;
+    num_y = image_range(4)-image_range(3)+1;
+end
 
 % Preallocate matrices 
 xi = zeros(num_x, num_y);  
@@ -165,18 +185,26 @@ for i = 1:num_files
         [x,y,u,v] = showimx_mod(lavdata);
 
         % Rotate images to proper orientation
-        [xi, yi, ui(:,:,i), vi(:,:,i)] = image_rotation(x,y,u,v);            
+        if isempty(image_range)
+            [xi, yi, ui(:,:,i), vi(:,:,i)] = image_rotation(x, y, u, v); 
+        else
+            [x_temp, y_temp, u_temp, v_temp] = image_rotation(x, y, u, v);
+            xi = x_temp(image_range(1):image_range(2), image_range(3):image_range(4));
+            yi = y_temp(image_range(1):image_range(2), image_range(3):image_range(4));
+            ui(:,:,i) = u_temp(image_range(1):image_range(2), image_range(3):image_range(4));
+            vi(:,:,i) = v_temp(image_range(1):image_range(2), image_range(3):image_range(4));
+        end
     end
 end
 
 % Scale velocity by the inlet fast side streamwise velocity
-u_scale = mean(squeeze(mean(ui(22,100:130,:))));
+u_scale = mean(squeeze(mean(ui(22,100:110,:))));
 ui = ui./u_scale;
 vi = vi./u_scale;
 
 % Change x & y from mm to meters
-xi = x/1000;
-yi = y/1000;
+xi = xi/1000;
+yi = yi/1000;
 
 % Save Data to processed folder
 num_processed = num_images;

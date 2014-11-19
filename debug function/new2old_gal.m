@@ -3,7 +3,7 @@
 clc
 clear all
 
-load('D:\shear layer\PIVData\Baseline1\POD Data\POD.mat');
+load('D:\shear layer\PIVData\Forced1\POD Data\POD.mat');
 muz = {mean_u};
 mvz = {mean_v};
 phiutc = {pod_u1};

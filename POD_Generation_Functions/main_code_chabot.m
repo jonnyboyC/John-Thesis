@@ -49,6 +49,7 @@ switch nargin
         save_pod        = true;
         dump2work       = false;
         save_figures    = 'none';
+        image_range     = [];
         direct          = '';
     case 1
         % First parameter select number of images to load
@@ -57,6 +58,7 @@ switch nargin
         save_pod        = true;
         dump2work       = false;
         save_figures    = 'none';
+        image_range     = [];
         direct          = '';
     case 2
         % Second parameter select overwrite status
@@ -65,6 +67,7 @@ switch nargin
         save_pod        = true;
         dump2work       = false;
         save_figures    = 'none';
+        image_range     = [];
         direct          = '';
     case 3
         % Third parameter select save_figure status
@@ -73,6 +76,7 @@ switch nargin
         save_pod        = varargin{3};
         dump2work       = false;
         save_figures    = 'none';
+        image_range     = [];
         direct          = '';
     case 4
         num_images      = varargin{1};
@@ -80,6 +84,7 @@ switch nargin
         save_pod        = varargin{3};
         dump2work       = varargin{4};
         save_figures    = 'none';
+        image_range     = [];
         direct          = '';
     case 5
         num_images      = varargin{1};
@@ -87,6 +92,7 @@ switch nargin
         save_pod        = varargin{3};
         dump2work       = varargin{4};
         save_figures    = varargin{5};
+        image_range     = [];
         direct          = '';
     case 6
         num_images      = varargin{1};
@@ -94,11 +100,20 @@ switch nargin
         save_pod        = varargin{3};
         dump2work       = varargin{4};
         save_figures    = varargin{5};
-        direct          = varargin{6};
+        image_range     = varargin{6};
+        direct          = '';
+    case 7
+        num_images      = varargin{1};
+        overwrite       = varargin{2};
+        save_pod        = varargin{3};
+        dump2work       = varargin{4};
+        save_figures    = varargin{5};
+        image_range     = varargin{6};
+        direct          = varargin{7};
     otherwise
         error('Too many input arguments');
 end
-
+pool = gcp;
 
 % Some numbers i don't know what they mean
 % mu0 = 94.5
@@ -109,7 +124,7 @@ end
 % Load velocity images from data, will load from raw files if processing
 % has not been done, will load from .mat file otherwise. Select true to
 % overwrite previous .mat files
-[x, y, u, v, direct] = Velocity_Read_Save(num_images, overwrite, direct);
+[x, y, u, v, direct] = Velocity_Read_Save(num_images, overwrite, image_range, direct);
 
 %%%%%%%%%%%%%%%%%% Temporary for testing will delete
 % load('r1140i20aB002x10v80f1250p0_20100728b_n4.mat');
@@ -178,6 +193,8 @@ mean_u      = reshape(mean_u, data_points, 1);
 mean_v      = reshape(mean_v, data_points, 1);
 vol_frac    = reshape(vol_frac, data_points, 1);
 
+data.xg = x;
+data.yg = y;
 % TODO calculate POD modes only for data points that not in the boundary,
 % may potetially increase accuracy. Currently calculated modes including
 % these boundaries
@@ -203,6 +220,8 @@ end
 
 pod_u1 = reshape(pod_u1, data_points, num_modes);
 pod_v1 = reshape(pod_v1, data_points, num_modes);
+vorticity = calc_vorticity(data, pod_u1, pod_v1, dimensions, bnd_idx);
+
 
 %% Setup for Plotting and Plotting
 if num_modes > 40
@@ -211,19 +230,17 @@ else
     num_plot = num_modes;
 end
 
-data.xg = x;
-data.yg = y;
 
 % Plot pod modes
 Plotsvd2(data, pod_u1(:,1:num_plot), dimensions, 'u', lambda2, bnd_idx, direct, save_figures);
 Plotsvd2(data, pod_v1(:,1:num_plot), dimensions, 'v', lambda2, bnd_idx, direct, save_figures);
-
+Plotsvd2(data, vorticity(:,1:num_plot), dimensions, 'vorticity', lambda2, bnd_idx, direct, save_figures);
 %% Save / Dump variables
 % Save variables relavent to Galerkin to .mat files
 if save_pod == true
     save([direct '\POD Data\POD.mat'], 'x', 'y', 'flux_u', 'flux_v', 'bnd_idx', ...
         'dimensions', 'eig_func', 'lambda2', 'mean_u', 'mean_v', 'pod_u1', ...
-        'pod_v1', 'vol_frac');
+        'pod_v1', 'vol_frac', 'vorticity');
 end
 % If requested place relvent galerkin variables in workspace
 x2 = x;

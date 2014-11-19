@@ -28,6 +28,7 @@ for i = 1:nx
                 dprdxic(i,j) = (-3*pr(i+4,j)+16*pr(i+3,j)-36*pr(i+2,j)+48*pr(i+1,j)-25*pr(i,j))*rdxi12;
             end
             
+            
         % Either one right of left side of image, or just one right of a
         % boundary
         elseif (i == 2 || i < nx && (bi(i-2,j) == 0 && bi(i-1,j) > 0)) 
@@ -41,7 +42,7 @@ for i = 1:nx
             
         % Either one left of right side of image, or just one left of a
         % boundary
-        elseif (i == nx-1 || (i < nx && bi(i+2,j)== 0 && bi(i+1,j)> 0)) 
+        elseif (i == nx-1 || (i > 1 && i < nx && bi(i+2,j)== 0 && bi(i+1,j)> 0)) 
             if (i == 2 || bi(i-2,j) == 0)
                 dprdxic(i,j)=(pr(i+1,j)-pr(i-1,j))*rdxi12*6;
             elseif (i == 3 || bi(i-3,j) == 0)
@@ -51,7 +52,7 @@ for i = 1:nx
             end
             
         % Either right side of image, or just left of a boundary
-        elseif (i == nx || (bi(i+1,j) == 0 && bi(i,j)> 0)) 
+        elseif (i == nx || (i > 1 && bi(i+1,j) == 0 && bi(i,j)> 0)) 
             if (i == 2  ||bi(i-2,j) == 0  )
                 dprdxic(i,j)=(pr(i,j)-pr(i-1,j))*rdxi12*12;
             elseif ( i == 3 || bi(i-3,j) == 0)
@@ -69,7 +70,7 @@ for i = 1:nx
         end
         
         % If within a boundary or on it's edge
-        if  (bi(i,j) < 1 || j > 1 && j < ny && bi(i,j) == 0 && bi(i,j-1) < 1 && bi(i,j+1) < 1)
+        if  (bi(i,j) < 1 || (j > 1 && j < ny && bi(i,j) == 0 && bi(i,j-1) < 1 && bi(i,j+1) < 1))
             dprdetc(i,j) = 0;
             
         % Either bottom of image, or just above a boundary
@@ -86,10 +87,10 @@ for i = 1:nx
             
         % Either one above the bottom of image, or just one above a
         % boundary
-        elseif (j == 2 || (bi(i,j-2) == 0 && bi(i,j-1)> 0)) 
+        elseif (j == 2 || (j < ny && bi(i,j-2) == 0 && bi(i,j-1)> 0)) 
             if (bi(i,j) == 0 && bi(i,j+1) <1)
                 dprdetc(i,j)=(pr(i,j)-pr(i,j-1))*rdet12*12;
-            elseif (j== ny-1 || bi(i,j+2) == 0)
+            elseif (j == ny-1 || bi(i,j+2) == 0)
                 dprdetc(i,j)=(pr(i,j+1)-pr(i,j-1))*rdet12*6;
             elseif (j == ny-2 || bi(i,j+3) == 0)
                 dprdetc(i,j)=(-pr(i,j+2)+6*pr(i,j+1)-3*pr(i,j)-2*pr(i,j-1))*rdet12*2;
@@ -99,8 +100,8 @@ for i = 1:nx
             
             
         % Either one below the top of image, or just one below a boundary    
-        elseif (j == ny-1 || (j < ny && bi(i,j+2) == 0 && bi(i,j+1)> 0)) 
-            if (j==2 || bi(i,j-2) == 0)
+        elseif (j == ny-1 || (j > 1 && j < ny && bi(i,j+2) == 0 && bi(i,j+1)> 0)) 
+            if (j == 2 || bi(i,j-2) == 0)
                 dprdetc(i,j)=(pr(i,j+1)-pr(i,j-1))*rdet12*6;
             elseif (j == 3 || bi(i,j-3) == 0)
                 dprdetc(i,j)=(pr(i,j-2)-6*pr(i,j-1)+3*pr(i,j)+2*pr(i,j+1))*rdet12*2;
@@ -109,7 +110,7 @@ for i = 1:nx
             end
             
         % Either top of image, or just below a boundary    
-        elseif (j == ny || (bi(i,j+1) == 0 && bi(i,j)> 0)) 
+        elseif (j == ny || (j > 1 && bi(i,j+1) == 0 && bi(i,j)> 0)) 
             if (bi(i,j) < 1 && bi(i,j-1) <1)
                 dprdetc(i,j)=0;
             elseif (j == 2  || bi(i,j-2) == 0)

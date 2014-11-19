@@ -9,36 +9,64 @@ switch nargin
         save_mod = true;
         init = 1;
         line_range = 200;
+        direct = '';
+        mat_name = [];
     case 1
         RD_nm = varargin{1};
         plot_type = 'none';
         save_mod = true;
         init = 1;
         line_range = 200;
+        direct = '';
+        mat_name = [];
     case 2
         RD_nm = varargin{1};
         plot_type = varargin{2};
         save_mod = true;
         init = 1;
         line_range = 200;
+        direct = '';
+        mat_name = [];
     case 3
         RD_nm = varargin{1};
         plot_type = varargin{2};
         save_mod = varargin{3};
         init = 1;
         line_range = 200;
+        direct = '';
+        mat_name = [];
     case 4
         RD_nm = varargin{1};
         plot_type = varargin{2};
         save_mod = varargin{3};
         init = varargin{4};
         line_range = 200;
+        direct = '';
+        mat_name = [];
     case 5
         RD_nm = varargin{1};
         plot_type = varargin{2};
         save_mod = varargin{3};
         init = varargin{4};
         line_range = varargin{5};
+        direct = '';
+        mat_name = [];
+    case 6
+        RD_nm = varargin{1};
+        plot_type = varargin{2};
+        save_mod = varargin{3};
+        init = varargin{4};
+        line_range = varargin{5};
+        direct = varargin{6};
+        mat_name = [];
+    case 7
+        RD_nm = varargin{1};
+        plot_type = varargin{2};
+        save_mod = varargin{3};
+        init = varargin{4};
+        line_range = varargin{5};
+        direct = varargin{6};
+        mat_name = varargin{7};
     otherwise
         error('Too many input arguments');
 end
@@ -46,10 +74,20 @@ end
 % Start a parallel pool for use in brute force line search
 pool = gcp();
 
-[data, direct] = prompt_folder({'POD', 'Galerkin'});
+% Handle File IO
+if strcmp(direct, '');
+    [data, direct] = prompt_folder({'POD', 'Galerkin'});
+else
+    if isempty(mat_name)
+        mat_name = {[]; []};
+    end
+    [data, direct] = prompt_folder({'POD', 'Galerkin'}, direct, mat_name);
+end
+
+% Make sure folders are up to date and load collected data
 update_folders(direct);
 data1 = load(data{1}, 'eig_func', 'lambda2', 'pod_u1', 'pod_v1', 'dimensions', 'x', 'y');
-data2 = load(data{2}, 'num_pods', 'q', 'ci', 'l', 't', 'modal_amp_l');
+data2 = load(data{2}, 'num_pods', 'q', 'c', 'ci', 'l', 'li', 't', 't2', 'modal_amp');
 
 % Need to explictly declare all the loaded variables for parfor loop
 eig_func    = data1.eig_func;
@@ -62,8 +100,8 @@ y           = data1.y;
 
 num_pods    = data2.num_pods;
 q           = data2.q;
-ci          = data2.ci;
-li          = data2.li;
+c           = data2.c;
+l           = data2.l;
 t           = data2.t;
 modal_amp   = data2.modal_amp;
 
@@ -80,10 +118,10 @@ end
 pod_ut = pod_u1(:,1:OG_nm);
 pod_vt = pod_v1(:,1:OG_nm);
 
-epsilon_0 = sum(li*lambda2(1:OG_nm)); % intial guess for epsilon
+epsilon_0 = sum(l*lambda2(1:OG_nm)); % intial guess for epsilon
 
 % Find initial value for line search and plot
-transfer_0 = optimal_rotation(epsilon_0, ci, li, q, OG_nm, RD_nm, lambda2, eig_func, t, init, 3000);
+transfer_0 = optimal_rotation(epsilon_0, c, l, q, OG_nm, RD_nm, lambda2, eig_func, t, init, 3000);
 epsilon_i(1) = epsilon_0;
 transfer_i(1) = transfer_0;
 
@@ -108,7 +146,7 @@ for i = 1:length(search_space)-1
         end
         amp = floor((j)/2)/8;
         epsilon_temp(j) = epsilon_0*(1-amp*flip);
-        transfer_temp(j) = optimal_rotation(epsilon_temp(j), ci, li, q, OG_nm, RD_nm, lambda2, eig_func, t, init, 3000);
+        transfer_temp(j) = optimal_rotation(epsilon_temp(j), c, l, q, OG_nm, RD_nm, lambda2, eig_func, t, init, 3000);
     end
     
     epsilon_i       = [epsilon_i; epsilon_temp];
@@ -136,8 +174,8 @@ for i = 1:length(search_space)-1
         if sign_t(k)*sign_t(k+1) < 0 && ~any(exclusion_list == k)
             % If so run values using more minimization steps then check
             % again
-            t1 = optimal_rotation(epsilon_i(k), ci, li, q, OG_nm, RD_nm, lambda2, eig_func, t, init, 18000);
-            t2 = optimal_rotation(epsilon_i(k+1), ci, li, q, OG_nm, RD_nm, lambda2, eig_func, t, init, 18000);
+            t1 = optimal_rotation(epsilon_i(k), c, l, q, OG_nm, RD_nm, lambda2, eig_func, t, init, 18000);
+            t2 = optimal_rotation(epsilon_i(k+1), c, l, q, OG_nm, RD_nm, lambda2, eig_func, t, init, 18000);
             if t1*t2 < 0 
                 sign_flip = k;
                 exit = true;
@@ -161,7 +199,7 @@ if sign_flip ~= 0
     'FunValCheck', 'on');
 
     [epsilon_final, ~, ~, OUTPUT] = fzero(@(epsilon) optimal_rotation...
-        (epsilon, ci, li, q, OG_nm, RD_nm, lambda2, eig_func, t, init, 18000), epsilon_range, options);
+        (epsilon, c, l, q, OG_nm, RD_nm, lambda2, eig_func, t, init, 18000), epsilon_range, options);
     close all;
     disp(OUTPUT);
 else
@@ -171,42 +209,40 @@ else
     'FunValCheck', 'on');
 
     [epsilon_final, ~, ~, OUTPUT] = fminbnd(@(epsilon) abs(optimal_rotation...
-        (epsilon, ci, li, q, OG_nm, RD_nm, lambda2, eig_func, t, init, 18000)), epsilon_i(idx-1), epsilon_i(idx+1), options);
+        (epsilon, c, l, q, OG_nm, RD_nm, lambda2, eig_func, t, init, 18000)), epsilon_i(idx-1), epsilon_i(idx+1), options);
     disp(OUTPUT);
 end
 
 % Final calculation of transformation matrix and new constant linear and
 % quadratic terms
 [~, X, C_til, L_til, Q_til] = ...
-    optimal_rotation(epsilon_final, ci, li, q, OG_nm, RD_nm, lambda2, eig_func, t, init, 18000);
+    optimal_rotation(epsilon_final, c, l, q, OG_nm, RD_nm, lambda2, eig_func, t, init, 18000);
 
 % Transform pod modes and modal amplitudes 
 pod_u_til = zeros(size(pod_vt,1), RD_nm);
 pod_v_til = zeros(size(pod_vt,1), RD_nm);
-modal_amp_til = zeros(size(modal_amp_l,1), RD_nm);
+modal_amp_til = zeros(size(modal_amp,1), RD_nm);
 for i = 1:RD_nm
     for j = 1:size(pod_ut,1)
         pod_u_til(j,i) = sum(X(:,i)'.*pod_ut(j,:));
         pod_v_til(j,i) = sum(X(:,i)'.*pod_vt(j,:));
     end
-    for j = 1:size(modal_amp_l,1)
-        modal_amp_til(j,i) = sum(X(:,i)'.*modal_amp_l(j,:));
+    for j = 1:size(modal_amp,1)
+        modal_amp_til(j,i) = sum(X(:,i)'.*modal_amp(j,:));
     end
 end
 
 % Plot either modal amplitude, time evolution movie, or nothing
-if strcmp(plot_type, 'amp')
-    plot_amp(modal_amp_til, t, direct, init, true);
-elseif strcmp(plot_type, 'video')
-    plot_prediction(pod_u_til, pod_v_til, x, y, modal_amp_til, t, RD_nm, dimensions, direct);
-elseif strcmp(plot_type, 'both');
-    plot_prediction(pod_u_til, pod_v_til, x, y, modal_amp_til, t, RD_nm, dimensions, direct);
-    plot_amp(modal_amp_l, t, direct, init, true);
-elseif strcmp(plot_pred, 'none')
-else
-    epi_error('When specifying plot type, choose either amp, video, both or none');
+if any(strcmp(plot_type, 'amp'))
+    plot_amp(modal_amp_til, t, direct, init, 'Mod');
 end
-
+if any(strcmp(plot_type, 'video'))
+    plot_prediction(pod_ut, pod_vt, x, y, modal_amp_til, t, num_pods, dimensions, direct)
+end
+if any(strcmp(plot_type, 'fft'))
+    modal_fft(modal_amp_til, 1:4, size(pod_ut, 1), size(modal_amp,1)/10,...
+        4096, [0 2000], direct, 'Mod')
+end
 % Save important coefficients
 if save_mod == true
     save([direct '\Mod Galerkin Coeff\Coeff_m' num2str(RD_nm) 'i' num2str(init) '.mat'], ...

@@ -1,4 +1,4 @@
-function plot_prediction(pod_u, pod_v, x, y, modal_amp, t, num_pods, dimensions, direct)
+function plot_prediction(pod_u, pod_v, x, y, modal_amp, t, num_pods, dimensions, direct, MOD)
 
 % Check to match sure requested image instead too large
 if size(modal_amp,1) > 10000
@@ -6,6 +6,8 @@ if size(modal_amp,1) > 10000
         'on the plot_prediction function']);
     return;
 end
+
+% TODO add vorticity
 
 % Begin fill all data structures
 data_u.pod = [];
@@ -15,6 +17,10 @@ data_u.yg = y;
 data_v.pod = [];
 data_v.xg = x;
 data_v.yg = y;
+
+% data_vor.pod = [];
+% data_vor.xg = x;
+% data_vor.yg = y;
 
 data_m.pod = [];
 data_m.xg = x;
@@ -44,7 +50,11 @@ set(h, 'Renderer', 'opengl');
 Hz = 1/(t(2) - t(1));
 
 % Intialize Video creator
-writer = VideoWriter([direct '\Figures\Movies\POD' num2str(num_pods) '_' ...
+ext = '\Figures\Movies\POD_';
+if nargin == 10
+    ext = [ext MOD];
+end
+writer = VideoWriter([direct ext num2str(num_pods) '_' ...
    num2str(t(1)) '_' num2str(t(end)) 's_' num2str(ceil(Hz)) 'Hz_Galerkin.avi']);
 writer.Quality = 100;
 writer.FrameRate = 60;

@@ -34,28 +34,28 @@ switch nargin
         num_pods = 10;
         plot_pred = 'none';
         save_coef = true;
-        tspan = [0 100];
+        tspan = [0:0.01:100];
         init = 1;
         direct = '';
     case 1
         num_pods = varargin{1};
     	plot_pred = 'none';
         save_coef = true;
-        tspan = [0 100];
+        tspan = [0:0.01:100];
         init = 1;
         direct = '';
     case 2
         num_pods = varargin{1};
         plot_pred = varargin{2};
         save_coef = true;        
-        tspan = [0 100];
+        tspan = [0:0.01:100];
         init = 1;
         direct = '';  
     case 3 
         num_pods = varargin{1};
         plot_pred = varargin{2};
         save_coef = varargin{3};
-        tspan = [0 100];
+        tspan = [0:0.01:100];
         init = 1;
         direct = '';
     case 4
@@ -82,6 +82,7 @@ switch nargin
     otherwise
         error('Too many input arguments');
 end
+pool = gcp;
 
 if strcmp(direct, '');
     [data, direct] = prompt_folder('POD');
@@ -96,8 +97,15 @@ load(data{1});
 % dl   tn   tm   acm   plm   pqm   fr   tr
 % l   q   niu   ci   ni   li   fcuhi1
 
-Re0=1500;                   %Reynolds number
+Re0=0.28e6;                 %Reynolds number
 z=ones(size(x));            %Depth of velocity field 
+
+if length(tspan) > 2
+    sample_freq = 1/(tspan(2) - tspan(1));
+    disp(sample_freq);
+else
+    error('must provide tspan with a range');
+end
 
 % TODO if we decide we want to calculate for range of number of pod modes,
 % place for loop here
@@ -109,7 +117,6 @@ pod_vt = pod_v1(:,1:num_pods);
 [l_dot, l, q_2dot, q_dot, q] = visocity_coefficients(mean_u, mean_v, ...
     x, y, pod_ut, pod_vt, dimensions, vol_frac, bnd_idx, z);
 
-
 niu = viscious_dis(eig_func, num_pods, lambda2, l, q_dot, q);
 ni  = diag(niu) + (ones(num_pods)-eye(num_pods))/Re0;
 
@@ -119,23 +126,23 @@ ci = l_dot/Re0.*niu+q_2dot;
 li = ni.*l+q_dot;
 l  = l+q_dot;
 
-% Gal_coeff     = [c  l  q];
+Gal_coeff     = [c  l  q];
 Gal_coeff_vis = [ci li q];
 
 
 % Will reduce number of coefficients if we want a smaller model
-% reduced_model_coeff = -ode_coefficients(num_pods, num_pods, Gal_coeff);
+reduced_model_coeff = -ode_coefficients(num_pods, num_pods, Gal_coeff);
 reduced_model_coeff_vis = -ode_coefficients(num_pods, num_pods, Gal_coeff_vis);
 options = odeset('RelTol', 1e-7, 'AbsTol', 1e-9);
 
 % TODO investigate situations where various ode solvers are faster
-% tic1 = tic;
-% [t, modal_amp] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff), tspan, ...
-%     eig_func(init,1:num_pods), options);
-% toc(tic1);
+tic1 = tic;
+[t, modal_amp] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff), tspan, ...
+    eig_func(init,1:num_pods), options);
+toc(tic1);
 
 tic2 = tic;
-[t, modal_amp_vis] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff_vis), tspan, ...
+[t2, modal_amp_vis] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff_vis), tspan, ...
     eig_func(init,1:num_pods), options);
 toc(tic2);
 
@@ -144,22 +151,24 @@ toc(tic2);
 % modal_amp = modal_amp - ones(size(modal_amp,1), 1)*mean(modal_amp);
 
 % TODO update for plot_prediction
-if strcmp(plot_pred, 'amp')
-%     plot_amp(modal_amp(:, 1:num_pods), t, direct, init);
-    plot_amp(modal_amp_vis(:, 1:num_pods), t, direct, init, 'vis');
-elseif strcmp(plot_pred, 'video')
-    plot_prediction(pod_ut, pod_vt, x, y, modal_amp_vis, t, num_pods, dimensions, direct)
-elseif strcmp(plot_pred, 'both');
-%     plot_amp(modal_amp(:, 1:num_pods), t, direct, init);
-    plot_amp(modal_amp_vis(:, 1:num_pods), t, direct, init, 'vis');
-    plot_prediction(pod_ut, pod_vt, x, y, modal_amp_vis, t, num_pods, dimensions, direct)
-elseif strcmp(plot_pred, 'none')
-else
-    error('When specifying plot type, choose either amp, video, both or none');
+if any(strcmp(plot_pred, 'amp'))
+    plot_amp(modal_amp(:, 1:num_pods), t, direct, init);
+    plot_amp(modal_amp_vis(:, 1:num_pods), t2, direct, init, 'vis');
+end
+if any(strcmp(plot_pred, 'video'))
+    plot_prediction(pod_ut, pod_vt, x, y, modal_amp, t, num_pods, dimensions, direct)
+    plot_prediction(pod_ut, pod_vt, x, y, modal_amp_vis, t2, num_pods, dimensions, direct)
+end
+if any(strcmp(plot_pred, 'fft'))
+    modal_fft(modal_amp, 1:4, size(pod_ut, 1), 4096, ...
+        sample_freq, [0 2000], direct);
+    modal_fft(modal_amp_vis, 1:4, size(pod_ut, 1), 4096,...
+        sample_freq, [0 2000], direct, 'vis')
 end
 
 if save_coef == true
     save([direct '\Galerkin Coeff\Coeff_m' num2str(num_pods) 'i' num2str(init) '.mat'],...
-        'ci', 'li', 'c', 'l', 'num_pods', 'modal_amp_vis', 't', 'l_dot', ...
-        'q_2dot', 'q_dot', 'q');  %, 'modal_amp'
+        'ci', 'li', 'c', 'l', 'num_pods', 'modal_amp_vis', 't2', 'l_dot', ...
+        'q_2dot', 'q_dot', 'q', 'sample_freq', 't' ,'modal_amp');  % 
 end
+

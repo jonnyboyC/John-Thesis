@@ -1,15 +1,39 @@
-function handle = modal_fft(modal_amp, num_plot, sample_freq)
-samples = size(modal_amp,1);
-NFFT = 2^nextpow2(samples);
-freq = sample_freq/2*linspace(0,1,NFFT/2+1);
-freq_response = fft(modal_amp, NFFT, 1);
-freq_response = freq_response(1:ceil((NFFT+1)/2), :)/NFFT;
+function handle = modal_fft(modal_amp, num_plot, num_elem, window_samples, sample_freq, xlim, direct, MOD)
+% samples = size(modal_amp,1);
 
+% Number of points per windows, set to the next power of 2
+num_modes = size(modal_amp,2);
+NFFT    = 2^nextpow2(window_samples); 
+windows = floor(size(modal_amp, 1)/NFFT);   % Number of windows
+T       = NFFT/sample_freq;                 % window sample by sampling rate
+d_freq  = 1/T;                              % frequency resolution
+fspan   = 0:d_freq:sample_freq-d_freq;
+
+window  = hanning(NFFT);        % Hanning windows of width NFFT
+start   = 1;                    % Start location  
+finish  = NFFT;                 % End location 
+freq_response = 0;              % frequency response
+freq    = 0;                    % TODO
+
+for i = 1:windows
+    modal_amp_win = modal_amp(start:finish,:).*(window*ones(1,num_modes));
+    freq_response_temp  = fft(modal_amp_win);
+    % TODO confirm we are dividing by num_elem
+    freq_response_temp = abs(freq_response_temp)/num_elem;
+    freq_response = freq_response + freq_response_temp;
+    start = start + NFFT;
+    finish = finish + NFFT;
+end
+
+freq_response_dB = 20*log10(freq_response);
+
+h = figure;
 ax = newplot;
-h = loglog(ax, freq', abs(freq_response(:, num_plot)));
+plot(fspan, freq_response_dB(:, num_plot));
 ax.XLabel.String = 'frequency (Hz)';
 ax.YLabel.String = 'Modal Amplitude';
 ax.Title.String  = 'Modal Frequency Response';
+ax.XLim = xlim;
 
 leg_names = cell(size(num_plot,1),1);
 for i = 1:size(num_plot,2)
@@ -17,6 +41,13 @@ for i = 1:size(num_plot,2)
 end
 legend(leg_names);
 
+file_name = [direct '\Figures\Galerkin\FFT_'];
+if nargin == 9 
+    file_name = [file_name MOD '_'];
+end
+file_name = [file_name num2str(size(modal_amp,2)) '_' num2str(ceil(sample_freq)) 'Hz'];
+
+saveas(h, file_name, 'fig');
 
 if nargout == 1
     handle = h;

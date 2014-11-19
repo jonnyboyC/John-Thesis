@@ -1,26 +1,32 @@
-function h = amp_comp(modal_amp, modal_amp_til, t0, eig_func, tspan, mode)
-close all;
-
-mode_dev1 = std(eig_func(:,mode));
+function h = amp_comp(coeff, tspan, eig_func, num_pods, mode2plot, init)
+% Calculate standard deviation and mean
+mode_dev1 = std(eig_func(:,mode2plot));
 mode_dev2 = mode_dev1*2;
-mode_mean = mean(eig_func(:,mode));
+mode_mean = mean(eig_func(:,mode2plot));
 
 h = figure;
 ax = newplot;
 
-plot(ax, tspan, [mode_dev1 + mode_mean, mode_dev1 + mode_mean], 'b-.', ...
-         tspan, [-mode_dev1 + mode_mean, -mode_dev1 + mode_mean] ,'b-.');
+% Plot first and second standard deviation line
+plot(ax, [tspan(1) tspan(end)], [mode_dev1 + mode_mean, mode_dev1 + mode_mean], 'b-.', ...
+         [tspan(1) tspan(end)], [-mode_dev1 + mode_mean, -mode_dev1 + mode_mean] ,'b-.');
 hold on
-plot(ax, tspan, [mode_dev2 + mode_mean, mode_dev2 + mode_mean], 'k-.', ...
-         tspan, [-mode_dev2 + mode_mean, -mode_dev2 + mode_mean] ,'k-.');
-t = t0(t0 < tspan(2) & t0 > tspan(1));
-modal_amp = modal_amp((t0 < tspan(2) & t0 > tspan(1)), mode);
-plot(ax, t, modal_amp, 'r');
-
-modal_amp_til = modal_amp_til((t0 < tspan(2) & t0 > tspan(1)), mode);
-plot(ax, t, modal_amp_til, 'g');
-
-ax.Title.String = ['Predicted Modal Amplitude a_' num2str(mode)];
+plot(ax, [tspan(1) tspan(end)], [mode_dev2 + mode_mean, mode_dev2 + mode_mean], 'k-.', ...
+         [tspan(1) tspan(end)], [-mode_dev2 + mode_mean, -mode_dev2 + mode_mean] ,'k-.');
+     
+% Solve for common time scale
+options = odeset('RelTol', 1e-7, 'AbsTol', 1e-9);
+colors = {'r-', 'y-', 'g-'};
+for i = 1:size(coeff,2)
+	reduced_model_coeff = -ode_coefficients(num_pods, num_pods, coeff{i});
+    tic1 = tic;
+    [t, modal_amp] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff), tspan, ...
+        eig_func(init,1:num_pods), options);
+    toc(tic1);
+    plot(ax, t, modal_amp(:,mode2plot), colors{i});
+end
+legend(ax, 'ROM1', 'ROM2', 'ROM3');
+ax.Title.String = ['Predicted Modal Amplitude a_' num2str(mode2plot)];
 ax.XLabel.String = 'Time (s)';
 ax.YLabel.String = 'Amplitude';
 hold off
