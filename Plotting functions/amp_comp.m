@@ -1,4 +1,7 @@
 function h = amp_comp(coeff, tspan, eig_func, num_pods, mode2plot, init)
+% Plot the time response of Galerkin System verse the std dev of the direct
+% PIV projection onto the POD basis
+
 % Calculate standard deviation and mean
 mode_dev1 = std(eig_func(:,mode2plot));
 mode_dev2 = mode_dev1*2;

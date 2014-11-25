@@ -1,4 +1,5 @@
 function fig2jpg
+% Convert a file that was previously a fig to a jpg
 
 % Prompt folder
 start_direct = 'D:\shear layer';

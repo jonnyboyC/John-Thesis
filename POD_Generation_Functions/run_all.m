@@ -1,4 +1,5 @@
 function run_all
+% script to run all data available, currently of no use
 
 start_direct = 'D:\shear layer';
 direct = uigetdir(start_direct, 'Choose Source Image Directory');

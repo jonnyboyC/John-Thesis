@@ -1,5 +1,5 @@
 function vorticity = calc_vorticity(data, u, v, dimensions, bnd_idx)
-%% TODO do this more efficiently 
+%% Calculate vorticity in the flow
 [xxi, yxi, xet, yet, aj] = metric2(data.xg, data.yg);
 z = ones(dimensions);
 

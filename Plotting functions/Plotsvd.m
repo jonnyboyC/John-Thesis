@@ -1,6 +1,5 @@
 function Plotsvd(data,pod,sz,varname,sigma, direct, save_figures)
 
-
 % Determine number of modes
 [~,num_modes] = size(pod);
 

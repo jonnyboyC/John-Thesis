@@ -1,4 +1,4 @@
-load('D:\shear layer\PIVData\Forced1\Processed Data\Processed.mat');
+load('E:\thesis\PIVData\Forced\Processed Data\Processed.mat');
 mean_u = mean(ui, 3);
 mean_v = mean(vi, 3);
 

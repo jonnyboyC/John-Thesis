@@ -1,4 +1,6 @@
 function [dx, d2x, dy, d2y] = derivatives(var, dimensions, z, xxi, yxi, xet, yet, aj, bnd_idx)
+%% Find derivatives of variable var
+
 % Figure out how many loops are needed
 number2calc = size(var, 2);
 
@@ -10,6 +12,7 @@ d2y = zeros(dimensions(1), dimensions(2), number2calc);
 
 parfor i = 1:number2calc
     
+    % TODO look into parrallelizing visder
     [dxic, detc] = visder2(reshape(var(:,i), size(z,1), size(z,2)),...
          dimensions(1), dimensions(2), z, bnd_idx);
      

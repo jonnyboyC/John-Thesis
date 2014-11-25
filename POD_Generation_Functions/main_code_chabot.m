@@ -29,10 +29,12 @@ function main_code_chabot(varargin)
 % = 'fig' will save images as matlab .fig files if SAVE_FIGURES = 'jpg'
 % will save images as jpgs.
 %
-
-
-% If SAVE_FIGURES = TRUE will save .fig of each pod mode generated.
-% Set format and set to correct directory
+% MAIN_CODE_CHABOT(..., IMAGE_RANGE) IMAGE_RANGE provides limits for PIV 
+% images, in order to exclude portions of the flow that are not useful, may
+% improve results, looking to to improve this further later
+% 
+% MAIN_CODE_CHABOT(..., DIRECT) if a DIRECT is provided will skip file
+% selection GUI and perform analysis on files in the directory.
 format long g
 close all
 clc
@@ -40,7 +42,7 @@ clc
 %%%%%%%%%%%% ALTER THIS TO MAKE PORTABLE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % cd('C:\Users\John-Desktop\Documents\MATLAB\thesis stuff\');
 
-%% Set up function for given inputs
+%% Set up function for given inputs, need to adjust to work better
 switch nargin 
     case 0
         % Default: read 1000 images, don't overwrite, and don't save figures
@@ -79,6 +81,7 @@ switch nargin
         image_range     = [];
         direct          = '';
     case 4
+        % Fourth parameter select dump2work status
         num_images      = varargin{1};
         overwrite       = varargin{2};
         save_pod        = varargin{3};
@@ -87,6 +90,7 @@ switch nargin
         image_range     = [];
         direct          = '';
     case 5
+        % Fifth parameter select save file format
         num_images      = varargin{1};
         overwrite       = varargin{2};
         save_pod        = varargin{3};
@@ -95,6 +99,7 @@ switch nargin
         image_range     = [];
         direct          = '';
     case 6
+        % Sixth paramater select PIV image range
         num_images      = varargin{1};
         overwrite       = varargin{2};
         save_pod        = varargin{3};
@@ -103,6 +108,7 @@ switch nargin
         image_range     = varargin{6};
         direct          = '';
     case 7
+        % Seventh paramaeter select data directory
         num_images      = varargin{1};
         overwrite       = varargin{2};
         save_pod        = varargin{3};
@@ -167,12 +173,10 @@ else
     num_modes = 100;
 end
 
-% Again may need to do this in a cell fashion in case we need to read in
-% multiple data
-
+% find boundaries of velocity image
 [~, ~, ~, ~, ~, ~, bnd_idx] = boundary_check_chabot(x, y, mean_u);
-% [~, ~, ~, ~, ~, ~, bnd_idx] = boundary_check(x, y, mean_u);
 
+% Calculate volume elements of the mesh
 vol_frac = voln_piv2(x, y, bnd_idx);
 
 % Find fluxating velocity of flow
@@ -195,13 +199,10 @@ vol_frac    = reshape(vol_frac, data_points, 1);
 
 data.xg = x;
 data.yg = y;
-% TODO calculate POD modes only for data points that not in the boundary,
-% may potetially increase accuracy. Currently calculated modes including
-% these boundaries
 
 %% Perform Proper Orthogonal Decomposition
 covariance = cal_covariance_mat(flux_u, flux_v, vol_frac);
-[pod_u, pod_v, lambda2, eig_func] =  calc_eig_modes2(covariance, num_modes, flux_u, flux_v); 
+[pod_u, pod_v, lambda2, eig_func] =  calc_eig_modes(covariance, num_modes, flux_u, flux_v); 
 
 pod_u1 = regroup(pod_u, dimensions);
 pod_v1 = regroup(pod_v, dimensions);
@@ -218,6 +219,7 @@ for i = 1:num_modes
     pod_v1(:,:,i) = pod_v1(:,:,i)*sign_flip(i);
 end
 
+% Calculate vorticity
 pod_u1 = reshape(pod_u1, data_points, num_modes);
 pod_v1 = reshape(pod_v1, data_points, num_modes);
 vorticity = calc_vorticity(data, pod_u1, pod_v1, dimensions, bnd_idx);
@@ -236,22 +238,20 @@ Plotsvd2(data, pod_u1(:,1:num_plot), dimensions, 'u', lambda2, bnd_idx, direct, 
 Plotsvd2(data, pod_v1(:,1:num_plot), dimensions, 'v', lambda2, bnd_idx, direct, save_figures);
 Plotsvd2(data, vorticity(:,1:num_plot), dimensions, 'vorticity', lambda2, bnd_idx, direct, save_figures);
 %% Save / Dump variables
+
 % Save variables relavent to Galerkin to .mat files
 if save_pod == true
     save([direct '\POD Data\POD.mat'], 'x', 'y', 'flux_u', 'flux_v', 'bnd_idx', ...
         'dimensions', 'eig_func', 'lambda2', 'mean_u', 'mean_v', 'pod_u1', ...
         'pod_v1', 'vol_frac', 'vorticity');
 end
+
 % If requested place relvent galerkin variables in workspace
-x2 = x;
-y2 = y;
 if dump2work == true
     putvar(x2, y2, bnd_idx, dimensions, eig_func, lambda2, mean_u, mean_v, ...
         pod_u1, pod_v1, vol_frac);
 end
 
-% Need to look into if grid rotation is needed at all
-% Need to ask what voln_piv does
-
+% return format
 format short g
 end

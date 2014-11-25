@@ -1,5 +1,5 @@
 function handle = modal_fft(modal_amp, num_plot, num_elem, window_samples, sample_freq, xlim, direct, MOD)
-% samples = size(modal_amp,1);
+% Calculate the modal frequency response using fft
 
 % Number of points per windows, set to the next power of 2
 num_modes = size(modal_amp,2);
@@ -15,6 +15,7 @@ finish  = NFFT;                 % End location
 freq_response = 0;              % frequency response
 freq    = 0;                    % TODO
 
+% Calculate fft for selected hanning window
 for i = 1:windows
     modal_amp_win = modal_amp(start:finish,:).*(window*ones(1,num_modes));
     freq_response_temp  = fft(modal_amp_win);
@@ -27,6 +28,7 @@ end
 
 freq_response_dB = 20*log10(freq_response);
 
+% Plot fft
 h = figure;
 ax = newplot;
 plot(fspan, freq_response_dB(:, num_plot));

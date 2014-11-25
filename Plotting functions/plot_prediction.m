@@ -1,4 +1,5 @@
 function plot_prediction(pod_u, pod_v, x, y, modal_amp, t, num_pods, dimensions, direct, MOD)
+% Create a movie of the time response of the predicted Galerkin sytem
 
 % Check to match sure requested image instead too large
 if size(modal_amp,1) > 10000

@@ -1,4 +1,5 @@
 function handle = Plottec(data)
+% Plot individual figure
 
 % Again may need to include zones
 % Also may not the data structure at all

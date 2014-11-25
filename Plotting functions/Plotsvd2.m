@@ -1,4 +1,6 @@
 function Plotsvd2(data,pod,sz,varname,sigma, bnd_idx, direct, save_figures)
+% Plot plot pod modes for u v and vorticity
+
 % Determine number of modes
 [~,num_modes] = size(pod);
 

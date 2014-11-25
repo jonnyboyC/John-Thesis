@@ -1,10 +1,11 @@
 function [pod_u, pod_v, lambda2, eig_func] = calc_eig_modes(co_var, num_modes, ...
     u_data, v_data, mu_data, mv_data)
+%% Calculate pod modes, pod lambda values, and the left eigenvector
+% TODO look at homles for real name
 
 sz_co_var = length(co_var);
 
 % Perform single value decomposition to get empirial eigenfunctions
-
 [eig_func, lambda2, qa] = svds(co_var, num_modes);
 
 % Normalize

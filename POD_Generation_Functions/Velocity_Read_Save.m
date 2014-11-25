@@ -131,6 +131,8 @@ for i = 1:num_files
    end
 end
 
+% TODO LOOK into scaling of values
+
 % Scale velocity by the inlet fast side streamwise velocity
 u_scale = mean(squeeze(mean(ui(22,100:130,:))));
 ui = ui./u_scale;
@@ -196,6 +198,8 @@ for i = 1:num_files
         end
     end
 end
+
+% TODO LOOK into scaling of values
 
 % Scale velocity by the inlet fast side streamwise velocity
 u_scale = mean(squeeze(mean(ui(22,100:110,:))));

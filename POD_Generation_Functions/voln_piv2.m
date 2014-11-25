@@ -1,6 +1,5 @@
 function vt=voln_piv2(x,y,bnd_idx)
-% find vol elements for portions of the velocity image that aren't
-% boundaries 
+%% find vol elements for portions of the velocity image that aren't boundaries 
 sz=size(x);
 vt=ones(size(sz));
 

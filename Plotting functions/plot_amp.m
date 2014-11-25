@@ -1,4 +1,5 @@
 function handle = plot_amp(modal_amp, t, direct, init, MOD)
+% Plot modal amplitudes from the time response of the Galerkin sytem
 % Create figure handle and axis handle
 h = figure;
 ax = newplot;

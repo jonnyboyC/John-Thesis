@@ -1,22 +1,19 @@
 function [x_val_sort, y_val_sort, x_idx, y_idx, x_val, y_val, bnd_idx] = ...
     boundary_check_chabot(x, y, muz)
-sz = size(x);
-% x_loc = zeros(1,sz(1)*sz(2));
-% y_loc = zeros(1,sz(1)*sz(2));
-% x_idx = zeros(1,sz(1)*sz(2));
-% y_idx = zeros(1,sz(1)*sz(2));
-% cnt = 0;
+%% Find boundaries of a given image, using the mean streamwise velocity
 
-x_increase = ones(sz);
-y_increase = ones(sz);
+dimensions = size(x);
+
+x_increase = ones(dimensions);
+y_increase = ones(dimensions);
 
 % create increasing x matrix for easy logical indexing
-for i = 1:sz(2)
+for i = 1:dimensions(2)
     x_increase(:,i) = i*x_increase(:,i);
 end
 
 % create increasing y matrix for easy logical indexing
-for i = 1:sz(1)
+for i = 1:dimensions(1)
     y_increase(i,:) = i*y_increase(i,:);
 end
 

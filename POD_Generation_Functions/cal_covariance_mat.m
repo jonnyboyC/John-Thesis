@@ -1,5 +1,5 @@
 function covariance = cal_covariance_mat(flux_u, flux_v, vol_frac)
-% May need to include n_zones back in
+%% Calculate covariance matrix of ensemble data, 
 
 num_images = size(flux_u,2);
 vol_frac = vol_frac*ones(1,num_images);
