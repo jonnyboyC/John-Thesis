@@ -1,5 +1,5 @@
 function [dx, d2x, dy, d2y] = derivatives(var, dimensions, z, xxi, yxi, xet, yet, aj, bnd_idx)
-%% Find derivatives of variable var
+% Find derivatives of variable var
 
 % Figure out how many loops are needed
 number2calc = size(var, 2);
@@ -30,7 +30,7 @@ end
 end
 
 % Approximation of the derivative 
-function [dx, dy] = derivative_approx(pxic, petc, xxi, yxi, xet, yet, aj)
-    dx = aj.*(pxic.*yet - petc.*yxi);
-    dy = aj.*(petc.*xxi - pxic.*xet);
+function [dx, dy] = derivative_approx(dxic, detc, xxi, yxi, xet, yet, aj)
+    dx = aj.*(dxic.*yet - detc.*yxi);
+    dy = aj.*(detc.*xxi - dxic.*xet);
 end

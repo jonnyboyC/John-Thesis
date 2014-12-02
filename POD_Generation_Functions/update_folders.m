@@ -31,7 +31,7 @@ if ~exist([direct '\Figures'], 'dir')
        mkdir(direct, '\Figures\Movies');
    end 
 end
-Move any vc7 or mat files into the Raw data folder
+% Move any vc7 or mat files into the Raw data folder
 [~, ~, ~] = movefile([direct '\*.vc7'], [direct '\Raw Data']); 
 [~, ~, ~] = movefile([direct '\*.im7'], [direct '\Raw Data']); 
 [~, ~, ~] = movefile([direct '\*.mat'], [direct '\Raw Data']); 

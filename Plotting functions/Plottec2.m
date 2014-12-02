@@ -1,4 +1,5 @@
 function [handle, cax] = Plottec2(data, h, bnd_idx)
+% Plot individual psuedo pcolor graphes
 
 % Again may need to include zones
 % Also may not the data structure at all

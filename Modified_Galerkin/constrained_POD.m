@@ -1,4 +1,6 @@
 function [X] = constrained_POD(a,L,N,n,epsilon,evals)
+% Function to determine the optimal rotation of the system
+
 lambda = zeros(N, 1);
 for i=1:N;
     lambda(i) = mean(a(i,:).*a(i,:));

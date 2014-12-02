@@ -82,8 +82,15 @@ switch nargin
     otherwise
         error('Too many input arguments');
 end
+
+% Check that parallel pool is ready
+if isempty(gcp)
+    parpool;
+end
+
 pool = gcp;
 
+% Prompt User for folder if directory is not provided
 if strcmp(direct, '');
     [data, direct] = prompt_folder('POD');
 else
@@ -117,6 +124,7 @@ pod_vt = pod_v1(:,1:num_pods);
 [l_dot, l, q_2dot, q_dot, q] = visocity_coefficients(mean_u, mean_v, ...
     x, y, pod_ut, pod_vt, dimensions, vol_frac, bnd_idx, z);
 
+% Look more at this, 
 niu = viscious_dis(eig_func, num_pods, lambda2, l, q_dot, q);
 ni  = diag(niu) + (ones(num_pods)-eye(num_pods))/Re0;
 

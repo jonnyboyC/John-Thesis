@@ -1,7 +1,7 @@
 function [l_dot, l, q_2dot, q_dot, q] = visocity_coefficients(mean_u, ...
     mean_v, x, y, pod_u, pod_v, dimensions, vol_frac, bnd_idx, z)
-   
-%% TODO understand what these do
+% Determine the Galkerin coefficients using the method proposed in
+% Caraballo's dissertation
 at = 0;
 clt = 0;
 cqt = 0;

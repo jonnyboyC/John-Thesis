@@ -1,6 +1,7 @@
 function dy = system_odes(t, y, model_coeff)
+% System of ode for time evolution of POD/Galerkin system
+
 num_modes = (size(model_coeff,1));
-num_terms = (size(model_coeff,2));
 dy = zeros(num_modes, 1);
 
 for i = 1:num_modes

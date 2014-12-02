@@ -71,7 +71,11 @@ switch nargin
         error('Too many input arguments');
 end
 
-% Start a parallel pool for use in brute force line search
+% Check that parallel pool is ready
+if isempty(gcp)
+    parpool;
+end
+
 pool = gcp();
 
 % Handle File IO
