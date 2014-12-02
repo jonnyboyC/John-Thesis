@@ -134,7 +134,9 @@ end
 % TODO LOOK into scaling of values
 
 % Scale velocity by the inlet fast side streamwise velocity
-u_scale = mean(squeeze(mean(ui(22,100:130,:))));
+u_scale = mean(ui,3);
+u_scale = sort(u_scale(:));
+u_scale = u_scale(floor(0.98*length(u_scale)));
 ui = ui./u_scale;
 vi = ui./v_scale;
 
@@ -202,7 +204,9 @@ end
 % TODO LOOK into scaling of values
 
 % Scale velocity by the inlet fast side streamwise velocity
-u_scale = mean(squeeze(mean(ui(22,100:110,:))));
+u_scale = mean(ui,3);
+u_scale = sort(u_scale(:));
+u_scale = u_scale(floor(0.98*length(u_scale)));
 ui = ui./u_scale;
 vi = vi./u_scale;
 
