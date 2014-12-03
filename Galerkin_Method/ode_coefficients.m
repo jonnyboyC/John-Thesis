@@ -6,7 +6,7 @@ mod_coeff = model_coefficients(num_modes, fcuh);
 
 % Pull off reduced num_modes, from mod_coeff
 %% TODO figure out why dm + 1
-reduced_mod_coeff = zeros(desired_modes, (desired_modes^2)/2+ ceil(1.5*desired_modes)+1);
+reduced_mod_coeff = zeros(desired_modes, floor((desired_modes^2)/2) + ceil(1.5*desired_modes));
 reduced_mod_coeff(1:desired_modes, 1:desired_modes +1) ...
     = mod_coeff(1:desired_modes, 1:desired_modes+1);
 
@@ -25,7 +25,7 @@ end
 function mod_coeff = model_coefficients(num_modes, fcuh)
 % Prefill with zeros, pull first num_modes + 1 columns straight from fcuh
 % TODO figure out odd number of modes
-mod_coeff = zeros(size(fcuh,1), (num_modes^2)/2+ceil(1.5*num_modes)+1);
+mod_coeff = zeros(size(fcuh,1), floor((num_modes^2)/2)+ceil(1.5*num_modes));
 mod_coeff(:,1:num_modes+1) = fcuh(:,1:num_modes + 1);
 
 

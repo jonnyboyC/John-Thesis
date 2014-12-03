@@ -91,7 +91,7 @@ end
 % Make sure folders are up to date and load collected data
 update_folders(direct);
 data1 = load(data{1}, 'eig_func', 'lambda2', 'pod_u1', 'pod_v1', 'dimensions', 'x', 'y');
-data2 = load(data{2}, 'num_pods', 'q', 'c', 'ci', 'l', 'li', 't', 't2', 'modal_amp');
+data2 = load(data{2}, 'num_pods', 'q', 'ci', 'li', 't2', 'modal_amp_vis'); %'c', 'l', 't',
 
 % Need to explictly declare all the loaded variables for parfor loop
 eig_func    = data1.eig_func;
@@ -104,10 +104,10 @@ y           = data1.y;
 
 num_pods    = data2.num_pods;
 q           = data2.q;
-c           = data2.c;
-l           = data2.l;
-t           = data2.t;
-modal_amp   = data2.modal_amp;
+c           = data2.ci;
+l           = data2.li;
+t           = data2.t2;
+modal_amp   = data2.modal_amp_vis;
 
 clear data1 data2
 
@@ -150,7 +150,7 @@ for i = 1:length(search_space)-1
         end
         amp = floor((j)/2)/8;
         epsilon_temp(j) = epsilon_0*(1-amp*flip);
-        transfer_temp(j) = optimal_rotation(epsilon_temp(j), c, l, q, OG_nm, RD_nm, lambda2, eig_func, t, init, 3000);
+        transfer_temp(j) = optimal_rotation(epsilon_temp(j), c, l, q, OG_nm, RD_nm, lambda2, eig_func, t, init, 6000);
     end
     
     epsilon_i       = [epsilon_i; epsilon_temp];
@@ -235,6 +235,19 @@ for i = 1:RD_nm
         modal_amp_til(j,i) = sum(X(:,i)'.*modal_amp(j,:));
     end
 end
+
+%% Temp
+Gal_coeff_til = [C_til L_til Q_til];
+
+reduced_model_coeff_vis = -ode_coefficients(RD_nm, RD_nm, Gal_coeff_til);
+options = odeset('RelTol', 1e-7, 'AbsTol', 1e-9);
+
+tic1 = tic;
+[t, modal_amp_til] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff_vis), 0:0.0001:20, ...
+    eig_func(init,1:RD_nm), options);
+toc(tic1);
+%% Temp
+
 
 % Plot either modal amplitude, time evolution movie, or nothing
 if any(strcmp(plot_type, 'amp'))

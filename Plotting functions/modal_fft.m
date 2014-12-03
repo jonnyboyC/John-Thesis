@@ -20,7 +20,7 @@ for i = 1:windows
     modal_amp_win = modal_amp(start:finish,:).*(window*ones(1,num_modes));
     freq_response_temp  = fft(modal_amp_win);
     % TODO confirm we are dividing by num_elem
-    freq_response_temp = abs(freq_response_temp)/num_elem;
+    freq_response_temp = abs(freq_response_temp)/sample_freq;
     freq_response = freq_response + freq_response_temp;
     start = start + NFFT;
     finish = finish + NFFT;
