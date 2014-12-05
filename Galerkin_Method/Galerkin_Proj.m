@@ -10,8 +10,8 @@ function Galerkin_Proj(varargin)
 
 %%%%%%%%%%%%%%% VARIABLES USED FROM CHABOT MAIN CODE %%%%%%%%%%%%%%%%%%%%%%
 %
-% pod_u1: pods in the u direction that have had thier sign flipped
-% pod_v1: pods in the v direction that have had their sign flipped
+% pod_u: pods in the u direction that have had thier sign flipped
+% pod_v: pods in the v direction that have had their sign flipped
 % mean_u: mean velocity in the u direction
 % mean_v: mean velocity in the v direction
 % dimensions: size of the piv images
@@ -31,54 +31,54 @@ switch nargin
     case 0 
         % Default: run simulation for 10 pod modes, don't plot, run for
         % 100s, save coefficients
-        num_pods = 10;
+        num_pods  = 10;
         plot_pred = 'none';
         save_coef = true;
-        tspan = [0:0.01:100];
-        init = 1;
-        direct = '';
+        tspan     = 0:0.01:100;
+        init      = 1;
+        direct    = '';
     case 1
-        num_pods = varargin{1};
+        num_pods  = varargin{1};
     	plot_pred = 'none';
         save_coef = true;
-        tspan = [0:0.01:100];
-        init = 1;
-        direct = '';
+        tspan     = 0:0.01:100;
+        init      = 1;
+        direct    = '';
     case 2
-        num_pods = varargin{1};
+        num_pods  = varargin{1};
         plot_pred = varargin{2};
         save_coef = true;        
-        tspan = [0:0.01:100];
-        init = 1;
-        direct = '';  
+        tspan     = 0:0.01:100;
+        init      = 1;
+        direct    = '';  
     case 3 
-        num_pods = varargin{1};
+        num_pods  = varargin{1};
         plot_pred = varargin{2};
         save_coef = varargin{3};
-        tspan = [0:0.01:100];
-        init = 1;
-        direct = '';
+        tspan     = 0:0.01:100;
+        init      = 1;
+        direct    = '';
     case 4
-        num_pods = varargin{1};
+        num_pods  = varargin{1};
         plot_pred = varargin{2};
         save_coef = varargin{3};
-        tspan = varargin{4};  
-        init = 1;
-        direct = '';
+        tspan     = varargin{4};  
+        init      = 1;
+        direct    = '';
     case 5
-        num_pods = varargin{1};
+        num_pods  = varargin{1};
         plot_pred = varargin{2};
         save_coef = varargin{3};
-        tspan = varargin{4};  
-        init = varargin{5};
-        direct = '';
+        tspan     = varargin{4};  
+        init      = varargin{5};
+        direct    = '';
     case 6
-        num_pods = varargin{1};
+        num_pods  = varargin{1};
         plot_pred = varargin{2};
         save_coef = varargin{3};
-        tspan = varargin{4};  
-        init = varargin{5};
-        direct = varargin{6};
+        tspan     = varargin{4};  
+        init      = varargin{5};
+        direct    = varargin{6};
     otherwise
         error('Too many input arguments');
 end
@@ -88,7 +88,7 @@ if isempty(gcp)
     parpool;
 end
 
-pool = gcp;
+gcp();
 
 % Prompt User for folder if directory is not provided
 if strcmp(direct, '');
@@ -99,9 +99,12 @@ end
 update_folders(direct);
 load(data{1});
 
+
+% TODO may want to pass calculated high side velocity and calculate this
 Re0=0.28e6;         %Reynolds number based on separator plate length
 z=ones(size(x));    %Depth of velocity field
 
+% Determine sampling frequency from provided tspan
 if length(tspan) > 2
     sample_freq = 1/(tspan(2) - tspan(1));
     disp(sample_freq);
@@ -109,59 +112,89 @@ else
     error('must provide tspan with a range');
 end
 
-% TODO if we decide we want to calculate for range of number of pod modes,
-% place for loop here
+% Subset of total pod modes for model generation
+pod_ut = pod_u(:,1:num_pods);
+pod_vt = pod_v(:,1:num_pods);
 
-% Take a truncation of calculated pods
-pod_ut = pod_u1(:,1:num_pods);
-pod_vt = pod_v1(:,1:num_pods);
+[lc_dot2, lc2, qc_2dot2, qc_dot2, qc2] = visocity_coefficients_fast(mean_u, mean_v, ...
+    x, y, pod_u, pod_v, dimensions, vol_frac);
 
+% coefficeints for the unresolved and resolved modes
+[lc_dot, lc, qc_2dot, qc_dot, qc] = visocity_coefficients(mean_u, mean_v, ...
+    x, y, pod_u, pod_v, dimensions, vol_frac, bnd_idx, z);
+
+% Free memory
+clear pod_u pod_v
+
+% coefficients for the resolved modes
 [l_dot, l, q_2dot, q_dot, q] = visocity_coefficients(mean_u, mean_v, ...
     x, y, pod_ut, pod_vt, dimensions, vol_frac, bnd_idx, z);
 
 % Look more at this, 
 niu = viscious_dis(eig_func, num_pods, lambda2, l, q_dot, q);
-ni  = diag(niu) + (ones(num_pods)-eye(num_pods))/Re0;
+niu_c = viscious_dis_couplet(eig_func, num_pods, lambda2, ...
+                                lc_dot, lc, qc_2dot, qc_dot, qc, Re0);
 
-% c  =  l_dot/Re0 + q_2dot;
-ci = l_dot/Re0.*niu+q_2dot;
+% From Couplet (v + v_tilde) ie (1/Re + v_tilde)
+ni   = diag(niu) + (ones(num_pods))/Re0;
+ni_c = diag(niu_c) + (ones(num_pods))/Re0; 
 
-li = ni.*l+q_dot;
-% l  = l+q_dot;
+% Calculate Constant terms terms
+c    = l_dot/Re0 + q_2dot;
+ci   = ni*l_dot + q_2dot;
+ci_c = ni_c*l_dot+ q_2dot;
 
-% Gal_coeff     = [c  l  q];
-Gal_coeff_vis = [ci li q];
+% Calculate Linear terms
+l    = l + q_dot;
+li   = ni.*l   + q_dot;
+li_c = ni_c.*l + q_dot;
+
+% System coefficients
+Gal_coeff      = [c  l  q];
+Gal_coeff_vis1 = [ci li q];
+Gal_coeff_vis2 = [ci_c, li_c, q];
 
 
 % Will reduce number of coefficients if we want a smaller model
 % reduced_model_coeff = -ode_coefficients(num_pods, num_pods, Gal_coeff);
-reduced_model_coeff_vis = -ode_coefficients(num_pods, num_pods, Gal_coeff_vis);
+reduced_model_coeff_vis1 = -ode_coefficients(num_pods, num_pods, Gal_coeff_vis1);
+reduced_model_coeff_vis2 = -ode_coefficients(num_pods, num_pods, Gal_coeff_vis2);
 options = odeset('RelTol', 1e-7, 'AbsTol', 1e-9);
 
-% TODO investigate situations where various ode solvers are faster
+% Integrate Galerkin System for no viscious damping, and the two viscous
+% damping methods
 % tic1 = tic;
 % [t, modal_amp] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff), tspan, ...
 %     eig_func(init,1:num_pods), options);
 % toc(tic1);
 
 tic2 = tic;
-[t2, modal_amp_vis] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff_vis), tspan, ...
+[t2, modal_amp_vis1] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff_vis1), tspan, ...
     eig_func(init,1:num_pods), options);
 toc(tic2);
 
-% Provide only modal flucations ie only turblent portion of modes
-% TODO check the validity of this statement
-% modal_amp = modal_amp - ones(size(modal_amp,1), 1)*mean(modal_amp);
+tic3 = tic;
+[t3, modal_amp_vis2] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff_vis2), tspan, ...
+    eig_func(init,1:num_pods), options);
+toc(tic3);
 
-% TODO update for plot_prediction
+%% Plotting functions
+
+% Plot modal amplitudes
 if any(strcmp(plot_pred, 'amp'))
 %     plot_amp(modal_amp(:, 1:num_pods), t, direct, init);
-    plot_amp(modal_amp_vis(:, 1:num_pods), t2, direct, init, 'vis');
+    plot_amp(modal_amp_vis1(:, 1:num_pods), t2, direct, init, 'vis');
+    plot_amp(modal_amp_vis2(:, 1:num_pods), t3, direct, init, 'vis');
 end
+
+% Produce time response video
 if any(strcmp(plot_pred, 'video'))
 %     plot_prediction(pod_ut, pod_vt, x, y, modal_amp, t, num_pods, dimensions, direct)
-    plot_prediction(pod_ut, pod_vt, x, y, modal_amp_vis, t2, num_pods, dimensions, direct)
+    plot_prediction(pod_ut, pod_vt, x, y, modal_amp_vis1, t2, num_pods, dimensions, direct)
+    plot_prediction(pod_ut, pod_vt, x, y, modal_amp_vis2, t3, num_pods, dimensions, direct)
 end
+
+% Plot modal fft
 if any(strcmp(plot_pred, 'fft'))
     if num_pods > 4
         num2plot = 1:4;
@@ -169,19 +202,28 @@ if any(strcmp(plot_pred, 'fft'))
         num2plot = 1:num_pods;
     end
     if size(t2,1) > 4096
-        window_size = 4096;
+        window_size = 8192;
     else
         window_size = size(t2,1);
     end
 %     modal_fft(modal_amp, num2plot, size(pod_ut, 1), window_size, ...
 %         sample_freq, [0 2000], direct);
-    modal_fft(modal_amp_vis, num2plot, size(pod_ut, 1), window_size,...
-        sample_freq, [0 2000], direct, 'vis')
+    modal_fft(modal_amp_vis1, num2plot, size(pod_ut, 1), window_size,...
+        sample_freq, [0 2000], direct, 'vis1')
+    modal_fft(modal_amp_vis2, num2plot, size(pod_ut, 1), window_size,...
+        sample_freq, [0 2000], direct, 'vis2')
 end
 
+% Save relavent coefficients
 if save_coef == true
     save([direct '\Galerkin Coeff\Coeff_m' num2str(num_pods) 'i' num2str(init) '.mat'],...
-        'ci', 'li',  'num_pods', 'modal_amp_vis', 't2', 'l_dot', ...
-        'q_2dot', 'q_dot', 'q', 'sample_freq');  % 't' ,'modal_amp', 'c', 'l',
+        'ci', 'li',  'num_pods', 'modal_amp_vis1', 't2', 'l_dot', ...
+        'q_2dot', 'q_dot', 'c', 'l', 'q', 'sample_freq');  % 't' ,'modal_amp', 
+end
+
+% return format
+format short g
+
+
 end
 

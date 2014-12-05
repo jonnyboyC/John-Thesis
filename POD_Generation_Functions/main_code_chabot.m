@@ -119,7 +119,13 @@ switch nargin
     otherwise
         error('Too many input arguments');
 end
-pool = gcp;
+
+% Set up parrallel pool
+if isempty(gcp)
+    parpool;
+end
+
+gcp();
 
 % Some numbers i don't know what they mean
 % mu0 = 94.5
@@ -187,10 +193,9 @@ for i = 1:size(u,3);
     flux_u(:,:,i) = u(:,:,i) - mean_u;
     flux_v(:,:,i) = v(:,:,i) - mean_v;
 end
+clear u v
 
 % Create a stacked data matrix for u and v velocities
-u           = reshape(u, data_points, num_images);
-v           = reshape(v, data_points, num_images);
 flux_u      = reshape(flux_u, data_points, num_images);
 flux_v      = reshape(flux_v, data_points, num_images);
 mean_u      = reshape(mean_u, data_points, 1);
@@ -202,28 +207,33 @@ data.yg = y;
 
 %% Perform Proper Orthogonal Decomposition
 covariance = cal_covariance_mat(flux_u, flux_v, vol_frac);
-[pod_u, pod_v, lambda2, eig_func] =  calc_eig_modes2(covariance, num_modes, flux_u, flux_v); 
+[pod_u, pod_v, lambda2, eig_func, cutoff] =  calc_eig_modes2(covariance, flux_u, flux_v); 
 
-pod_u1 = regroup(pod_u, dimensions);
-pod_v1 = regroup(pod_v, dimensions);
+pod_u = regroup(pod_u, dimensions);
+pod_v = regroup(pod_v, dimensions);
 
 % Flip images so they all "face" the same way
 sign_flip = zeros(1, num_modes);
 increment = 0.0000000000001;
+
+% Figure out sign
 for i = 1:num_modes
     sign_flip(i) = sign(mean(sign(pod_v(:,i)./(pod_v(:,i) + increment))));
 end
 
+% Apply flip
 for i = 1:num_modes    
-    pod_u1(:,:,i) = pod_u1(:,:,i)*sign_flip(i);
-    pod_v1(:,:,i) = pod_v1(:,:,i)*sign_flip(i);
+    pod_u(:,:,i) = pod_u(:,:,i)*sign_flip(i);
+    pod_v(:,:,i) = pod_v(:,:,i)*sign_flip(i);
 end
 
 % Calculate vorticity
-pod_u1 = reshape(pod_u1, data_points, num_modes);
-pod_v1 = reshape(pod_v1, data_points, num_modes);
-vorticity = calc_vorticity(data, pod_u1, pod_v1, dimensions, bnd_idx);
+pod_u = reshape(pod_u, data_points, cutoff);
+pod_v = reshape(pod_v, data_points, cutoff);
 
+% Currently only calculating vorticity modes for num_modes may need to do
+% for cutoff
+vorticity = calc_vorticity(data, pod_u, pod_v, dimensions, bnd_idx);
 
 %% Setup for Plotting and Plotting
 if num_modes > 40
@@ -232,24 +242,23 @@ else
     num_plot = num_modes;
 end
 
-
 % Plot pod modes
-Plotsvd2(data, pod_u1(:,1:num_plot), dimensions, 'u', lambda2, bnd_idx, direct, save_figures);
-Plotsvd2(data, pod_v1(:,1:num_plot), dimensions, 'v', lambda2, bnd_idx, direct, save_figures);
+Plotsvd2(data, pod_u(:,1:num_plot), dimensions, 'u', lambda2, bnd_idx, direct, save_figures);
+Plotsvd2(data, pod_v(:,1:num_plot), dimensions, 'v', lambda2, bnd_idx, direct, save_figures);
 Plotsvd2(data, vorticity(:,1:num_plot), dimensions, 'vorticity', lambda2, bnd_idx, direct, save_figures);
 %% Save / Dump variables
 
 % Save variables relavent to Galerkin to .mat files
 if save_pod == true
     save([direct '\POD Data\POD.mat'], 'x', 'y', 'flux_u', 'flux_v', 'bnd_idx', ...
-        'dimensions', 'eig_func', 'lambda2', 'mean_u', 'mean_v', 'pod_u1', ...
-        'pod_v1', 'vol_frac', 'vorticity');
+        'dimensions', 'eig_func', 'lambda2', 'mean_u', 'mean_v', 'pod_u', ...
+        'pod_v', 'vol_frac', 'vorticity', 'cutoff');
 end
 
 % If requested place relvent galerkin variables in workspace
 if dump2work == true
     putvar(x2, y2, bnd_idx, dimensions, eig_func, lambda2, mean_u, mean_v, ...
-        pod_u1, pod_v1, vol_frac);
+        pod_u, pod_v, vol_frac);
 end
 
 % return format
