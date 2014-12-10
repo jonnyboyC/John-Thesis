@@ -148,15 +148,80 @@ clear cct ccu ccv
 cdu = zeros(num_modes, num_modes, num_modes);
 cdv = zeros(num_modes, num_modes, num_modes);
 
-for k = 1:num_modes
-    pod_u_pod_u_x = (pod_u(:,k)*ones(1,num_modes)).*pod_udx;
-    pod_v_pod_u_y = (pod_v(:,k)*ones(1,num_modes)).*pod_udy;
-    cdu(:,:,k) = inner_prod(pod_u_pod_u_x + pod_v_pod_u_y, pod_u, vol_frac);
-
-    pod_u_pod_v_x = (pod_u(:,k)*ones(1,num_modes)).*pod_vdx;
-    pod_v_pod_v_y = (pod_v(:,k)*ones(1,num_modes)).*pod_vdy;
-    cdv(:,:,k) = inner_prod(pod_v_pod_v_y + pod_u_pod_v_x, pod_v, vol_frac);
+% If Problem has over 400 modes need to break problem into chunks
+if num_modes < 400 
+    
+    % Quadractic terms preallocation
+    cdu = zeros(num_modes, num_modes, num_modes);
+    cdv = zeros(num_modes, num_modes, num_modes);
+    
+    % Calculate terms
+    for k = 1:num_modes
+        pod_u_pod_u_x = (pod_u(:,k)*ones(1,num_modes)).*pod_udx;
+        pod_v_pod_u_y = (pod_v(:,k)*ones(1,num_modes)).*pod_udy;
+        cdu(:,:,k) = inner_prod(pod_u_pod_u_x + pod_v_pod_u_y, pod_u, vol_frac);
+        
+        pod_u_pod_v_x = (pod_u(:,k)*ones(1,num_modes)).*pod_vdx;
+        pod_v_pod_v_y = (pod_v(:,k)*ones(1,num_modes)).*pod_vdy;
+        cdv(:,:,k) = inner_prod(pod_v_pod_v_y + pod_u_pod_v_x, pod_v, vol_frac);
+    end
+else
+    % delete parrallel pool to free up memeory
+    pool = gcp();
+    delete(pool);
+    
+    % total to be calculted
+    total = num_modes;
+    
+    % Break problem into 400 mode chunks
+    for i = 1:ceil(total/400)
+        
+        % Quadractic term preallocation
+        if total > 400
+            cdu = zeros(num_modes, num_modes, 400);
+            cdv = zeros(num_modes, num_modes, 400);
+        else
+            cdu = zeros(num_modes, num_modes, total);
+            cdv = zeros(num_modes, num_modes, total);
+        end
+        
+        % Remainder of problem
+        total = total - 400;
+        
+        % Calculate terms
+        for k = 1:size(cdu,3)
+            pod_u_pod_u_x = (pod_u(:,k)*ones(1,num_modes)).*pod_udx;
+            pod_v_pod_u_y = (pod_v(:,k)*ones(1,num_modes)).*pod_udy;
+            cdu(:,:,k) = inner_prod(pod_u_pod_u_x + pod_v_pod_u_y, pod_u, vol_frac);
+            
+            pod_u_pod_v_x = (pod_u(:,k)*ones(1,num_modes)).*pod_vdx;
+            pod_v_pod_v_y = (pod_v(:,k)*ones(1,num_modes)).*pod_vdy;
+            cdv(:,:,k) = inner_prod(pod_v_pod_v_y + pod_u_pod_v_x, pod_v, vol_frac);
+        end
+        
+        % Save chunck and clear memory
+        save([direct '\Viscous Coeff\Temp' num2str(i) '.mat'], 'cdu', 'cdv');
+        clear cdu cdv
+        fprintf('%d of %d coefficients computed', num_modes-total, num_modes);
+    end
+    
+    % Load Individual chunk and concatenate
+    for i = 1:ceil(num_modes/400)
+        data = load([direct '\Viscous Coeff\Temp' num2str(i) '.mat'], 'cdu', 'cdv');
+        if i == 1
+            cdu = data.cdu;
+            cdv = data.cdv;
+        else
+            cdu = cat(cdu, data.cdu, 3);
+            cdv = cat(cdv, data.cdv, 3);
+        end
+        
+        % Delete tempoary chunk
+        delete([direct '\Viscous Coeff\Temp' num2str(i) '.mat']);
+    end
+    parpool;
 end
+
 
 cdu = reshape(cdu, num_modes, num_modes^2);
 cdv = reshape(cdv, num_modes, num_modes^2);

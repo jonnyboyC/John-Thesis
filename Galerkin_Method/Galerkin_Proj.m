@@ -287,7 +287,7 @@ fprintf('Saving Galerkin Variables\n');
 if save_coef == true
     save([direct '\Galerkin Coeff\Coeff_m' num2str(num_pods) 'i' num2str(init) '.mat'],...
         'ci', 'li',  'num_pods', 'modal_amp_vis1', 't2', 'l_dot', ...
-        'q_2dot', 'q_dot', 'c', 'l', 'q', 'sample_freq');  % 't' ,'modal_amp', 
+        'q_2dot', 'q_dot', 'c', 'l', 'q', 'sample_freq', '-v7.3');  % 't' ,'modal_amp', 
 end
 
 % return format
