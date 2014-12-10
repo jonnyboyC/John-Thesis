@@ -136,7 +136,7 @@ z=ones(size(x));            % Depth of velocity field
 % Determine sampling frequency from provided tspan
 if length(tspan) > 2
     sample_freq = 1/(tspan(2) - tspan(1));
-    fprintf('Detected Sampling Frequency %6.2f\n\n', sample_freq);
+    fprintf('Detected Sampling Frequency %6.2f Hz\n\n', sample_freq);
 else
     error('must provide tspan with a range');
 end
@@ -235,7 +235,7 @@ fprintf('Completed in %f6.4 seconds\n\n', toc2);
 
 
 
-fprintf('Performing ode113 on Galerkin system with 1st viscous dissapation\n');
+fprintf('Performing ode113 on Galerkin system with 2nd viscous dissapation\n');
 
 % Integrate Galerkin System with 2nd viscous dissapation model
 tic;

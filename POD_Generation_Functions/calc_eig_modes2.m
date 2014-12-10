@@ -30,7 +30,7 @@ if cutoff > 600
 end 
 
 % Display cutoff energy content
-fprintf('\nCutoff for Couplet Viscous Dissapation is %d mode at %3.4f\% Energy\n\n', ...
+fprintf('\nCutoff for Couplet Viscous Dissapation is %d mode at %3.4f % Energy\n\n', ...
     cutoff, sum_mode_energy(cutoff));
 
 % Return truncated pod modes

@@ -132,18 +132,41 @@ q_dot = q_dot + cct;
 % Free memory
 clear cct 
 
-% Quadractic Terms
-cdu = zeros(num_modes, num_modes, num_modes);
-cdv = zeros(num_modes, num_modes, num_modes);
-
-for k = 1:num_modes
-    pod_u_pod_u_x = (pod_u(:,k)*ones(1,num_modes)).*pod_udx;
-    pod_v_pod_u_y = (pod_v(:,k)*ones(1,num_modes)).*pod_udy;
-    cdu(:,:,k) = inner_prod(pod_u_pod_u_x + pod_v_pod_u_y, pod_u, vol_frac);
-                
-    pod_u_pod_v_x = (pod_u(:,k)*ones(1,num_modes)).*pod_vdx;
-    pod_v_pod_v_y = (pod_v(:,k)*ones(1,num_modes)).*pod_vdy;
-    cdv(:,:,k) = inner_prod(pod_v_pod_v_y + pod_u_pod_v_x, pod_v, vol_frac);
+if num_modes < 400 
+    % Quadractic Terms
+    cdu = zeros(num_modes, num_modes, num_modes);
+    cdv = zeros(num_modes, num_modes, num_modes);
+    
+    for k = 1:num_modes
+        pod_u_pod_u_x = (pod_u(:,k)*ones(1,num_modes)).*pod_udx;
+        pod_v_pod_u_y = (pod_v(:,k)*ones(1,num_modes)).*pod_udy;
+        cdu(:,:,k) = inner_prod(pod_u_pod_u_x + pod_v_pod_u_y, pod_u, vol_frac);
+        
+        pod_u_pod_v_x = (pod_u(:,k)*ones(1,num_modes)).*pod_vdx;
+        pod_v_pod_v_y = (pod_v(:,k)*ones(1,num_modes)).*pod_vdy;
+        cdv(:,:,k) = inner_prod(pod_v_pod_v_y + pod_u_pod_v_x, pod_v, vol_frac);
+    end
+else
+    total = num_modes;
+    for i = 1:ceil(total/400)
+        if total > 400
+            cdu = zeros(num_modes, num_modes, 400);
+            cdv = zeros(num_modes, num_modes, 400);
+        else
+            cdu = zeros(num_modes, num_modes, total);
+            cdv = zeros(num_modes, num_modes, total);
+        end
+        total = total - 400;
+        for k = 1:num_modes
+            pod_u_pod_u_x = (pod_u(:,k)*ones(1,num_modes)).*pod_udx;
+            pod_v_pod_u_y = (pod_v(:,k)*ones(1,num_modes)).*pod_udy;
+            cdu(:,:,k) = inner_prod(pod_u_pod_u_x + pod_v_pod_u_y, pod_u, vol_frac);
+            
+            pod_u_pod_v_x = (pod_u(:,k)*ones(1,num_modes)).*pod_vdx;
+            pod_v_pod_v_y = (pod_v(:,k)*ones(1,num_modes)).*pod_vdy;
+            cdv(:,:,k) = inner_prod(pod_v_pod_v_y + pod_u_pod_v_x, pod_v, vol_frac);
+        end
+    end
 end
 
 cdu = reshape(cdu, num_modes, num_modes^2);
