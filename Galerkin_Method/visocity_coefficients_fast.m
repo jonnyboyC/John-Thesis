@@ -1,5 +1,5 @@
 function [l_dot, l, q_2dot, q_dot, q] = visocity_coefficients_fast(mean_u, ...
-    mean_v, x, y, pod_u, pod_v, dimensions, vol_frac)
+    mean_v, x, y, pod_u, pod_v, dimensions, vol_frac, run_num, over_coef, direct)
 
 at = 0;
 clt = 0;
@@ -11,18 +11,36 @@ cdt = 0;
 num_elem = numel(x);
 num_modes = size(pod_u, 2);
 
+% If we are using the same number of cutoff modes and overwrite is set to
+% false look for previous data
+if nargin == 11 && over_coef == false;
+   saved_files = dir([direct '\Viscous Coeff\*.mat']);
+   if size(saved_files,1) == 1
+       data = load([direct '\Viscous Coeff\Coeff.mat'], 'cutoff', 'run_num');
+       if data.cutoff == num_modes && data.run_num == run_num
+           data = load([direct '\Viscous Coeff\Coeff.mat']);
+           l_dot =  data.l_dot;
+           l        = data.l;
+           q_2dot   = data.q_2dot;
+           q_dot    = data.q_dot;
+           q        = data.q;
+           return;
+       end
+   end
+end
+
 hu = mean(mean(x(1:end-1,:),2) - mean(x(2:end,:),2));
 hv = mean(mean(y(:,1:end-1),1) - mean(y(:,2:end),1));
 
 mean_u = reshape(-mean_u, dimensions(1), dimensions(2));
 mean_v = reshape(-mean_v, dimensions(1), dimensions(2));
-pod_u = regroup(pod_u, dimensions);
-pod_v = regroup(pod_v, dimensions);
+pod_u = regroup(-pod_u, dimensions);
+pod_v = regroup(-pod_v, dimensions);
 
 [udy,udx] = gradient(mean_u, hu, hv);
 [vdy,vdx] = gradient(mean_v, hu, hv);
-d2u = del2(mean_u, hu, hv);
-d2v = del2(mean_v, hu, hv);
+d2u = del2(mean_u, hu, hv)*4;
+d2v = del2(mean_v, hu, hv)*4;
 
 pod_udx = zeros(size(pod_u));   % x derivative pod_u
 pod_udy = zeros(size(pod_u));   % y derivative pod_u
@@ -33,10 +51,10 @@ pod_vdy = zeros(size(pod_v));   % y derivative poy_v
 d2pod_v = zeros(size(pod_v));   % laplacian pod_v
 
 for i = 1:size(pod_u,3)
-   [pod_udx(:,:,i), pod_udy(:,:,i)] = gradient(pod_u(:,:,i), hu, hv);
-   [pod_vdx(:,:,i), pod_vdy(:,:,i)] = gradient(pod_v(:,:,i), hu, hv);
-   d2pod_u(:,:,i) = del2(pod_u(:,:,i), hu, hv);
-   d2pod_v(:,:,i) = del2(pod_v(:,:,i), hu, hv);
+   [pod_udy(:,:,i),pod_udx(:,:,i)] = gradient(pod_u(:,:,i), hu, hv);
+   [pod_vdy(:,:,i),pod_vdx(:,:,i)] = gradient(pod_v(:,:,i), hu, hv);
+   d2pod_u(:,:,i) = del2(pod_u(:,:,i), hu, hv)*4;
+   d2pod_v(:,:,i) = del2(pod_v(:,:,i), hu, hv)*4;
 end
 
 % Convert all matrix quantities to vectors for mean derivatives and
@@ -122,7 +140,7 @@ for k = 1:num_modes
     pod_u_pod_u_x = (pod_u(:,k)*ones(1,num_modes)).*pod_udx;
     pod_v_pod_u_y = (pod_v(:,k)*ones(1,num_modes)).*pod_udy;
     cdu(:,:,k) = inner_prod(pod_u_pod_u_x + pod_v_pod_u_y, pod_u, vol_frac);
-
+                
     pod_u_pod_v_x = (pod_u(:,k)*ones(1,num_modes)).*pod_vdx;
     pod_v_pod_v_y = (pod_v(:,k)*ones(1,num_modes)).*pod_vdy;
     cdv(:,:,k) = inner_prod(pod_v_pod_v_y + pod_u_pod_v_x, pod_v, vol_frac);
@@ -131,5 +149,11 @@ end
 cdu = reshape(cdu, num_modes, num_modes^2);
 cdv = reshape(cdv, num_modes, num_modes^2);
 q = -(cdt + cdu + cdv);
+
+% Save data
+if nargin == 11
+    cutoff = num_modes;
+    save([direct '\Viscous Coeff\Coeff.mat'], 'l_dot', 'l', 'q_2dot', 'q_dot', 'q', 'cutoff', 'run_num'); 
+end
 end
 

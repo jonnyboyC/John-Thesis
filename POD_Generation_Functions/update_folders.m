@@ -19,6 +19,9 @@ end
 if ~exist([direct '\Mod Galerkin Coeff'], 'dir')
     mkdir(direct, '\Mod Galerkin Coeff')
 end
+if ~exist([direct '\Viscous Coeff'], 'dir')
+    mkdir(direct, '\Viscous Coeff');
+end
 if ~exist([direct '\Figures'], 'dir')
    mkdir(direct, '\Figures');
    if ~exist([direct '\Figures\POD'], 'dir')

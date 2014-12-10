@@ -1,4 +1,4 @@
-function Plotsvd2(data,pod,sz,varname,sigma, bnd_idx, direct, save_figures)
+function Plotsvd2(data,pod,dimensions,varname,sigma, bnd_idx, direct, save_figures)
 % Plot plot pod modes for u v and vorticity
 
 % Determine number of modes
@@ -27,7 +27,7 @@ ax_sub = gobjects(4, 1);
 h = figure('Name',['  Variable: ' varname ',  (' num2str(sum(energy),4) '%)'],'color','w');
 h.Position = [500, 500, 800, 400];
 for i = 1:num_modes
-    data.pod = reshape(pod(:,i),sz(1),sz(2));
+    data.pod = reshape(pod(:,i),dimensions(1),dimensions(2));
     
     % After 4 plots create a new figure
     if plot_img_num > 4 

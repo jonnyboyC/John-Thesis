@@ -1,4 +1,4 @@
-function [xi, yi, ui, vi, direct] = Velocity_Read_Save(num_images, overwrite, image_range, direct)
+function [xi, yi, ui, vi, u_scale, direct] = Velocity_Read_Save(num_images, overwrite, image_range, l_scale, direct)
 % VELOCITY_READ_PLOT_SAVE read num_images number of images from a selected
 % directory.
 %   [x, y, u, v, num_x, num_y] = VELOCITY_READ_PLOT_SAVE(num_images)
@@ -75,7 +75,7 @@ end
 
 % Check to see if a saved file exists
 if (overwrite == false && size(saved_files,1) == 2)
-    load([direct '\Processed Data\' saved_files(2).name], 'xi', 'yi', 'ui', 'vi', 'num_x', 'num_y');
+    load([direct '\Processed Data\' saved_files(2).name], 'xi', 'yi', 'ui', 'vi', 'num_x', 'num_y', 'u_scale');
     return
 end
 
@@ -84,14 +84,14 @@ if num_images < num_files
 end
 
 if strcmp(file_type, 'mat')
-    [xi, yi, ui, vi] = load_mat(img_files, num_files, num_images, image_range, direct);
+    [xi, yi, ui, vi, u_scale] = load_mat(img_files, num_files, num_images, image_range, l_scale, direct);
 else
-    [xi, yi, ui, vi] = load_vc7(img_files, num_files, num_images, image_range, direct);
+    [xi, yi, ui, vi, u_scale] = load_vc7(img_files, num_files, num_images, image_range, l_scale, direct);
 end
 end
 
 % Function to load files of .mat format
-function [xi, yi, ui, vi] = load_mat(img_files, num_files, num_images, image_range, direct)
+function [xi, yi, ui, vi, u_scale] = load_mat(img_files, num_files, num_images, image_range, l_scale, direct)
 
 % Get dimensions of image
 load([direct '\Raw Data\' img_files(1).name], 'x', 'y');
@@ -135,23 +135,24 @@ end
 
 % Scale velocity by the inlet fast side streamwise velocity
 u_scale = mean(ui,3);
-u_scale = sort(u_scale(:));
-u_scale = u_scale(floor(0.98*length(u_scale)));
+u_scale = sort(abs(u_scale(:)));
+u_scale = u_scale(floor(0.99*length(u_scale)));
+
 ui = ui./u_scale;
 vi = ui./v_scale;
 
 % Change x & y from mm to meters
-xi = xi/1000;
-yi = yi/1000;
+xi = xi/(1000*l_scale);
+yi = yi/(1000*l_scale);
 
 % Save Data to processed folder
 num_processed = num_images;
-save([direct '\Processed Data\Processed.mat'], 'xi', 'yi', 'ui', 'vi', 'num_x', 'num_y');
+save([direct '\Processed Data\Processed.mat'], 'xi', 'yi', 'ui', 'vi', 'num_x', 'num_y', 'u_scale');
 save([direct '\Processed Data\Num_Processed.mat'], 'num_processed');
 end
 
 % Function to load files of the .vc7/.im7 format
-function [xi, yi, ui, vi] = load_vc7(img_files, num_files, num_images, image_range, direct)
+function [xi, yi, ui, vi, u_scale] = load_vc7(img_files, num_files, num_images, image_range, l_scale, direct)
 
 % Get dimensions of image
 lavdata = readimx([direct '\Raw Data\' img_files(1).name]);
@@ -205,18 +206,20 @@ end
 
 % Scale velocity by the inlet fast side streamwise velocity
 u_scale = mean(ui,3);
-u_scale = sort(u_scale(:));
-u_scale = u_scale(floor(0.98*length(u_scale)));
+u_scale = sort(abs(u_scale(:)));
+u_scale = u_scale(floor(0.99*length(u_scale)));
+
+
 ui = ui./u_scale;
 vi = vi./u_scale;
 
 % Change x & y from mm to meters
-xi = xi/1000;
-yi = yi/1000;
+xi = xi/(1000*l_scale);
+yi = yi/(1000*l_scale);
 
 % Save Data to processed folder
 num_processed = num_images;
-save([direct '\Processed Data\Processed.mat'], 'xi', 'yi', 'ui', 'vi', 'num_x', 'num_y');
+save([direct '\Processed Data\Processed.mat'], 'xi', 'yi', 'ui', 'vi', 'num_x', 'num_y', 'u_scale');
 save([direct '\Processed Data\Num_Processed.mat'], 'num_processed');
 
 % TODO if we need to return to gathering data from multiple runs we should

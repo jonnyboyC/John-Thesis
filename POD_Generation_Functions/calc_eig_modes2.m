@@ -25,10 +25,13 @@ sum_mode_energy = cumsum(lambda2)./sum(lambda2);
 cutoff = find((sum_mode_energy >= 0.99), 1);
 
 % Have to truncate for memory
-if cutoff > 100
-    cutoff = 100;
+if cutoff > 600
+    cutoff = 600;
 end 
-disp(cutoff)
+
+% Display cutoff energy content
+fprintf('\nCutoff for Couplet Viscous Dissapation is %d mode at %3.4f\% Energy\n\n', ...
+    cutoff, sum_mode_energy(cutoff));
 
 % Return truncated pod modes
 pod_u = pod_u(:,1:cutoff);

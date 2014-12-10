@@ -1,5 +1,5 @@
-function niu = viscious_dis_couplet(eig_func, num_modes, lambda2,...
-                                    l_dot, l, q_2dot, q_dot, q, Re)
+function niu = viscious_dis_couplet(eig_func, num_modes, ...
+                                    l_dot, l, q_2dot, q_dot, q, Re0)
 num_images = size(eig_func, 1);
 num_cutoff = size(q_2dot,1);    % Number of modes used for cutoff
 
@@ -22,9 +22,9 @@ end
 for i = 1:num_modes
     q_temp=reshape(q(i,:),num_cutoff,num_cutoff);
     for j = num_modes+1:num_cutoff
-        P_unres(i,:)=P_unres(i,:)+q_dot(i,j)*eig_func(:,j)+l(i,j)*eig_func(:,j)/Re;
+        P_unres(i,:)=P_unres(i,:)+(q_dot(i,j)*eig_func(:,j)+l(i,j)*eig_func(:,j)/Re0)';
         for j1 = 1:j
-            P_unres(i,:)=P_unres(i,:)+q_temp(j,j1)*eig_func(:,j)*eig_func(:,j1);
+            P_unres(i,:)=P_unres(i,:)+(q_temp(j,j1)*eig_func(:,j).*eig_func(:,j1))';
         end
     end
 end

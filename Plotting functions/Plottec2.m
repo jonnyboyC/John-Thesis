@@ -3,9 +3,6 @@ function [handle, cax] = Plottec2(data, h, bnd_idx)
 
 % Again may need to include zones
 % Also may not the data structure at all
-data.x=data.xg;
-data.y=data.yg;
-
 minx = min(min(data.x));
 maxx = max(max(data.x));
 

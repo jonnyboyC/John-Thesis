@@ -136,31 +136,9 @@ gcp();
 % Load velocity images from data, will load from raw files if processing
 % has not been done, will load from .mat file otherwise. Select true to
 % overwrite previous .mat files
-[x, y, u, v, direct] = Velocity_Read_Save(num_images, overwrite, image_range, direct);
 
-%%%%%%%%%%%%%%%%%% Temporary for testing will delete
-% load('r1140i20aB002x10v80f1250p0_20100728b_n4.mat');
-% load('r1140i20aB002x10v0f0p0_20100728b_n1.mat');
-% [xcorrect,ycorrect, ~]=airfoil_rotation(20);
-% x=x+xcorrect;
-% y=y+ycorrect;
-% num_images = 1000;
-% u = u(:,1:num_images);
-% v = v(:,1:num_images);
-% u = reshape(u, Nx, Ny, num_images);
-% v = reshape(v, Nx, Ny, num_images);
-% x = reshape(x, Nx, Ny, 1);
-% y = reshape(y, Nx, Ny, 1);
-% for i = 1:size(u,3)
-%     [xn, yn, un(:,:,i), vn(:,:,i)] = image_rotation(x, y, u(:,:,i), v(:,:,i));
-% end
-% x = xn;
-% y = yn;
-% u = un;
-% v = vn;
-% clear xn yn un vn
-% direct = 'D:\shear layer\PIVData\Old Data';
-%%%%%%%%%%%%%%%%%%%%%%%%%%
+l_scale = .3048;        % Length of splitter plate
+[x, y, u, v, u_scale, direct] = Velocity_Read_Save(num_images, overwrite, image_range, l_scale, direct);
 
 mean_u = mean(u,3);
 mean_v = mean(v,3);
@@ -185,6 +163,9 @@ end
 % Calculate volume elements of the mesh
 vol_frac = voln_piv2(x, y, bnd_idx);
 
+% Check if mesh has even spacing
+uniform = check_mesh(x, y);
+
 % Find fluxating velocity of flow
 flux_u = zeros(size(u));
 flux_v = zeros(size(v));
@@ -202,8 +183,8 @@ mean_u      = reshape(mean_u, data_points, 1);
 mean_v      = reshape(mean_v, data_points, 1);
 vol_frac    = reshape(vol_frac, data_points, 1);
 
-data.xg = x;
-data.yg = y;
+data.x = x;
+data.y = y;
 
 %% Perform Proper Orthogonal Decomposition
 covariance = cal_covariance_mat(flux_u, flux_v, vol_frac);
@@ -212,13 +193,17 @@ covariance = cal_covariance_mat(flux_u, flux_v, vol_frac);
 pod_u = regroup(pod_u, dimensions);
 pod_v = regroup(pod_v, dimensions);
 
+if cutoff < num_modes
+    num_modes = cutoff;
+end
+
 % Flip images so they all "face" the same way
 sign_flip = zeros(1, num_modes);
 increment = 0.0000000000001;
 
 % Figure out sign
 for i = 1:num_modes
-    sign_flip(i) = sign(mean(sign(pod_v(:,i)./(pod_v(:,i) + increment))));
+    sign_flip(i) = sign(mean(mean(sign(pod_v(:,:,i)./(pod_v(:,:,i) + increment)))));
 end
 
 % Apply flip
@@ -227,13 +212,16 @@ for i = 1:num_modes
     pod_v(:,:,i) = pod_v(:,:,i)*sign_flip(i);
 end
 
+vorticity = calc_vorticity2(pod_u, pod_v, dimensions, cutoff);
+
 % Calculate vorticity
 pod_u = reshape(pod_u, data_points, cutoff);
 pod_v = reshape(pod_v, data_points, cutoff);
+vorticity = reshape(vorticity, data_points, cutoff);
 
 % Currently only calculating vorticity modes for num_modes may need to do
 % for cutoff
-vorticity = calc_vorticity(data, pod_u, pod_v, dimensions, bnd_idx);
+% vorticity = calc_vorticity(data, pod_u, pod_v, dimensions, bnd_idx);
 
 %% Setup for Plotting and Plotting
 if num_modes > 40
@@ -248,11 +236,14 @@ Plotsvd2(data, pod_v(:,1:num_plot), dimensions, 'v', lambda2, bnd_idx, direct, s
 Plotsvd2(data, vorticity(:,1:num_plot), dimensions, 'vorticity', lambda2, bnd_idx, direct, save_figures);
 %% Save / Dump variables
 
+run_num = floor(100000*rand(1));
+
 % Save variables relavent to Galerkin to .mat files
 if save_pod == true
-    save([direct '\POD Data\POD.mat'], 'x', 'y', 'flux_u', 'flux_v', 'bnd_idx', ...
-        'dimensions', 'eig_func', 'lambda2', 'mean_u', 'mean_v', 'pod_u', ...
-        'pod_v', 'vol_frac', 'vorticity', 'cutoff');
+    save([direct '\POD Data\POD.mat'], 'x', 'y', 'flux_u', 'flux_v', 'mean_u',...  
+        'mean_v', 'pod_u', 'pod_v','eig_func', 'lambda2', 'l_scale', 'u_scale',...    
+        'vol_frac', 'vorticity', 'cutoff', 'uniform', 'dimensions','bnd_idx',...
+        'run_num');
 end
 
 % If requested place relvent galerkin variables in workspace

@@ -1,5 +1,5 @@
 function [l_dot, l, q_2dot, q_dot, q] = visocity_coefficients(mean_u, ...
-    mean_v, x, y, pod_u, pod_v, dimensions, vol_frac, bnd_idx, z)
+    mean_v, x, y, pod_u, pod_v, dimensions, vol_frac, bnd_idx, z, over_coef, direct)
 % Determine the Galkerin coefficients using the method proposed in
 % Caraballo's dissertation
 at = 0;
@@ -11,6 +11,24 @@ cdt = 0;
 
 num_elem = numel(x);
 num_modes = size(pod_u, 2);
+
+% If we are using the same number of cutoff modes and overwrite is set to
+% false look for previous data
+if nargin == 11 && over_coef == false;
+   saved_files = dir([direct '\Viscous Coeff\*.mat']);
+   if size(saved_files,1) == 1
+       data = load([direct '\Viscous Coeff\*.mat'], 'cutoff');
+       if data.cutoff == num_modes && data.run_num == run_num
+           data = load([direct 'Viscous Coeff\*.mat']);
+           l_dot =  data.l_dot;
+           l        = data.l;
+           q_2dot   = data.q_2dot;
+           q_dot    = data.q_dot;
+           q        = data.q;
+           return;
+       end
+   end
+end
 
 % TODO figure out what is really being calculated here
 [xxi, yxi, xet, yet, aj] = metric2(x, y);
@@ -144,4 +162,9 @@ cdu = reshape(cdu, num_modes, num_modes^2);
 cdv = reshape(cdv, num_modes, num_modes^2);
 q = -(cdt + cdu + cdv);
 
+% Save data
+if nargin == 11
+    cutoff = num_modes;
+    save([direct '\Viscous Coeff\Coeff.mat'], 'l_dot', 'l', 'q_2dot', 'q_dot', 'q', 'cutoff', 'run_num'); 
+end
 end
