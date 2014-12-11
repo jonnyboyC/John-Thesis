@@ -1,9 +1,7 @@
 function [l_dot, l, q_2dot, q_dot, q] = visocity_coefficients_fast(mean_u, ...
     mean_v, x, y, pod_u, pod_v, dimensions, vol_frac, run_num, over_coef, direct)
 
-% max modes in memeory at once
-memory_limit = 250;
-
+% Offset, currently not in use
 clt = 0;
 cqt = 0;
 cbt = 0;
@@ -12,6 +10,11 @@ cdt = 0;
 
 num_elem = numel(x);
 num_modes = size(pod_u, 2);
+
+% max modes in memeory at once
+bytesPerDouble = 8;
+[~, system] = memory;
+memory_limit = floor(system.PhysicalMemory.Available/(bytesPerDouble*num_modes*num_modes*4));
 
 % If we are using the same number of cutoff modes and overwrite is set to
 % false look for previous data
@@ -150,14 +153,14 @@ clear cct cu cv
 if num_modes < memory_limit;
     
     % Quadractic terms preallocation
-    cdu = zeros(num_modes, num_modes, num_modes);
+    cduv = zeros(num_modes, num_modes, num_modes);
     cdv = zeros(num_modes, num_modes, num_modes);
     
     % Calculate terms
     for k = 1:num_modes
         pod_u_pod_u_x = (pod_u(:,k)*ones(1,num_modes)).*pod_udx;
         pod_v_pod_u_y = (pod_v(:,k)*ones(1,num_modes)).*pod_udy;
-        cdu(:,:,k) = inner_prod(pod_u_pod_u_x + pod_v_pod_u_y, pod_u, vol_frac);
+        cduv(:,:,k) = inner_prod(pod_u_pod_u_x + pod_v_pod_u_y, pod_u, vol_frac);
         
         pod_u_pod_v_x = (pod_u(:,k)*ones(1,num_modes)).*pod_vdx;
         pod_v_pod_v_y = (pod_v(:,k)*ones(1,num_modes)).*pod_vdy;
@@ -172,46 +175,49 @@ else
     total = num_modes;
     
     % Break problem into 400 mode chunks
-    for i = 1:ceil(total/memory_limit)
+    for i = 1:ceil(num_modes/memory_limit)
         
         % Quadractic term preallocation
         if total > memory_limit
-            cdu = zeros(num_modes, num_modes, memory_limit);
-            cdv = zeros(num_modes, num_modes, memory_limit);
+            cduv = zeros(num_modes, num_modes, memory_limit);
         else
-            cdu = zeros(num_modes, num_modes, memory_limit);
-            cdv = zeros(num_modes, num_modes, memory_limit);
+            cduv = zeros(num_modes, num_modes, total);
         end
         
         % Remainder of problem
         total = total - memory_limit;
+        if total < 0
+            total = 0;
+        end
+        
+        chunk = size(cduv,3);
+        idx = 1;
         
         % Calculate terms
-        for k = 1:size(cdu,3)
-            pod_u_pod_u_x = (pod_u(:,k)*ones(1,num_modes)).*pod_udx;
-            pod_v_pod_u_y = (pod_v(:,k)*ones(1,num_modes)).*pod_udy;
-            cdu(:,:,k) = inner_prod(pod_u_pod_u_x + pod_v_pod_u_y, pod_u, vol_frac);
+        for k = 1:chunk
+            pod_u_pod_u_x = (pod_u(:,idx)*ones(1,num_modes)).*pod_udx;
+            pod_v_pod_u_y = (pod_v(:,idx)*ones(1,num_modes)).*pod_udy;
+            cduv(:,:,k) = inner_prod(pod_u_pod_u_x + pod_v_pod_u_y, pod_u, vol_frac);
             
-            pod_u_pod_v_x = (pod_u(:,k)*ones(1,num_modes)).*pod_vdx;
-            pod_v_pod_v_y = (pod_v(:,k)*ones(1,num_modes)).*pod_vdy;
-            cdv(:,:,k) = inner_prod(pod_v_pod_v_y + pod_u_pod_v_x, pod_v, vol_frac);
+            pod_u_pod_v_x = (pod_u(:,idx)*ones(1,num_modes)).*pod_vdx;
+            pod_v_pod_v_y = (pod_v(:,idx)*ones(1,num_modes)).*pod_vdy;
+            cduv(:,:,k) = cduv(:,:,k) + inner_prod(pod_v_pod_v_y + pod_u_pod_v_x, pod_v, vol_frac);
+            fprintf('%d of %d coefficients computed\n', num_modes-(total+chunk-k), num_modes);
+            idx = idx + 1;
         end
         
         % Save chunck and clear memory
-        save([direct '\Viscous Coeff\Temp' num2str(i) '.mat'], 'cdu', 'cdv', '-v7.3');
-        clear cdu cdv
-        fprintf('%d of %d coefficients computed', num_modes-total, num_modes);
+        save([direct '\Viscous Coeff\Temp' num2str(i) '.mat'], 'cduv', '-v7.3');
+        clear cduv
     end
     
     % Load Individual chunk and concatenate
     for i = 1:ceil(num_modes/memory_limit)
-        data = load([direct '\Viscous Coeff\Temp' num2str(i) '.mat'], 'cdu', 'cdv');
+        data = load([direct '\Viscous Coeff\Temp' num2str(i) '.mat'], 'cduv');
         if i == 1
-            cdu = data.cdu;
-            cdv = data.cdv;
+            cduv = data.cduv;
         else
-            cdu = cat(cdu, data.cdu, 3);
-            cdv = cat(cdv, data.cdv, 3);
+            cduv = cat(3, cduv, data.cduv);
         end
         
         % Delete tempoary chunk
@@ -220,9 +226,8 @@ else
     parpool;
 end
 
-cdu = reshape(cdu, num_modes, num_modes^2);
-cdv = reshape(cdv, num_modes, num_modes^2);
-q = -(cdt + cdu + cdv);
+cduv = reshape(cduv, num_modes, num_modes^2);
+q = -(cdt + cduv);
 
 % Save data
 if nargin == 11

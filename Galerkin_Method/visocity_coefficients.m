@@ -12,6 +12,11 @@ cdt = 0;
 num_elem = numel(x);
 num_modes = size(pod_u, 2);
 
+% max modes in memeory at once
+bytesPerDouble = 8;
+[~, system] = memory;
+memory_limit = system.PhysicalMemory.Available/(bytesPerDouble*num_mode*num_modes*8);
+
 % If we are using the same number of cutoff modes and overwrite is set to
 % false look for previous data
 if nargin == 11 && over_coef == false;
@@ -145,21 +150,21 @@ q_dot = -(cct + ccu + ccv);
 clear cct ccu ccv
 
 % Quadractic Terms
-cdu = zeros(num_modes, num_modes, num_modes);
+cduv = zeros(num_modes, num_modes, num_modes);
 cdv = zeros(num_modes, num_modes, num_modes);
 
 % If Problem has over 400 modes need to break problem into chunks
-if num_modes < 400 
+if num_modes < memory_limit;
     
     % Quadractic terms preallocation
-    cdu = zeros(num_modes, num_modes, num_modes);
+    cduv = zeros(num_modes, num_modes, num_modes);
     cdv = zeros(num_modes, num_modes, num_modes);
     
     % Calculate terms
     for k = 1:num_modes
         pod_u_pod_u_x = (pod_u(:,k)*ones(1,num_modes)).*pod_udx;
         pod_v_pod_u_y = (pod_v(:,k)*ones(1,num_modes)).*pod_udy;
-        cdu(:,:,k) = inner_prod(pod_u_pod_u_x + pod_v_pod_u_y, pod_u, vol_frac);
+        cduv(:,:,k) = inner_prod(pod_u_pod_u_x + pod_v_pod_u_y, pod_u, vol_frac);
         
         pod_u_pod_v_x = (pod_u(:,k)*ones(1,num_modes)).*pod_vdx;
         pod_v_pod_v_y = (pod_v(:,k)*ones(1,num_modes)).*pod_vdy;
@@ -174,46 +179,42 @@ else
     total = num_modes;
     
     % Break problem into 400 mode chunks
-    for i = 1:ceil(total/400)
+    for i = 1:ceil(total/memory_limit)
         
         % Quadractic term preallocation
-        if total > 400
-            cdu = zeros(num_modes, num_modes, 400);
-            cdv = zeros(num_modes, num_modes, 400);
+        if total > memory_limit
+            cduv = zeros(num_modes, num_modes, memory_limit);
         else
-            cdu = zeros(num_modes, num_modes, total);
-            cdv = zeros(num_modes, num_modes, total);
+            cduv = zeros(num_modes, num_modes, total);
         end
         
         % Remainder of problem
-        total = total - 400;
+        total = total - memory_limit;
         
         % Calculate terms
-        for k = 1:size(cdu,3)
+        for k = 1:size(cduv,3)
             pod_u_pod_u_x = (pod_u(:,k)*ones(1,num_modes)).*pod_udx;
             pod_v_pod_u_y = (pod_v(:,k)*ones(1,num_modes)).*pod_udy;
-            cdu(:,:,k) = inner_prod(pod_u_pod_u_x + pod_v_pod_u_y, pod_u, vol_frac);
+            cduv(:,:,k) = inner_prod(pod_u_pod_u_x + pod_v_pod_u_y, pod_u, vol_frac);
             
             pod_u_pod_v_x = (pod_u(:,k)*ones(1,num_modes)).*pod_vdx;
             pod_v_pod_v_y = (pod_v(:,k)*ones(1,num_modes)).*pod_vdy;
-            cdv(:,:,k) = inner_prod(pod_v_pod_v_y + pod_u_pod_v_x, pod_v, vol_frac);
+            cduv(:,:,k) = cduv(:,:,k) + inner_prod(pod_v_pod_v_y + pod_u_pod_v_x, pod_v, vol_frac);
         end
         
         % Save chunck and clear memory
-        save([direct '\Viscous Coeff\Temp' num2str(i) '.mat'], 'cdu', 'cdv');
-        clear cdu cdv
+        save([direct '\Viscous Coeff\Temp' num2str(i) '.mat'], 'cduv', '-v7.3');
+        clear cdu
         fprintf('%d of %d coefficients computed', num_modes-total, num_modes);
     end
     
     % Load Individual chunk and concatenate
     for i = 1:ceil(num_modes/400)
-        data = load([direct '\Viscous Coeff\Temp' num2str(i) '.mat'], 'cdu', 'cdv');
+        data = load([direct '\Viscous Coeff\Temp' num2str(i) '.mat'], 'cduv');
         if i == 1
-            cdu = data.cdu;
-            cdv = data.cdv;
+            cduv = data.cdu;
         else
-            cdu = cat(cdu, data.cdu, 3);
-            cdv = cat(cdv, data.cdv, 3);
+            cduv = cat(cduv, data.cdu, 3);
         end
         
         % Delete tempoary chunk
@@ -223,9 +224,8 @@ else
 end
 
 
-cdu = reshape(cdu, num_modes, num_modes^2);
-cdv = reshape(cdv, num_modes, num_modes^2);
-q = -(cdt + cdu + cdv);
+cduv = reshape(cduv, num_modes, num_modes^2);
+q = -(cdt + cduv);
 
 % Save data
 if nargin == 11
