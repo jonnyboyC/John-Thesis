@@ -1,4 +1,4 @@
-function handle = modal_fft(modal_amp, num_plot, num_elem, window_samples, sample_freq, xlim, direct, MOD)
+function handle = modal_fft(modal_amp, num_plot, window_samples, sample_freq, xlim, direct, MOD)
 % Calculate the modal frequency response using fft
 
 % Number of points per windows, set to the next power of 2
@@ -44,10 +44,11 @@ end
 legend(leg_names);
 
 file_name = [direct '\Figures\Galerkin\FFT_'];
-if nargin == 9 
+if nargin == 8
     file_name = [file_name MOD '_'];
 end
 file_name = [file_name num2str(size(modal_amp,2)) '_' num2str(ceil(sample_freq)) 'Hz'];
+drawnow;
 
 saveas(h, file_name, 'fig');
 

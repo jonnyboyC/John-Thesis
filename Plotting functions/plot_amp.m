@@ -22,11 +22,11 @@ if nargin == 5
 end
 file_name = [file_name num2str(size(modal_amp,2)) '_modes_init' num2str(init) ...
     '_t' num2str(ceil(t(1))) '_' num2str(ceil(t(end))) 's_' num2str(ceil(Hz)) 'Hz'];
-
+drawnow;
 
 % Save figure in Figure\Galerkin folder
 saveas(h, file_name, 'fig');
-drawnow;
+
 
 if nargout == 1
     handle = h;

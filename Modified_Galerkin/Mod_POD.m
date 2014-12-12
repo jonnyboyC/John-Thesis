@@ -90,24 +90,24 @@ end
 
 % Make sure folders are up to date and load collected data
 update_folders(direct);
-data1 = load(data{1}, 'eig_func', 'lambda2', 'pod_u1', 'pod_v1', 'dimensions', 'x', 'y');
-data2 = load(data{2}, 'num_pods', 'q', 'ci', 'li', 't2', 'modal_amp_vis'); %'c', 'l', 't',
+data1 = load(data{1}, 'eig_func', 'lambda2', 'pod_u', 'pod_v', 'dimensions', 'x', 'y');
+data2 = load(data{2}, 'num_pods', 'q', 'ci_c', 'li_c', 't3', 'modal_amp_vis2'); %'c', 'l', 't',
 
 % Need to explictly declare all the loaded variables for parfor loop
 eig_func    = data1.eig_func;
 lambda2     = data1.lambda2;
-pod_u1      = data1.pod_u1;
-pod_v1      = data1.pod_v1;
+pod_u       = data1.pod_u;
+pod_v       = data1.pod_v;
 dimensions  = data1.dimensions;
 x           = data1.x;
 y           = data1.y;
 
 num_pods    = data2.num_pods;
 q           = data2.q;
-c           = data2.ci;
-l           = data2.li;
-t           = data2.t2;
-modal_amp   = data2.modal_amp_vis;
+c           = data2.ci_c;
+l           = data2.li_c;
+t           = data2.t3;
+modal_amp   = data2.modal_amp_vis2;
 
 clear data1 data2
 
@@ -119,8 +119,8 @@ if RD_nm > OG_nm
 end
 
 % Truncate POD
-pod_ut = pod_u1(:,1:OG_nm);
-pod_vt = pod_v1(:,1:OG_nm);
+pod_ut = pod_u(:,1:OG_nm);
+pod_vt = pod_v(:,1:OG_nm);
 
 epsilon_0 = sum(l*lambda2(1:OG_nm)); % intial guess for epsilon
 
@@ -257,7 +257,7 @@ if any(strcmp(plot_type, 'video'))
     plot_prediction(pod_ut, pod_vt, x, y, modal_amp_til, t, num_pods, dimensions, direct)
 end
 if any(strcmp(plot_type, 'fft'))
-    modal_fft(modal_amp_til, 1:4, size(pod_ut, 1), size(modal_amp,1)/10,...
+    modal_fft(modal_amp_til, 1:4, size(modal_amp,1)/10,...
         4096, [0 2000], direct, 'Mod')
 end
 % Save important coefficients

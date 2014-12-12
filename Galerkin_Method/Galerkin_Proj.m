@@ -217,7 +217,7 @@ fprintf('Performing ode113 on base Galerkin system\n');
 
 % Integrate Base Galerkin System
 tic;
-[t, modal_amp] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff), tspan, ...
+[t1, modal_amp] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff), tspan, ...
     eig_func(init,1:num_pods), options);
 toc1 = toc;
 fprintf('Completed in %f6.4 seconds\n\n', toc1);
@@ -249,9 +249,9 @@ fprintf('Completed in %f6.4 seconds\n\n', toc3);
 
 % Plot modal amplitudes
 if any(strcmp(plot_pred, 'amp'))
-    plot_amp(modal_amp(:, 1:num_pods), t, direct, init);
-    plot_amp(modal_amp_vis1(:, 1:num_pods), t2, direct, init, 'vis');
-    plot_amp(modal_amp_vis2(:, 1:num_pods), t3, direct, init, 'vis');
+    plot_amp(modal_amp(:, 1:num_pods), t1, direct, init);
+    plot_amp(modal_amp_vis1(:, 1:num_pods), t2, direct, init, 'vis1');
+    plot_amp(modal_amp_vis2(:, 1:num_pods), t3, direct, init, 'vis2');
 end
 
 % Produce time response video
@@ -268,17 +268,23 @@ if any(strcmp(plot_pred, 'fft'))
     else
         num2plot = 1:num_pods;
     end
-    if size(t2,1) > 4096
-        window_size = 8192;
-    else
-        window_size = size(t2,1);
+    window_size = zeros(3,1);
+    t = {t1, t2, t3};
+    sample_freq = sample_freq*(u_scale/l_scale);
+    for i = 1:3
+        t{i} = t{i}*(u_scale/l_scale);
+        if size(t{i},1) > 4096
+            window_size(i) = 20000; %8192
+        else
+            window_size(i) = size(t{i},1);
+        end
     end
-    modal_fft(modal_amp, num2plot, size(pod_ut, 1), window_size, ...
-        sample_freq, [0 2000], direct);
-    modal_fft(modal_amp_vis1, num2plot, size(pod_ut, 1), window_size,...
+%     modal_fft(modal_amp, num2plot, window_size(1), ...
+%         sample_freq, [0 2000], direct);
+    modal_fft(modal_amp_vis1, num2plot, window_size(2),...
         sample_freq, [0 2000], direct, 'vis1')
-    modal_fft(modal_amp_vis2, num2plot, size(pod_ut, 1), window_size,...
-        sample_freq, [0 2000], direct, 'vis2')
+%     modal_fft(modal_amp_vis2, num2plot, window_size(3),...
+%         sample_freq, [0 2000], direct, 'vis2')
 end
 
 fprintf('Saving Galerkin Variables\n');
@@ -286,8 +292,9 @@ fprintf('Saving Galerkin Variables\n');
 % Save relavent coefficients
 if save_coef == true
     save([direct '\Galerkin Coeff\Coeff_m' num2str(num_pods) 'i' num2str(init) '.mat'],...
-        'ci', 'li',  'num_pods', 'modal_amp_vis1', 't2', 'l_dot', ...
-        'q_2dot', 'q_dot', 'c', 'l', 'q', 'sample_freq', '-v7.3');  % 't' ,'modal_amp', 
+        'c', 'ci', 'ci_c', 'l', 'l_dot', 'li', 'li_c', 'q', 'num_pods', 'q_2dot', 'q_dot',...
+        'modal_amp', 'modal_amp_vis1', 'modal_amp_vis2', 't1', 't2', 't3', 'sample_freq', ...
+        '-v7.3');  % 
 end
 
 % return format
