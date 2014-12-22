@@ -1,4 +1,4 @@
-function [xi, yi, ui, vi, u_scale, direct] = Velocity_Read_Save(num_images, overwrite, image_range, l_scale, direct)
+function [xi, yi, ui, vi, u_scale, direct] = Velocity_Read_Save(num_images, load_raw, image_range, l_scale, u_scale_gen, direct)
 % VELOCITY_READ_PLOT_SAVE read num_images number of images from a selected
 % directory.
 %   [x, y, u, v, num_x, num_y] = VELOCITY_READ_PLOT_SAVE(num_images)
@@ -51,7 +51,7 @@ end
 update_folders(direct);
 
 % change overwrtie of number of images requested changes
-overwrite = update_overwrite(overwrite, num_images, direct);
+load_raw = update_overwrite(load_raw, num_images, direct);
 
 % Check the now set up folders for data
 saved_files = dir([direct '\Processed Data\*.mat']);
@@ -74,7 +74,7 @@ if num_files == 0
 end
 
 % Check to see if a saved file exists
-if (overwrite == false && size(saved_files,1) == 2)
+if (load_raw == false && size(saved_files,1) == 2)
     load([direct '\Processed Data\' saved_files(2).name], 'xi', 'yi', 'ui', 'vi', 'num_x', 'num_y', 'u_scale');
     return
 end
@@ -84,14 +84,14 @@ if num_images < num_files
 end
 
 if strcmp(file_type, 'mat')
-    [xi, yi, ui, vi, u_scale] = load_mat(img_files, num_files, num_images, image_range, l_scale, direct);
+    [xi, yi, ui, vi, u_scale] = load_mat(img_files, num_files, num_images, image_range, l_scale, u_scale_gen, direct);
 else
-    [xi, yi, ui, vi, u_scale] = load_vc7(img_files, num_files, num_images, image_range, l_scale, direct);
+    [xi, yi, ui, vi, u_scale] = load_vc7(img_files, num_files, num_images, image_range, l_scale, u_scale_gen, direct);
 end
 end
 
 % Function to load files of .mat format
-function [xi, yi, ui, vi, u_scale] = load_mat(img_files, num_files, num_images, image_range, l_scale, direct)
+function [xi, yi, ui, vi, u_scale] = load_mat(img_files, num_files, num_images, image_range, l_scale, u_scale_gen, direct)
 
 % Get dimensions of image
 load([direct '\Raw Data\' img_files(1).name], 'x', 'y');
@@ -131,15 +131,15 @@ for i = 1:num_files
    end
 end
 
-% TODO LOOK into scaling of values
-
 % Scale velocity by the inlet fast side streamwise velocity
-u_scale = mean(ui,3);
-u_scale = sort(abs(u_scale(:)));
-u_scale = u_scale(floor(0.99*length(u_scale)));
+if isa(u_scale_gen, 'function_handle')
+    u_scale = u_scale_gen(ui);
+else
+    u_scale = u_scale_gen;
+end
 
 ui = ui./u_scale;
-vi = ui./v_scale;
+vi = ui./u_scale;
 
 % Change x & y from mm to meters
 xi = xi/(1000*l_scale);
@@ -152,7 +152,7 @@ save([direct '\Processed Data\Num_Processed.mat'], 'num_processed');
 end
 
 % Function to load files of the .vc7/.im7 format
-function [xi, yi, ui, vi, u_scale] = load_vc7(img_files, num_files, num_images, image_range, l_scale, direct)
+function [xi, yi, ui, vi, u_scale] = load_vc7(img_files, num_files, num_images, image_range, l_scale, u_scale_gen, direct)
 
 % Get dimensions of image
 lavdata = readimx([direct '\Raw Data\' img_files(1).name]);
@@ -202,13 +202,12 @@ for i = 1:num_files
     end
 end
 
-% TODO LOOK into scaling of values
-
 % Scale velocity by the inlet fast side streamwise velocity
-u_scale = mean(ui,3);
-u_scale = sort(abs(u_scale(:)));
-u_scale = u_scale(floor(0.99*length(u_scale)));
-
+if isa(u_scale_gen, 'function_handle')
+    u_scale = u_scale_gen(ui);
+else
+    u_scale = u_scale_gen;
+end
 
 ui = ui./u_scale;
 vi = vi./u_scale;
@@ -227,16 +226,16 @@ save([direct '\Processed Data\Num_Processed.mat'], 'num_processed');
 end
 
 % Check to see if number of images processed last time is same as this
-% time. If it isn't update overwrite to true
-function overwrite = update_overwrite(overwrite, num_images, direct)
-    if overwrite == false
+% time. If it isn't update load_raw to true
+function load_raw = update_overwrite(load_raw, num_images, direct)
+    if load_raw == false
         if ~exist([direct '\Processed Data\Num_Processed.mat'], 'file')
-            overwrite = true;
+            load_raw = true;
             return;
         end
         load([direct '\Processed Data\Num_Processed.mat'], 'num_processed');
         if num_images ~= num_processed
-            overwrite = true;
+            load_raw = true;
         end
     end
 end

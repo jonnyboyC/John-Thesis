@@ -33,8 +33,10 @@ for i = 1:num_modes
     if plot_img_num > 4 
         % Save images in requested format
         plot_img_num = 1;
-        if strcmp(save_figures, 'fig') || strcmp(save_figures, 'jpg') 
-           saveas(h, [direct '\Figures\POD\POD_' varname '_' num2str(i-4) '_' num2str(i-1)], save_figures);
+        if any(ismember({'fig', 'jpg'}, save_figures))
+            for j = 1:size(save_figures,2)
+                saveas(h, [direct '\Figures\POD\POD_' varname '_' num2str(i-4) '_' num2str(i-1)], save_figures{j});
+            end
         end
         h.Name = ['  Variable: ' varname ',  (' num2str(sum(energy),4) '%)'];
     end
@@ -58,8 +60,10 @@ for i = 1:num_modes
     
     % If last iteration save files
     if i == num_modes   
-        if strcmp(save_figures, 'fig') || strcmp(save_figures, 'jpg') 
-           saveas(h, [direct '\Figures\POD\POD_' varname '_' num2str(i-4) '_' num2str(i-1)], save_figures);
+        if any(ismember({'fig', 'jpg'}, save_figures))
+            for j = 1:size(save_figures,2)
+                saveas(h, [direct '\Figures\POD\POD_' varname '_' num2str(i-4) '_' num2str(i-1)], save_figures{j});
+            end
         end
     end
     
