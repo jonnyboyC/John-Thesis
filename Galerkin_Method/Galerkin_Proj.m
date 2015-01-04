@@ -1,4 +1,4 @@
-function results = Galerkin_Proj(varargin)
+function res = Galerkin_Proj(varargin)
 % GALERKIN_PROJ will calculate time coefficients for a provided POD basis
 %
 % GALERKIN_PROJ(NUM_PODS) generated time coefficients for NUM_PODS number
@@ -270,8 +270,11 @@ if save_coef == true
         'resutls', '-v7.3');
 end
 
+if nargout == 1
+    res = result;
+end
+
 % return format
 format short g
-
 end
 

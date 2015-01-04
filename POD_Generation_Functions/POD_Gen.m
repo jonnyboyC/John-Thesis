@@ -1,4 +1,4 @@
-function results = POD_Gen(varargin)
+function res = POD_Gen(varargin)
 % POD_GEN Creates and sets up proper folder format for vc7 images
 % files, produces .mat files for processed vc7 files, and produced a
 % requested number of POD modes with some simulaition specifications
@@ -187,6 +187,10 @@ results.bnd_idx = bnd_idx;
 % Save variables relavent to Galerkin to .mat files
 if save_pod == true
     save([direct '\POD Data\POD.mat'], 'results', '-v7.3');
+end
+
+if nargout == 1
+    res = results;
 end
 
 % return format
