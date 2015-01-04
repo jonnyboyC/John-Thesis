@@ -158,8 +158,11 @@ else
             wait(f);
         end
     end
+    clear pod_u pod_v pod_udx pod_udy pod_vdx pod_vdy 
+    clear pod_u_pod_u_x pod_u_pod_v_x  pod_v_pod_u_y pod_v_pod_v_y
     delete(pool)
     parpool('local', 3);
+    cduv = data.cduv;
 end
 
 cduv = reshape(cduv, num_modes, num_modes^2);
