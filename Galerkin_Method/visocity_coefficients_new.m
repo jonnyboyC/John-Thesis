@@ -1,4 +1,4 @@
-function [l_dot, l, q_2dot, q_dot, q] = visocity_coefficients_fast(coef_problem)
+function [l_dot, l, q_2dot, q_dot, q] = visocity_coefficients_new(coef_problem)
 
 mean_u      = coef_problem.mean_u;
 mean_v      = coef_problem.mean_v;

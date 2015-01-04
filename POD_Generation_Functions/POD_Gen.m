@@ -55,7 +55,7 @@ else
     problem = parse_inputs(fields, @setdefaults_pod);
 end
 
-% Create more convient names
+% Create more readable names
 num_images  = problem.num_images;
 load_raw    = problem.load_raw;
 save_pod    = problem.save_pod;

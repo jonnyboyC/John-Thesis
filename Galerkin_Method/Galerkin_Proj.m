@@ -1,4 +1,4 @@
-function Galerkin_Proj(varargin)
+function results = Galerkin_Proj(varargin)
 % GALERKIN_PROJ will calculate time coefficients for a provided POD basis
 %
 % GALERKIN_PROJ(NUM_PODS) generated time coefficients for NUM_PODS number
@@ -14,77 +14,30 @@ format long g
 close all
 clc;
 
-%TODO major overhaul, look to make structure set up function 
-switch nargin
-    case 0 
-        % Default: run simulation for 10 pod modes, don't plot, run for
-        % 100s, save coefficients
-        num_pods  = 10;
-        plot_pred = 'none';
-        save_coef = true;
-        over_coef = false;
-        tspan     = 0:0.01:100;
-        init      = 1;
-        direct    = '';
-    case 1
-        num_pods  = varargin{1};
-    	plot_pred = 'none';
-        save_coef = true;
-        over_coef = false;
-        tspan     = 0:0.01:100;
-        init      = 1;
-        direct    = '';
-    case 2
-        num_pods  = varargin{1};
-        plot_pred = varargin{2};
-        save_coef = true;      
-        over_coef = false;
-        tspan     = 0:0.01:100;
-        init      = 1;
-        direct    = '';  
-    case 3 
-        num_pods  = varargin{1};
-        plot_pred = varargin{2};
-        save_coef = varargin{3};
-        over_coef = false;
-        tspan     = 0:0.01:100;
-        init      = 1;
-        direct    = '';
-    case 4
-        num_pods  = varargin{1};
-        plot_pred = varargin{2};
-        save_coef = varargin{3};
-        over_coef = varargin{4};
-        tspan     = 0:0.01:100;  
-        init      = 1;
-        direct    = '';
-    case 5
-        num_pods  = varargin{1};
-        plot_pred = varargin{2};
-        save_coef = varargin{3};
-        over_coef = varargin{4};
-        tspan     = varargin{5}; 
-        init      = 1;
-        direct    = '';
-    case 6
-        num_pods  = varargin{1};
-        plot_pred = varargin{2};
-        save_coef = varargin{3};
-        over_coef = varargin{4};
-        tspan     = varargin{5};  
-        init      = varargin{6};
-        direct    = '';
-    case 7
-        num_pods  = varargin{1};
-        plot_pred = varargin{2};
-        save_coef = varargin{3};
-        over_coef = varargin{4};
-        tspan     = varargin{5};  
-        init      = varargin{6};
-        direct    = varargin{7};
-    otherwise
-        error('Too many input arguments');
+%List of fields that will be checked
+fields = {  'num_pods',     'plot_pred',    'save_coef', ...
+            'override_coef','tspan',        'init', ...
+            'direct' ,      'Re0_gen',      'fft_window'};
+        
+% Parse problem structure provided to set it up correctly
+if nargin == 1
+    problem = parse_inputs(fields, @setdefaults_proj, varargin{1});
+else
+    fprintf('Provide a single structure as input, use help Galerkin_Proj for information.\n');
+    fprintf('Using Defaults\n\n');
+    problem = parse_inputs(fields, @setdefaults_proj);
 end
+
+% Create more readable names
+num_pods        = problem.num_pods;
+plot_pred       = problem.plot_pred;
+save_coef       = problem.save_coef;
+override_coef   = problem.override_coef;
+tspan           = problem.tspan;
+init            = problem.init;
+direct          = problem.direct;
+Re0_gen         = problem.Re0_gen;     
+fft_window      = problem.fft_window;
 
 % Check status of parrallel pool
 if isempty(gcp)
@@ -106,32 +59,31 @@ end
 update_folders(direct);
 
 % Load POD variables
-vars = load(data{1}, 'x', 'y', 'u_scale', 'l_scale', 'mean_u', 'mean_v', 'pod_u', ...
-    'pod_v', 'eig_func', 'lambda2', 'dimensions', 'vol_frac', 'bnd_idx', 'uniform', ...
-    'run_num', 'cutoff');
+vars = load(data{1}, 'results');
 
-x           = vars.x;           % mesh coordinates in x direction
-y           = vars.y;           % mesh coordinates in y direction
-u_scale     = vars.u_scale;     % velocity scaling
-l_scale     = vars.l_scale;     % length scaling
-mean_u      = vars.mean_u;      % mean streamwise velocity
-mean_v      = vars.mean_v;      % mean spanwise velocity
-pod_u       = vars.pod_u;       % streamwise pod modes
-pod_v       = vars.pod_v;       % spanwise pod modes
-lambda2     = vars.lambda2;     % eigenvalues of modes
-eig_func    = vars.eig_func;    % Need to find a better name
-dimensions  = vars.dimensions;  % dimensions of mesh
-vol_frac    = vars.vol_frac;    % mesh area size
-bnd_idx     = vars.bnd_idx;     % location of boundaries
-uniform     = vars.uniform;     % logical if mesh is uniform
-run_num     = vars.run_num;     % run number of main_code_chabot
-cutoff      = vars.cutoff;      % number of modes at cutoff
+% Create more readable names
+x           = vars.results.x;           % mesh coordinates in x direction
+y           = vars.results.y;           % mesh coordinates in y direction
+u_scale     = vars.results.u_scale;     % velocity scaling
+l_scale     = vars.results.l_scale;     % length scaling
+mean_u      = vars.results.mean_u;      % mean streamwise velocity
+mean_v      = vars.results.mean_v;      % mean spanwise velocity
+pod_u       = vars.results.pod_u;       % streamwise pod modes
+pod_v       = vars.results.pod_v;       % spanwise pod modes
+lambda2     = vars.results.lambda2;     % eigenvalues of modes
+eig_func    = vars.results.eig_func;    % Need to find a better name
+dimensions  = vars.results.dimensions;  % dimensions of mesh
+vol_frac    = vars.results.vol_frac;    % mesh area size
+bnd_idx     = vars.results.bnd_idx;     % location of boundaries
+uniform     = vars.results.uniform;     % logical if mesh is uniform
+run_num     = vars.results.run_num;     % run number of main_code_chabot
+cutoff      = vars.results.cutoff;      % number of modes at cutoff
 
+clear results
 
 % TODO may want to pass calculated high side velocity and calculate this
-Re0=0.28e6;                 % Reynolds number based on separator plate length   
-z=ones(size(x));            % Depth of velocity field
-% v = abs((u_scale*l_scale))/Re0;  % Vicosity
+Re0 = Re0_gen();        % Get Reynolds number        
+z = ones(size(x));      % Depth of velocity field
 
 % Determine sampling frequency from provided tspan
 if length(tspan) > 2
@@ -141,40 +93,43 @@ else
     error('must provide tspan with a range');
 end
 
-% Subset of total pod modes for model generation
+%% Calculate Coefficients
+
 pod_ut = pod_u(:,1:num_pods);
 pod_vt = pod_v(:,1:num_pods);
 
-%% Base Coefficients
+
+coef_problem.mean_u = mean_u;
+coef_problem.mean_v = mean_v;
+coef_problem.x = x;
+coef_problem.y = y;
+coef_problem.pod_u = pod_u;
+coef_problem.pod_v = pod_v;
+coef_problem.dimensions = dimensions;
+coef_problem.vol_frac = vol_frac;
+coef_problem.bnd_idx = bnd_idx;
+coef_problem.z = z;
+coef_problem.run_num = run_num;
+coef_problem.override_coef = override_coef;
+coef_problem.direct = direct;
+coef_problem.uniform = uniform;
 
 fprintf('Generating coefficients for unresolved modes using %d modes\n\n', cutoff);
 
-% coefficeints for the unresolved and resolved modes
-if uniform == true
-    % Use build in laplcian, and gradient functions
-    [lc_dot, lc, qc_2dot, qc_dot, qc] = visocity_coefficients_fast(mean_u, mean_v, ...
-        x, y, pod_u, pod_v, dimensions, vol_frac, run_num, over_coef, direct);
-else
-    % Old method allows for non_uniform mesh, SLOW
-    [lc_dot, lc, qc_2dot, qc_dot, qc] = visocity_coefficients(mean_u, mean_v, ...
-        x, y, pod_u, pod_v, dimensions, vol_frac, bnd_idx, z, run_num, over_coef, direct);
-end
+
+[lc_dot, lc, qc_2dot, qc_dot, qc] = visocity_coefficients_new(coef_problem);
+
+pod_ut = pod_u(:,1:num_pods);
+pod_vt = pod_v(:,1:num_pods);
+
+l_dot   = lc_dot(1:num_pods);
+l       = lc(1:num_pods, 1:num_pods);
+q_2dot  = qc_2dot(1:num_pods);
+q_dot   = qc_dot(1:num_pods, 1:num_pods);
+q       = qc(1:num_pods, 1:num_pods, 1:num_pods);
 
 % Free memory
-clear pod_u pod_v
-
-fprintf('Generating coefficients for resolved modes using %d modes\n\n', num_pods);
-
-% coefficients for the resolved modes
-if uniform == true
-    % Use build in laplcian, and gradient functions
-    [l_dot, l, q_2dot, q_dot, q] = visocity_coefficients_fast(mean_u, mean_v, ...
-        x, y, pod_ut, pod_vt, dimensions, vol_frac);
-else
-    % Old method allows for non_uniform mesh, SLOW
-    [l_dot, l, q_2dot, q_dot, q] = visocity_coefficients(mean_u, mean_v, ...
-        x, y, pod_ut, pod_vt, dimensions, vol_frac, bnd_idx, z);
-end
+clear pod_u pod_v mean_u mean_v
 
 %% Modified coefficients 
 
@@ -254,6 +209,7 @@ if any(strcmp(plot_pred, 'amp'))
     plot_amp(modal_amp_vis2(:, 1:num_pods), t3, direct, init, 'vis2');
 end
 
+% TODO significant overhaul to this function
 % Produce time response video
 if any(strcmp(plot_pred, 'video'))
     plot_prediction(pod_ut, pod_vt, x, y, modal_amp, t, num_pods, dimensions, direct)
@@ -279,27 +235,43 @@ if any(strcmp(plot_pred, 'fft'))
             window_size(i) = size(t{i},1);
         end
     end
-%     modal_fft(modal_amp, num2plot, window_size(1), ...
-%         sample_freq, [0 2000], direct);
+    modal_fft(modal_amp, num2plot, window_size(1), ...
+        sample_freq, fft_window, direct);
     modal_fft(modal_amp_vis1, num2plot, window_size(2),...
-        sample_freq, [0 2000], direct, 'vis1')
-%     modal_fft(modal_amp_vis2, num2plot, window_size(3),...
-%         sample_freq, [0 2000], direct, 'vis2')
+        sample_freq, fft_window, direct, 'vis1')
+    modal_fft(modal_amp_vis2, num2plot, window_size(3),...
+        sample_freq, fft_window, direct, 'vis2')
 end
 
 fprintf('Saving Galerkin Variables\n');
 
+results.c = c;
+results.ci = ci;
+results.ci_c = ci_c;
+results.l = l;
+results.l_dot = l_dot;
+results.li = li;
+results.li_c = li_c;
+results.q = q;
+results.q_dot = q_dot;
+results.q_2dot = q_2dot;
+results.num_pods = num_pods;
+results.modal_amp = modal_amp;
+results.modal_amp_vis1 = modal_amp_vis1;
+results.modal_amp_vis2 = modal_amp_vis2;
+results.t1 = t1;
+results.t2 = t2;
+results.t3 = t3;
+results.sample_freq = sample_freq;
+
 % Save relavent coefficients
 if save_coef == true
     save([direct '\Galerkin Coeff\Coeff_m' num2str(num_pods) 'i' num2str(init) '.mat'],...
-        'c', 'ci', 'ci_c', 'l', 'l_dot', 'li', 'li_c', 'q', 'num_pods', 'q_2dot', 'q_dot',...
-        'modal_amp', 'modal_amp_vis1', 'modal_amp_vis2', 't1', 't2', 't3', 'sample_freq', ...
-        '-v7.3');  % 
+        'resutls', '-v7.3');
 end
 
 % return format
 format short g
-
 
 end
 

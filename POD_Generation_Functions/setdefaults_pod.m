@@ -25,7 +25,7 @@ if isempty(problem.save_figures) || ~iscell(problem.save_figures)
     problem.save_figures = {'fig'};     % Save as figure
 end
 
-% Check to make sure incorrect strings are nto passed
+% Check to make sure incorrect strings are not passed
 correct = {'fig', 'jpg'};
 correct_members = ismember(problem.save_figures, correct);
 for i = 1:size(correct_members,2)
