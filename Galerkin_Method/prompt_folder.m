@@ -1,4 +1,5 @@
-function [file_loc, direct] = prompt_folder(data, direct, mat_name)
+function [file_loc, direct] = prompt_folder(data, direct, run_num, mat_name)
+% TODO really change this
 % PROMPT_FOLDER Handles all the IO for selecting the correct data, can
 % either select data manually by selection or with additional input
 % argument select the data without prompt
@@ -34,7 +35,7 @@ for i = 1:size(data,2)
 end
 
 % if mat_name is empty fill with empty cells
-if nargin < 3
+if nargin < 4
     mat_name = cell(size(data,2),1);
 end
 
@@ -46,23 +47,30 @@ if nargin == 1
     % Prompt the user for location of Test folder
     fprintf(1, ['Please choose test data ' data_folder{i}(2:end-1) '\n']);
     direct = uigetdir(start_direct, data_folder{i}(2:end-1)); 
+    run_num = 0;
 end
 
 % Get file(s) information
 for i = 1:size(data,2);
-    file_loc{i} = get_data(data_folder{i}, data_temp, direct, mat_name);
+    file_loc{i} = get_data(data_folder{i}, data_temp, direct, run_num, mat_name);
 end
     
 end
 
-function file_loc = get_data(data_folder, data_temp, direct, mat_name)
+function file_loc = get_data(data_folder, data_temp, direct, run_num, mat_name)
+
+if run_num
+    wildcard = ['*' num2str(run_num) '.mat'];
+else
+    wildcard = '*.mat';
+end
 
 % Look in provided directory for .mat files
-files = dir([direct data_folder '*.mat']);
+files = dir([direct data_folder wildcard]);
 
 % If none are found prompt user to run previous level code
 if size(files,1) == 0
-    error(['Run required code to generate' data_temp ' data']); 
+    error(['Run required code to generate' data_temp ' data for run ' num2str(run_num)]); 
 
 % If only one is found use that as the file location
 elseif size(files, 1) == 1

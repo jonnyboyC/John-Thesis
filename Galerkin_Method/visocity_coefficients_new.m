@@ -15,6 +15,8 @@ override_coef = coef_problem.override_coef;
 direct      = coef_problem.direct;
 uniform     = coef_problem.uniform;
 
+clear coef_problem
+
 % Offset, currently not in use
 clt = 0;
 cqt = 0;
@@ -28,16 +30,16 @@ num_modes = size(pod_u, 2);
 % max modes in memeory at once
 bytesPerDouble = 8;
 [~, system] = memory;
-memory_limit = floor(system.PhysicalMemory.Available/(bytesPerDouble*num_modes*num_modes*4));
+memory_limit = floor(system.PhysicalMemory.Available/(bytesPerDouble*num_modes*num_modes*1.85));
 
 % If we are using the same number of cutoff modes and overwrite is set to
 % false look for previous data
 if override_coef == false;
-   saved_files = dir([direct '\Viscous Coeff\Coeff.mat']);
-   if size(saved_files,1) == 1
-       data = load([direct '\Viscous Coeff\Coeff.mat'], 'cutoff', 'run_num');
-       if data.cutoff == num_modes && data.run_num == run_num
-           data = load([direct '\Viscous Coeff\Coeff.mat']);
+   saved_files = dir([direct '\Viscous Coeff\Coeff_*']);
+   if size(saved_files,1) ~= 0
+       run_nums = regexp({saved_files.name}, num2str(run_num));
+       if any(cell2mat(run_nums))
+           data = load([direct '\Viscous Coeff\Coeff_' num2str(run_num) '.mat']);
            l_dot =  data.l_dot;
            l        = data.l;
            q_2dot   = data.q_2dot;
@@ -115,12 +117,11 @@ q_dot = q_dot + cct;
 
 % Free memory
 clear cct cu cv
+pool = gcp();
+delete(pool);
 
 % If Problem has over 400 modes need to break problem into chunks
-if num_modes < Inf;
-    
-    pool = gcp();
-    delete(pool);
+if num_modes < memory_limit;
     
     % Quadractic terms preallocation
     cduv = zeros(num_modes, num_modes, num_modes);
@@ -138,10 +139,13 @@ if num_modes < Inf;
 
     end
 else
-    % delete parrallel pool to free up memeory
-    pool = gcp();
-    delete(pool);
+    % Create one worker to save files to harddrive
     pool = parpool('local', 1);
+    
+    exists = dir([direct '\Viscous Coeff\cduv.mat']);
+    if size(exists,1) == 1
+        delete([direct '\Viscous Coeff\cduv.mat']);
+    end
     
     % Create harddrive copy to help alleviate memory problem
     data = matfile([direct '\Viscous Coeff\cduv.mat'], 'Writable', true);
@@ -160,19 +164,22 @@ else
             wait(f);
         end
     end
-    clear pod_u pod_v pod_udx pod_udy pod_vdx pod_vdy 
-    clear pod_u_pod_u_x pod_u_pod_v_x  pod_v_pod_u_y pod_v_pod_v_y
+
     delete(pool)
-    parpool('local', 3);
     cduv = data.cduv;
 end
+
+clear pod_u pod_v pod_udx pod_udy pod_vdx pod_vdy 
+clear pod_u_pod_u_x pod_u_pod_v_x  pod_v_pod_u_y pod_v_pod_v_y
 
 cduv = reshape(cduv, num_modes, num_modes^2);
 q = -(cdt + cduv);
 
 cutoff = num_modes;
-save([direct '\Viscous Coeff\Coeff.mat'], 'l_dot', 'l', 'q_2dot', 'q_dot', 'q', 'cutoff', 'run_num', '-v7.3'); 
+save([direct '\Viscous Coeff\Coeff_' num2str(run_num) '.mat'], ...
+    'l_dot', 'l', 'q_2dot', 'q_dot', 'q', 'cutoff', 'run_num', '-v7.3'); 
 
+parpool('local', 3);
 end
 
 % allow writing to disk asynchronously

@@ -47,7 +47,8 @@ clc;
 %List of fields that will be checked
 fields = {  'num_pods',     'plot_pred',    'save_coef', ...
             'override_coef','tspan',        'init', ...
-            'direct' ,      'Re0_gen',      'fft_window'};
+            'direct' ,      'Re0_gen',      'fft_window', ...
+            'run_num'};
         
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -60,6 +61,7 @@ end
 
 % Create more readable names
 num_pods        = problem.num_pods;
+run_num         = problem.run_num;
 plot_pred       = problem.plot_pred;
 save_coef       = problem.save_coef;
 override_coef   = problem.override_coef;
@@ -82,7 +84,7 @@ fprintf('\nLoading POD variables\n\n');
 if strcmp(direct, '');
     [data, direct] = prompt_folder('POD');
 else
-    [data, direct] = prompt_folder('POD', direct);
+    [data, direct] = prompt_folder('POD', direct, run_num);
 end
 
 % Check folders are up to most recent format
@@ -106,7 +108,7 @@ dimensions  = vars.results.dimensions;  % dimensions of mesh
 vol_frac    = vars.results.vol_frac;    % mesh area size
 bnd_idx     = vars.results.bnd_idx;     % location of boundaries
 uniform     = vars.results.uniform;     % logical if mesh is uniform
-run_num     = vars.results.run_num;     % run number of main_code_chabot
+run_num     = vars.results.run_num;     % POD run numbers
 cutoff      = vars.results.cutoff;      % number of modes at cutoff
 
 clear results
@@ -239,7 +241,7 @@ end
 % TODO significant overhaul to this function
 % Produce time response video
 if any(strcmp(plot_pred, 'video'))
-    plot_prediction(pod_ut, pod_vt, x, y, modal_amp, t, num_pods, dimensions, direct)
+    plot_prediction(pod_ut, pod_vt, x, y, modal_amp, t1, num_pods, dimensions, direct)
     plot_prediction(pod_ut, pod_vt, x, y, modal_amp_vis1, t2, num_pods, dimensions, direct)
     plot_prediction(pod_ut, pod_vt, x, y, modal_amp_vis2, t3, num_pods, dimensions, direct)
 end
@@ -272,6 +274,7 @@ end
 
 fprintf('Saving Galerkin Variables\n');
 
+results.num_run = run_num;
 results.c = c;
 results.ci = ci;
 results.ci_c = ci_c;
@@ -293,8 +296,8 @@ results.sample_freq = sample_freq;
 
 % Save relavent coefficients
 if save_coef == true
-    save([direct '\Galerkin Coeff\Coeff_m' num2str(num_pods) 'i' num2str(init) '.mat'],...
-        'results', '-v7.3');
+    save([direct '\Galerkin Coeff\Coeff_m' num2str(num_pods) '_i' num2str(init) '_r'...
+        num2str(run_num) '.mat'], 'results', '-v7.3');
 end
 
 if nargout == 1

@@ -184,7 +184,7 @@ results.bnd_idx = bnd_idx;
 
 % Save variables relavent to Galerkin to .mat files
 if save_pod == true
-    save([direct '\POD Data\POD.mat'], 'results', '-v7.3');
+    save([direct '\POD Data\POD_run_' num2str(run_num) '.mat'], 'results', '-v7.3');
 end
 
 if nargout == 1

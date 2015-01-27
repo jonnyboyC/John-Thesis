@@ -19,5 +19,5 @@ problem_force1.save_figures = {'fig', 'jpg'};
 problem_force2.num_images = 2000;
 problem_force2.load_raw = false;
 problem_force2.save_pod = true;
-problem_force2.direct = 'D:\shear layer\PIVData\Baseline1';
+problem_force2.direct = 'D:\shear layer\PIVData\Forced1';
 problem_force2.save_figures = {'fig', 'jpg'};
