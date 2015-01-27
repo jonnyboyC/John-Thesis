@@ -19,3 +19,5 @@ for k = 1:num_modes
     uc = qc + mf_e;
     niu(k) = -uc/bc;
 end
+
+end

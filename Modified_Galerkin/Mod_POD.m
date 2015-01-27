@@ -1,82 +1,108 @@
-function Mod_POD(varargin)
-close all;
-clc;
+function res = Mod_POD(varargin)
 % TODO really fill out varargin/help
-switch nargin
-    case 0
-        RD_nm = 8;
-        plot_type = 'none';
-        save_mod = true;
-        init = 1;
-        line_range = 200;
-        direct = '';
-        mat_name = [];
-    case 1
-        RD_nm = varargin{1};
-        plot_type = 'none';
-        save_mod = true;
-        init = 1;
-        line_range = 200;
-        direct = '';
-        mat_name = [];
-    case 2
-        RD_nm = varargin{1};
-        plot_type = varargin{2};
-        save_mod = true;
-        init = 1;
-        line_range = 200;
-        direct = '';
-        mat_name = [];
-    case 3
-        RD_nm = varargin{1};
-        plot_type = varargin{2};
-        save_mod = varargin{3};
-        init = 1;
-        line_range = 200;
-        direct = '';
-        mat_name = [];
-    case 4
-        RD_nm = varargin{1};
-        plot_type = varargin{2};
-        save_mod = varargin{3};
-        init = varargin{4};
-        line_range = 200;
-        direct = '';
-        mat_name = [];
-    case 5
-        RD_nm = varargin{1};
-        plot_type = varargin{2};
-        save_mod = varargin{3};
-        init = varargin{4};
-        line_range = varargin{5};
-        direct = '';
-        mat_name = [];
-    case 6
-        RD_nm = varargin{1};
-        plot_type = varargin{2};
-        save_mod = varargin{3};
-        init = varargin{4};
-        line_range = varargin{5};
-        direct = varargin{6};
-        mat_name = [];
-    case 7
-        RD_nm = varargin{1};
-        plot_type = varargin{2};
-        save_mod = varargin{3};
-        init = varargin{4};
-        line_range = varargin{5};
-        direct = varargin{6};
-        mat_name = varargin{7};
-    otherwise
-        error('Too many input arguments');
+
+
+format long g
+close all
+clc;
+
+% switch nargin
+%     case 0
+%         RD_nm = 8;
+%         plot_type = 'none';
+%         save_mod = true;
+%         init = 1;
+%         line_range = 200;
+%         direct = '';
+%         mat_name = [];
+%     case 1
+%         RD_nm = varargin{1};
+%         plot_type = 'none';
+%         save_mod = true;
+%         init = 1;
+%         line_range = 200;
+%         direct = '';
+%         mat_name = [];
+%     case 2
+%         RD_nm = varargin{1};
+%         plot_type = varargin{2};
+%         save_mod = true;
+%         init = 1;
+%         line_range = 200;
+%         direct = '';
+%         mat_name = [];
+%     case 3
+%         RD_nm = varargin{1};
+%         plot_type = varargin{2};
+%         save_mod = varargin{3};
+%         init = 1;
+%         line_range = 200;
+%         direct = '';
+%         mat_name = [];
+%     case 4
+%         RD_nm = varargin{1};
+%         plot_type = varargin{2};
+%         save_mod = varargin{3};
+%         init = varargin{4};
+%         line_range = 200;
+%         direct = '';
+%         mat_name = [];
+%     case 5
+%         RD_nm = varargin{1};
+%         plot_type = varargin{2};
+%         save_mod = varargin{3};
+%         init = varargin{4};
+%         line_range = varargin{5};
+%         direct = '';
+%         mat_name = [];
+%     case 6
+%         RD_nm = varargin{1};
+%         plot_type = varargin{2};
+%         save_mod = varargin{3};
+%         init = varargin{4};
+%         line_range = varargin{5};
+%         direct = varargin{6};
+%         mat_name = [];
+%     case 7
+%         RD_nm = varargin{1};
+%         plot_type = varargin{2};
+%         save_mod = varargin{3};
+%         init = varargin{4};
+%         line_range = varargin{5};
+%         direct = varargin{6};
+%         mat_name = varargin{7};
+%     otherwise
+%         error('Too many input arguments');
+% end
+
+%List of fields that will be checked
+fields = {  'RD_nm',        'plot_type',    'save_mod', ...
+            'init',         'line_range'    'init', ...
+            'direct' ,      'mat_name'};
+
+% Parse problem structure provided to set it up correctly
+if nargin == 1
+    problem = parse_inputs(fields, @setdefaults_proj, varargin{1});
+else
+    fprintf('Provide a single structure as input, use help Galerkin_Proj for information.\n');
+    fprintf('Using Defaults\n\n');
+    problem = parse_inputs(fields, @setdefaults_mod);
 end
+
+RD_nm       = problem.RD_nm;
+plot_type   = problem.plot_type;
+save_mod    = problem.sav_mod;
+init        = problem.init;
+line_range  = problem.line_range;
+direct      = problem.direct;
+mat_name    = problem.mat_name;
 
 % Check that parallel pool is ready
 if isempty(gcp)
     parpool;
 end
 
-pool = gcp();
+gcp();
 
 % Handle File IO
 if strcmp(direct, '');
@@ -90,24 +116,24 @@ end
 
 % Make sure folders are up to date and load collected data
 update_folders(direct);
-data1 = load(data{1}, 'eig_func', 'lambda2', 'pod_u', 'pod_v', 'dimensions', 'x', 'y');
-data2 = load(data{2}, 'num_pods', 'q', 'ci_c', 'li_c', 't3', 'modal_amp_vis2'); %'c', 'l', 't',
+vars1 = load(data{1}, 'eig_func', 'lambda2', 'pod_u', 'pod_v', 'dimensions', 'x', 'y');
+vars2 = load(data{2}, 'num_pods', 'q', 'ci_c', 'li_c', 't3', 'modal_amp_vis2'); %'c', 'l', 't',
 
 % Need to explictly declare all the loaded variables for parfor loop
-eig_func    = data1.eig_func;
-lambda2     = data1.lambda2;
-pod_u       = data1.pod_u;
-pod_v       = data1.pod_v;
-dimensions  = data1.dimensions;
-x           = data1.x;
-y           = data1.y;
+eig_func    = vars1.eig_func;
+lambda2     = vars1.lambda2;
+pod_u       = vars1.pod_u;
+pod_v       = vars1.pod_v;
+dimensions  = vars1.dimensions;
+x           = vars1.x;
+y           = vars1.y;
 
-num_pods    = data2.num_pods;
-q           = data2.q;
-c           = data2.ci_c;
-l           = data2.li_c;
-t           = data2.t3;
-modal_amp   = data2.modal_amp_vis2;
+num_pods    = vars2.num_pods;
+q           = vars2.q;
+c           = vars2.ci_c;
+l           = vars2.li_c;
+t           = vars2.t3;
+modal_amp   = vars2.modal_amp_vis2;
 
 clear data1 data2
 
@@ -122,7 +148,8 @@ end
 pod_ut = pod_u(:,1:OG_nm);
 pod_vt = pod_v(:,1:OG_nm);
 
-epsilon_0 = sum(l*lambda2(1:OG_nm)); % intial guess for epsilon
+% intial guess for epsilon
+epsilon_0 = sum(l*lambda2(1:OG_nm)); 
 
 % Find initial value for line search and plot
 transfer_0 = optimal_rotation(epsilon_0, c, l, q, OG_nm, RD_nm, lambda2, eig_func, t, init, 3000);
@@ -161,6 +188,7 @@ for i = 1:length(search_space)-1
     [epsilon_i, idx] = sort(epsilon_i);
     transfer_i = transfer_i(idx);
 
+    % TODO creating separate plotting function
     % Plot results of brute force sweep to see if range needs to be increased
     ax = newplot;
     plot(ax, epsilon_i, transfer_i);

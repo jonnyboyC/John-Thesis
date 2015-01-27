@@ -14,6 +14,12 @@ for i = 1:size(modal_amp,2);
     leg_names{i} = ['Modal Amplitude ' num2str(i)]; 
 end
 legend(leg_names);
+if numel(t) < 2 
+   if nargout == 1
+       handle = h;
+   end
+   return
+end
 Hz = 1/(t(2) - t(1));
 
 file_name = [direct '\Figures\Galerkin\Galerkin_'];

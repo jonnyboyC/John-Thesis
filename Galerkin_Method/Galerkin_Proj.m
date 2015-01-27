@@ -1,18 +1,48 @@
 function res = Galerkin_Proj(varargin)
-% GALERKIN_PROJ will calculate time coefficients for a provided POD basis
+% GALERKIN_PROJ perform Galerkin projection of the POD system onto Navier
+% Stokes. This requires POD_GEN to be run, Can produce save output graphs
+% see below
 %
-% GALERKIN_PROJ(NUM_PODS) generated time coefficients for NUM_PODS number
-% of pod modes
+% GALERKIN_PROJ() prompt user for analysis folders for a given test run,
+% will use all defaults detailed below
+% 
+% GALERKIN_PROJ(problem) Using fields provided in the structure PROBLEM
+% sets up analysis specified by PROBLEM. all unfilled fields go to defaults
 %
-% Galerkin_PROJ(NUM_PODS, PLOT_PRED) generated time coefficients for
-% NUM_PODS number of pod modes. If plot_pred is true a short move is saved
-% to the data folder of the predicted flow.
-
+% problem.num_pods = 10
+% Specify the number of modes that will calculated in Galerkin projection
+%
+% problem.plot_pred = {'amp', 'fft'}
+% Specify which outout graphes are desired, current options are modal
+% amplitude 'amp', fourier fast transform 'fft', and 'video which produces
+% a video of the simulated flow
+% 
+% problem.save_coef = true
+% Save relvant values to at .mat file
+%
+% problem.override_coef = false
+% Overwrite previous coefficients for the same run number, if the run
+% numbers are different new coefficients will be calculated
+%
+% problem.tspan = 0:0.01:100
+% Specify time span for time integration
+% 
+% problem.init
+% Speicify which image will constitute the initial conditions
+%
+% problem.direct = ''
+% Specify directory that will be searched for POD data, default is to
+% prompt user
 
 % Set format, clear figures, and set up correct directory
 format long g
 close all
 clc;
+
+% TODO need to allow to have multiple datasets present to more rapidly
+% experiement with runs
+% TODO make calculating coefficeints and plotting more generic so more can
+% be added later
 
 %List of fields that will be checked
 fields = {  'num_pods',     'plot_pred',    'save_coef', ...
@@ -71,7 +101,7 @@ mean_v      = vars.results.mean_v;      % mean spanwise velocity
 pod_u       = vars.results.pod_u;       % streamwise pod modes
 pod_v       = vars.results.pod_v;       % spanwise pod modes
 lambda2     = vars.results.lambda2;     % eigenvalues of modes
-eig_func    = vars.results.eig_func;    % Need to find a better name
+modal_amp   = vars.results.modal_amp;    % Need to find a better name
 dimensions  = vars.results.dimensions;  % dimensions of mesh
 vol_frac    = vars.results.vol_frac;    % mesh area size
 bnd_idx     = vars.results.bnd_idx;     % location of boundaries
@@ -94,28 +124,22 @@ else
 end
 
 %% Calculate Coefficients
-
-pod_ut = pod_u(:,1:num_pods);
-pod_vt = pod_v(:,1:num_pods);
-
-
-coef_problem.mean_u = mean_u;
-coef_problem.mean_v = mean_v;
-coef_problem.x = x;
-coef_problem.y = y;
-coef_problem.pod_u = pod_u;
-coef_problem.pod_v = pod_v;
-coef_problem.dimensions = dimensions;
-coef_problem.vol_frac = vol_frac;
-coef_problem.bnd_idx = bnd_idx;
-coef_problem.z = z;
-coef_problem.run_num = run_num;
-coef_problem.override_coef = override_coef;
-coef_problem.direct = direct;
-coef_problem.uniform = uniform;
+coef_problem.mean_u         = mean_u;
+coef_problem.mean_v         = mean_v;
+coef_problem.x              = x;
+coef_problem.y              = y;
+coef_problem.pod_u          = pod_u;
+coef_problem.pod_v          = pod_v;
+coef_problem.dimensions     = dimensions;
+coef_problem.vol_frac       = vol_frac;
+coef_problem.bnd_idx        = bnd_idx;
+coef_problem.z              = z;
+coef_problem.run_num        = run_num;
+coef_problem.override_coef  = override_coef;
+coef_problem.direct         = direct;
+coef_problem.uniform        = uniform;
 
 fprintf('Generating coefficients for unresolved modes using %d modes\n\n', cutoff);
-
 
 [lc_dot, lc, qc_2dot, qc_dot, qc] = visocity_coefficients_new(coef_problem);
 
@@ -126,7 +150,7 @@ l_dot   = lc_dot(1:num_pods);
 l       = lc(1:num_pods, 1:num_pods);
 q_2dot  = qc_2dot(1:num_pods);
 q_dot   = qc_dot(1:num_pods, 1:num_pods);
-q       = qc(1:num_pods, 1:num_pods, 1:num_pods);
+q       = qc(1:num_pods, 1:num_pods^2);
 
 % Free memory
 clear pod_u pod_v mean_u mean_v
@@ -136,9 +160,12 @@ clear pod_u pod_v mean_u mean_v
 fprintf('Calculating viscous disspation terms\n\n');
 
 % Attempt to estimate the neglected viscoius dissapation function
-niu = viscious_dis(eig_func, num_pods, lambda2, l, q_dot, q);
-niu_c = viscious_dis_couplet(eig_func, num_pods, ...
-                                lc_dot, lc, qc_2dot, qc_dot, qc, Re0);
+
+%  calculate coefficeitns detailed by Noack
+niu = viscious_dis(modal_amp, num_pods, lambda2, l, q_dot, q);
+
+% calculate coefficients detailed by Couplet
+niu_c = viscious_dis_couplet(modal_amp, num_pods, lc_dot, lc, qc_2dot, qc_dot, qc, Re0, niu);
 
                             
 % From Couplet (v + v_tilde) ie (1/Re + v_tilde)
@@ -173,7 +200,7 @@ fprintf('Performing ode113 on base Galerkin system\n');
 % Integrate Base Galerkin System
 tic;
 [t1, modal_amp] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff), tspan, ...
-    eig_func(init,1:num_pods), options);
+    modal_amp(init,1:num_pods), options);
 toc1 = toc;
 fprintf('Completed in %f6.4 seconds\n\n', toc1);
 
@@ -184,7 +211,7 @@ fprintf('Performing ode113 on Galerkin system with 1st viscous dissapation\n');
 % Integrate Galerkin System with 1st viscous dissapation model
 tic;
 [t2, modal_amp_vis1] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff_vis1), tspan, ...
-    eig_func(init,1:num_pods), options);
+    modal_amp(init,1:num_pods), options);
 toc2 = toc;
 fprintf('Completed in %f6.4 seconds\n\n', toc2);
 
@@ -195,7 +222,7 @@ fprintf('Performing ode113 on Galerkin system with 2nd viscous dissapation\n');
 % Integrate Galerkin System with 2nd viscous dissapation model
 tic;
 [t3, modal_amp_vis2] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff_vis2), tspan, ...
-    eig_func(init,1:num_pods), options);
+    modal_amp(init,1:num_pods), options);
 toc3 = toc;
 fprintf('Completed in %f6.4 seconds\n\n', toc3);
 
@@ -267,11 +294,11 @@ results.sample_freq = sample_freq;
 % Save relavent coefficients
 if save_coef == true
     save([direct '\Galerkin Coeff\Coeff_m' num2str(num_pods) 'i' num2str(init) '.mat'],...
-        'resutls', '-v7.3');
+        'results', '-v7.3');
 end
 
 if nargout == 1
-    res = result;
+    res = results;
 end
 
 % return format

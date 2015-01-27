@@ -31,6 +31,12 @@ freq_response_dB = 20*log10(freq_response);
 % Plot fft
 h = figure;
 ax = newplot;
+if freq_response_dB < 2
+   if nargout == 1
+       handle = h;
+   end
+   return
+end
 plot(fspan, freq_response_dB(:, num_plot));
 ax.XLabel.String = 'frequency (Hz)';
 ax.YLabel.String = 'Modal Amplitude';

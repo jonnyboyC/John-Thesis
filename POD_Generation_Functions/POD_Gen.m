@@ -121,7 +121,7 @@ data.y = y;
 
 %% Perform Proper Orthogonal Decomposition
 covariance = cal_covariance_mat(flux_u, flux_v, vol_frac);
-[pod_u, pod_v, lambda2, eig_func, cutoff] =  calc_eig_modes2(covariance, flux_u, flux_v); 
+[pod_u, pod_v, lambda2, modal_amp, cutoff] =  calc_eig_modes2(covariance, flux_u, flux_v); 
 
 pod_u = regroup(pod_u, dimensions);
 pod_v = regroup(pod_v, dimensions);
@@ -137,16 +137,14 @@ for i = 1:cutoff
     pod_v(:,:,i) = pod_v(:,:,i)*sign_flip(i);
 end
 
+% Currently using built in curl function may need to have option for
+% non-uniform mesh 
 vorticity = calc_vorticity2(pod_u, pod_v, dimensions, cutoff);
 
 % Calculate vorticity
 pod_u = reshape(pod_u, data_points, cutoff);
 pod_v = reshape(pod_v, data_points, cutoff);
 vorticity = reshape(vorticity, data_points, cutoff);
-
-% Currently only calculating vorticity modes for num_modes may need to do
-% for cutoff
-% vorticity = calc_vorticity(data, pod_u, pod_v, dimensions, bnd_idx);
 
 %% Setup for Plotting and Plotting
 if cutoff > 40
@@ -173,7 +171,7 @@ results.mean_u = mean_u;
 results.mean_v = mean_v;
 results.pod_u = pod_u;
 results.pod_v = pod_v;
-results.eig_func = eig_func;
+results.modal_amp = modal_amp;
 results.lambda2 = lambda2;
 results.l_scale = l_scale;
 results.u_scale = u_scale;

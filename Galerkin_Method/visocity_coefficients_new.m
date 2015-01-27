@@ -33,7 +33,7 @@ memory_limit = floor(system.PhysicalMemory.Available/(bytesPerDouble*num_modes*n
 % If we are using the same number of cutoff modes and overwrite is set to
 % false look for previous data
 if override_coef == false;
-   saved_files = dir([direct '\Viscous Coeff\*.mat']);
+   saved_files = dir([direct '\Viscous Coeff\Coeff.mat']);
    if size(saved_files,1) == 1
        data = load([direct '\Viscous Coeff\Coeff.mat'], 'cutoff', 'run_num');
        if data.cutoff == num_modes && data.run_num == run_num
@@ -117,7 +117,10 @@ q_dot = q_dot + cct;
 clear cct cu cv
 
 % If Problem has over 400 modes need to break problem into chunks
-if num_modes < memory_limit;
+if num_modes < Inf;
+    
+    pool = gcp();
+    delete(pool);
     
     % Quadractic terms preallocation
     cduv = zeros(num_modes, num_modes, num_modes);
@@ -153,8 +156,7 @@ else
                            inner_prod(pod_v_pod_v_y + pod_u_pod_v_x, pod_v, vol_frac);
         f = parfeval(pool, @save_cduv, 0, data, cduv, k);
         fprintf('%d of %d coefficients computed\n',  k, num_modes);
-        [~, system] = memory;
-        if(system.PhysicalMemory.Available < 0.1*system.PhysicalMemory.Total)
+        if mod(k,20) == 0
             wait(f);
         end
     end

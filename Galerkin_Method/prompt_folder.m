@@ -50,12 +50,12 @@ end
 
 % Get file(s) information
 for i = 1:size(data,2);
-    file_loc{i} = get_data(data_folder{i}, direct, mat_name);
+    file_loc{i} = get_data(data_folder{i}, data_temp, direct, mat_name);
 end
     
 end
 
-function file_loc = get_data(data_folder, direct, mat_name)
+function file_loc = get_data(data_folder, data_temp, direct, mat_name)
 
 % Look in provided directory for .mat files
 files = dir([direct data_folder '*.mat']);
