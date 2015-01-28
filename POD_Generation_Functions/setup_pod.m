@@ -21,3 +21,9 @@ problem_force2.load_raw = false;
 problem_force2.save_pod = true;
 problem_force2.direct = 'D:\shear layer\PIVData\Forced1';
 problem_force2.save_figures = {'fig', 'jpg'};
+
+problem_airfoil.num_images = 2000;
+problem_airfoil.load_raw = false;
+problem_airfoil.save_pod = true;
+problem_airfoil.save_figures = {'fig', 'jpg'};
+problem_airfoil.l_scale = 0.2032;
