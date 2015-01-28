@@ -93,7 +93,7 @@ for i = 1:num_files
 end
 
 % Apply any scaling that is present
-[xi, yi, ui, vi, u_scale] = apply_scales(xi, yi, ui, vi, l_scale, u_scale_gen);
+[xi, yi, ui, vi, u_scale] = apply_scales(xi, yi, ui, vi, l_scale, u_scale_gen, direct);
 
 % Save Data to processed folder
 num_processed = num_images;
@@ -148,7 +148,7 @@ for i = 1:num_files
 end
 
 % Apply any scaling that is present
-[xi, yi, ui, vi, u_scale] = apply_scales(xi, yi, ui, vi, l_scale, u_scale_gen);
+[xi, yi, ui, vi, u_scale] = apply_scales(xi, yi, ui, vi, l_scale, u_scale_gen, direct);
 
 % Save Data to processed folder
 num_processed = num_images;
@@ -167,7 +167,7 @@ function [xi, yi, ui, vi, u_scale] = apply_scales(xi, yi, ui, vi, l_scale, u_sca
 
 % Scale velocity by the inlet fast side streamwise velocity
 if isa(u_scale_gen, 'function_handle')
-    u_scale = u_scale_gen(ui);
+    u_scale = u_scale_gen(ui, direct);
 else
     u_scale = u_scale_gen;
 end

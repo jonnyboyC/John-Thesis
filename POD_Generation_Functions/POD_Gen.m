@@ -34,7 +34,7 @@ function res = POD_Gen(varargin)
 % problem.l_scale = .3048
 % Specify a scalar to be used as the lenght scale for the problem
 %
-% problem.u_scale = @u_scale_gen_shear
+% problem.u_scale_gen = @u_scale_gen_shear
 % Specify a scalar for function handle to calculate u_scale
 
 format long g

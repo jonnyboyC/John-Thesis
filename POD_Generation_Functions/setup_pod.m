@@ -27,3 +27,4 @@ problem_airfoil.load_raw = false;
 problem_airfoil.save_pod = true;
 problem_airfoil.save_figures = {'fig', 'jpg'};
 problem_airfoil.l_scale = 0.2032;
+problem_airfoil.u_scale_gen = @u_scale_gen_airfoil;

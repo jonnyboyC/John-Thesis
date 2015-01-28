@@ -7,6 +7,9 @@ function update_folders(direct)
 if ~exist([direct '\Processed Data'], 'dir')
     mkdir(direct, '\Processed Data');
 end
+if ~exist([direct '\Other'], 'dir')
+    mkdir(direct, '\Other');
+end
 if ~exist([direct '\Raw Data'], 'dir')
     mkdir(direct, '\Raw Data');
 end
