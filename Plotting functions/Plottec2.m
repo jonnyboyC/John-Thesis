@@ -9,12 +9,6 @@ maxx = max(max(data.x));
 miny = min(min(data.y));
 maxy = max(max(data.y));
 
-% TODO check what rmghost does, currently no trace of this
-% if blah ==0;
-%    data.y = rmghost(data.y);
-%    data.x = rmghost(data.x);
-% end
-
 if nargin == 1 || nargin == 3 || nargin == 4
     ax = newplot;
     h = surf(ax, data.x, data.y, zeros(size(data.x)), data.pod);
@@ -42,11 +36,10 @@ else
     h.CData = data.pod;
 end
 drawnow;
-    
+
 if nargout == 1
     handle = h;
 end
-
 if nargout == 2
     handle = h;
     cax = ax;

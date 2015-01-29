@@ -36,6 +36,12 @@ function res = POD_Gen(varargin)
 %
 % problem.u_scale_gen = @u_scale_gen_shear
 % Specify a scalar for function handle to calculate u_scale
+%
+% problem.flip_x = false
+% If true reflect image about y axis
+%
+% problem.flip_y = false
+% If treu reflect image about x axis
 
 format long g
 close all
@@ -44,7 +50,8 @@ clc
 % List of fields that will be checked
 fields = {  'num_images',   'load_raw',     'save_pod', ...
             'image_range',  'direct',       'l_scale', ...
-            'u_scale_gen',  'save_figures' };
+            'u_scale_gen',  'save_figures', 'flip_x', ...
+            'flip_y'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -64,6 +71,8 @@ direct      = problem.direct;
 l_scale     = problem.l_scale;
 u_scale_gen = problem.u_scale_gen;
 save_figures= problem.save_figures;
+flip_x      = problem.flip_x;
+flip_y      = problem.flip_y;
 
 clear problem
 
@@ -77,7 +86,8 @@ gcp();
 %% Load and organize data
 
 % Load simulation data from raw .vc7 or .mat, or from processed .mat
-[x, y, u, v, u_scale, direct] = Velocity_Read_Save(num_images, load_raw, image_range, l_scale, u_scale_gen, direct);
+[x, y, u, v, u_scale, direct] = Velocity_Read_Save(num_images, load_raw, image_range, ...
+                            l_scale, u_scale_gen, flip_x, flip_y, direct);
 
 % mean velocities and picture dimensions
 mean_u = mean(u,3);

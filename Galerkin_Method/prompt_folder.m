@@ -16,10 +16,12 @@ function [file_loc, direct] = prompt_folder(data, direct, run_num, mat_name)
 % explicitly 
 
 % Preallocate if cell
-if iscell(data)
-    data_folder = cell(size(data,2),1);
-    file_loc = cell(size(data,2),1);
+if ~iscell(data)
+    data = {data};
 end
+
+data_folder = cell(size(data,2),1);
+file_loc = cell(size(data,2),1);
 
 % Select correct subfolder
 for i = 1:size(data,2)

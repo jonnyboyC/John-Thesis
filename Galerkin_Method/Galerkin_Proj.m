@@ -114,7 +114,7 @@ cutoff      = vars.results.cutoff;      % number of modes at cutoff
 clear results
 
 % TODO may want to pass calculated high side velocity and calculate this
-Re0 = Re0_gen();        % Get Reynolds number        
+Re0 = Re0_gen(direct);        % Get Reynolds number        
 z = ones(size(x));      % Depth of velocity field
 
 % Determine sampling frequency from provided tspan

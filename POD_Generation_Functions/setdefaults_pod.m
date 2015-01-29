@@ -21,8 +21,8 @@ end
 
 % Default for load_raw
 if isempty(problem.save_figures) || ~iscell(problem.save_figures)
-    fprintf('Using default value for save_figures\nproblem.save_pod = {"fig"}\n\n');
-    problem.save_figures = {'fig'};     % Save as figure
+    fprintf('Using default value for save_figures\nproblem.save_pod = {}\n\n');
+    problem.save_figures = {};     % Save as figure
 end
 
 % Check to make sure incorrect strings are not passed
@@ -47,10 +47,23 @@ if isempty(problem.l_scale) || ~isscalar(problem.l_scale)
     problem.l_scale = .3048;    % Length of splitter plate
 end
 
-% Default for u_scale
+% Default for u_scale_gen
 if isempty(problem.u_scale_gen) || (~isscalar(problem.u_scale_gen) && ~isa(problem.u_scale_gen, 'function_handle'))
     fprintf('Using default values for u_scale_gen\nproblem.u_scale_gen_shear = @u_scale_gen_shear\n\n');
     problem.u_scale_gen = @u_scale_gen_shear;  	% Claimed high speed side
 end
+
+% Default for flip_x
+if isempty(problem.flip_x) || ~islogical(problem.flip_x)
+    fprintf('Using default value for flip_x\nproblem.flip_x = false\n\n');
+    problem.save_pod = false;        % save pod results
+end
+
+% Default for flip_y
+if isempty(problem.flip_y) || ~islogical(problem.flip_y)
+    fprintf('Using default value for flip_y\nproblem.flip_y = false\n\n');
+    problem.flip_y = false;        % save pod results
+end
+
 end
 

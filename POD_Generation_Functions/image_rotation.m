@@ -1,4 +1,4 @@
-function [xn, yn, un, vn] = image_rotation(x, y, u, v)
+function [xn, yn, un, vn] = image_rotation(x, y, u, v, flip_x, flip_y)
 %% Rotation PIV images, if data is originally presented in a flipped format
 
 % prefill for speed
@@ -15,6 +15,14 @@ end
 % create vector of indexes to avoid loops
 x_idx = 1:size(x,1);
 y_idx = 1:size(y,2);
+
+% Flip x and y if requested
+if flip_x
+    x = -x; 
+end
+if flip_y
+    y = -y;
+end
 
 % perform flips
 if x(1,1) > x(end,1) && y(1,1) > y(1,end)

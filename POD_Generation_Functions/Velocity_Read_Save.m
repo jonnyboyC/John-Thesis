@@ -1,4 +1,5 @@
-function [xi, yi, ui, vi, u_scale, direct] = Velocity_Read_Save(num_images, load_raw, image_range, l_scale, u_scale_gen, direct)
+function [xi, yi, ui, vi, u_scale, direct] = Velocity_Read_Save(num_images, load_raw, image_range, ...
+                                            l_scale, u_scale_gen, flip_x, flip_y, direct)
 % VELOCITY_READ_PLOT_SAVE read num_images number of images from a selected
 % directory.
 %   [x, y, u, v, num_x, num_y] = VELOCITY_READ_PLOT_SAVE(num_images)
@@ -44,18 +45,19 @@ if num_images < num_files
 end
 
 if strcmpi(file_type, '.mat')
-    [xi, yi, ui, vi, u_scale] = load_mat(img_files, num_files, num_images, image_range, l_scale, u_scale_gen, direct);
+    [xi, yi, ui, vi, u_scale] = load_mat(img_files, num_files, num_images, image_range, l_scale, u_scale_gen, flip_x, flip_y, direct);
 elseif any(strcmpi(file_type, {'.vc7', '.im7'}))
-    [xi, yi, ui, vi, u_scale] = load_vc7(img_files, num_files, num_images, image_range, l_scale, u_scale_gen, direct);
+    [xi, yi, ui, vi, u_scale] = load_vc7(img_files, num_files, num_images, image_range, l_scale, u_scale_gen, flip_x, flip_y, direct);
 else
-    [xi, yi, ui, vi, u_scale] = load_dat(img_files, num_files, num_images, image_range, l_scale, u_scale_gen, direct);
+    [xi, yi, ui, vi, u_scale] = load_dat(img_files, num_files, num_images, image_range, l_scale, u_scale_gen, flip_x, flip_y, direct);
 end
 end
 
 %% Load Functions
 
 % Function to load files of .mat format
-function [xi, yi, ui, vi, u_scale] = load_mat(img_files, num_files, num_images, image_range, l_scale, u_scale_gen, direct)
+function [xi, yi, ui, vi, u_scale] = load_mat(img_files, num_files, num_images, image_range, ...
+                                    l_scale, u_scale_gen, flip_x, flip_y, direct)
 
 % Get dimensions of image
 load([direct '\Raw Data\' img_files(1).name], 'x', 'y');
@@ -82,9 +84,9 @@ for i = 1:num_files
 
     % Perform image rotation if necessary
     if isempty(image_range)
-        [xi, yi, ui(:,:,i), vi(:,:,i)] = image_rotation(x, y, u, v);
+        [xi, yi, ui(:,:,i), vi(:,:,i)] = image_rotation(x, y, u, v, flip_x, flip_y);
     else
-        [x_temp, y_temp, u_temp, v_temp] = image_rotation(x, y, u, v);
+        [x_temp, y_temp, u_temp, v_temp] = image_rotation(x, y, u, v, flip_x, flip_y);
         xi = x_temp(image_range(1):image_range(2), image_range(3):image_range(4));
         yi = y_temp(image_range(1):image_range(2), image_range(3):image_range(4));
         ui(:,:,i) = u_temp(image_range(1):image_range(2), image_range(3):image_range(4),i);
@@ -92,8 +94,9 @@ for i = 1:num_files
     end
 end
 
-% Apply any scaling that is present
+% Apply any scaling that is present and translate x/y
 [xi, yi, ui, vi, u_scale] = apply_scales(xi, yi, ui, vi, l_scale, u_scale_gen, direct);
+[xi, yi] = correct_dims(xi, yi);
 
 % Save Data to processed folder
 num_processed = num_images;
@@ -101,7 +104,8 @@ save([direct '\Processed Data\Processed.mat'], 'xi', 'yi', 'ui', 'vi', 'num_x', 
 end
 
 % Function to load files of the .vc7/.im7 format
-function [xi, yi, ui, vi, u_scale] = load_vc7(img_files, num_files, num_images, image_range, l_scale, u_scale_gen, direct)
+function [xi, yi, ui, vi, u_scale] = load_vc7(img_files, num_files, num_images, image_range, ...
+                                    l_scale, u_scale_gen, flip_x, flip_y, direct)
 
 % Get dimensions of image
 lavdata = readimx([direct '\Raw Data\' img_files(1).name]);
@@ -137,9 +141,9 @@ for i = 1:num_files
 
     % Rotate images to proper orientation
     if isempty(image_range)
-        [xi, yi, ui(:,:,i), vi(:,:,i)] = image_rotation(x, y, u, v); 
+        [xi, yi, ui(:,:,i), vi(:,:,i)] = image_rotation(x, y, u, v, flip_x, flip_y); 
     else
-        [x_temp, y_temp, u_temp, v_temp] = image_rotation(x, y, u, v);
+        [x_temp, y_temp, u_temp, v_temp] = image_rotation(x, y, u, v, flip_x, flip_y);
         xi = x_temp(image_range(1):image_range(2), image_range(3):image_range(4));
         yi = y_temp(image_range(1):image_range(2), image_range(3):image_range(4));
         ui(:,:,i) = u_temp(image_range(1):image_range(2), image_range(3):image_range(4));
@@ -147,8 +151,9 @@ for i = 1:num_files
     end
 end
 
-% Apply any scaling that is present
+% Apply any scaling that is present and translate x/y
 [xi, yi, ui, vi, u_scale] = apply_scales(xi, yi, ui, vi, l_scale, u_scale_gen, direct);
+[xi, yi] = correct_dims(xi, yi);
 
 % Save Data to processed folder
 num_processed = num_images;
@@ -163,7 +168,7 @@ end
 %% Helper Functions
 
 % Apply supplied scales
-function [xi, yi, ui, vi, u_scale] = apply_scales(xi, yi, ui, vi, l_scale, u_scale_gen)
+function [xi, yi, ui, vi, u_scale] = apply_scales(xi, yi, ui, vi, l_scale, u_scale_gen, direct)
 
 % Scale velocity by the inlet fast side streamwise velocity
 if isa(u_scale_gen, 'function_handle')
@@ -179,6 +184,11 @@ vi = vi./u_scale;
 xi = xi/(1000*l_scale);
 yi = yi/(1000*l_scale);
 
+end
+
+function [xi, yi] = correct_dims(xi, yi)
+xi = xi + abs(min(min(xi)));
+yi = yi + abs(min(min(yi)));
 end
 
 % Check to see if number of images processed last time is same as this
