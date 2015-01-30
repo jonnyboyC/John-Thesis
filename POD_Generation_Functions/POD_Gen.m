@@ -101,7 +101,8 @@ num_images = size(u,3);
 data_points = numel(x);
 
 % find boundaries of velocity image
-[~, ~, ~, ~, ~, ~, bnd_idx] = boundary_check_chabot(x, y, mean_u);
+% [~, ~, ~, ~, ~, ~, bnd_idx] = boundary_check_chabot(x, y, mean_u);
+[~, ~, ~, ~, ~, ~, bnd_idx] = boundary_check(x, y, mean_u);
 
 % Calculate volume elements of the mesh
 vol_frac = voln_piv2(x, y, bnd_idx);
@@ -138,11 +139,10 @@ pod_v = regroup(pod_v, dimensions);
 
 % Flip images so they all "face" the same way
 sign_flip = zeros(1, cutoff);
-increment = 0.0000000000001;
 
 % Figure out sign and apply flip
 for i = 1:cutoff
-    sign_flip(i) = sign(mean(mean(sign(pod_v(:,:,i)./(pod_v(:,:,i) + increment)))));
+    sign_flip(i) = sign(mean(mean(sign(pod_v(:,:,i)./(pod_v(:,:,i) + eps)))));
     pod_u(:,:,i) = pod_u(:,:,i)*sign_flip(i);
     pod_v(:,:,i) = pod_v(:,:,i)*sign_flip(i);
 end

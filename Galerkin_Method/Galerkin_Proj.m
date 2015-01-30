@@ -139,7 +139,7 @@ coef_problem.z              = z;
 coef_problem.run_num        = run_num;
 coef_problem.override_coef  = override_coef;
 coef_problem.direct         = direct;
-coef_problem.uniform        = uniform;
+coef_problem.uniform        = false; %uniform;
 
 fprintf('Generating coefficients for unresolved modes using %d modes\n\n', cutoff);
 

@@ -19,9 +19,11 @@ y_idx = 1:size(y,2);
 % Flip x and y if requested
 if flip_x
     x = -x; 
+    u = -u;
 end
 if flip_y
     y = -y;
+    v = -y;
 end
 
 % perform flips

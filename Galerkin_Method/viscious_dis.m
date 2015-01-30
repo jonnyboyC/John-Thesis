@@ -1,15 +1,15 @@
-function niu = viscious_dis(eig_func, num_modes, lambda2, l, q_dot, q)
+function niu = viscious_dis(modal_amp, num_modes, lambda2, l, q_dot, q)
 % Current Naive implementation of viscious disappation term, may want to
 % explore other proposed viscous dissapation methods
 
-% TODO what does nc mean, what is eig_func
+% TODO what does nc mean, what is modal_amp
 nc = zeros(num_modes, num_modes);
 niu = zeros(num_modes,1);
 for k = 1:num_modes
     idx = 1;
     for i = 1:num_modes
         for j = 1:num_modes
-            nc(i,j) = q(k,idx)*mean(eig_func(:,i).*eig_func(:,j).*eig_func(:,k));
+            nc(i,j) = q(k,idx)*mean(modal_amp(:,i).*modal_amp(:,j).*modal_amp(:,k));
             idx = idx+1;
         end
     end

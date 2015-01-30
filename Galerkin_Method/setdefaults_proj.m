@@ -3,13 +3,13 @@ function problem = setdefaults_proj(problem)
 
 % Default for num_pod 
 if isempty(problem.num_pods) || ~isscalar(problem.num_pods)
-    fprintf('Using default value for num_pods\nproblem.num_pods = 1000\nn');
+    fprintf('Using default value for num_pods\nproblem.num_pods = 1000\n\n');
     problem.num_pods = 10;        % use 10 modes
 end
 
 % Default for plot_pred
 if isempty(problem.plot_pred) || ~ischar(problem.plot_pred) || iscell(problem.plot_pred);
-    fprintf('Using default value for plot_pred\nproblem.plot_pred = {"amp", "fft"}\nn');
+    fprintf('Using default value for plot_pred\nproblem.plot_pred = {"amp", "fft"}\n\n');
     problem.plot_pred = {'amp', 'fft'};      % plot types to be used
 end
 
@@ -25,32 +25,32 @@ problem.plot_pred = problem.plot_pred(correct_members);
 
 % Default for save_coef
 if isempty(problem.save_coef) || ~islogical(problem.save_coef)
-    fprintf('Using default value for save_coef\nproblem.save_coef = true\nn');
+    fprintf('Using default value for save_coef\nproblem.save_coef = true\n\n');
     problem.save_coef = true;        % save projection values
 end
 
 % Default for override_coef
-if isempty(problem.override_coef) || ~iscell(problem.override_coef)
-    fprintf('Using default value for override_coef\nproblem.override_coef = false\nn');
+if isempty(problem.override_coef) || ~islogical(problem.override_coef)
+    fprintf('Using default value for override_coef\nproblem.override_coef = false\n\n');
     problem.override_coef = false;     % override previous coefficients
 end
 
 % Default for tspan
 if isempty(problem.tspan) || ~(isnumeric(problem.tspan) && ...
         size(problem.tspan, 1) == 1 && size(problem.tspan,2) > 1)
-    fprintf('Using default value for tspan\nproblem.tspan = 0:0.01:100\nn');
+    fprintf('Using default value for tspan\nproblem.tspan = 0:0.01:100\n\n');
     problem.tspan = 0:0.01:100;     % time range of integration
 end
 
 % Default for init
 if isempty(problem.init) || ~isscalar(problem.init)
-    fprintf('Using default value for init\nproblem.init = 1\nn');
+    fprintf('Using default value for init\nproblem.init = 1\n\n');
     problem.init = 1;   % initial condition snapshot
 end
 
 % Default for direct
 if isempty(problem.direct) || ~ischar(problem.direct) || isempty(problem.run_num)
-    fprintf('Using default values for direct\nproblem.direct = ""\nn');
+    fprintf('Using default values for direct\nproblem.direct = ""\n\n');
     problem.direct = '';    % User prompt
 end
 
@@ -72,7 +72,7 @@ end
 % Default for run_num
 if isempty(problem.run_num) || ~isscalar(problem.run_num)
     fprintf('Using default value for run_num\nproblem.num_pods = 0\nn');
-    problem.num_pods = 10;        % use 10 modes
+    problem.run_num = 0;        % use 10 modes
 end
 
 end

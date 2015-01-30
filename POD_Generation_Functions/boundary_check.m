@@ -13,9 +13,7 @@ cnt=1;
 for ii = 1:s(1)
     for jj = 1:s(2)
         if muz(ii,jj) == 0
-        
             if (ii > 2 && ii < s(1)-1 && jj > 2 && jj < s(2)-1)
-                
                 if  (muz(ii-2,jj) == 0 && muz(ii-1,jj) == 0 && muz(ii+1,jj) == 0 && muz(ii+2,jj) == 0 && ...
                         muz(ii,jj-2) == 0 && muz(ii,jj-1) == 0 && muz(ii,jj+1) == 0 && muz(ii,jj+2) == 0)
                     if (abs(muz(ii-1,jj-1)) > 0 || abs(muz(ii-1,jj+1)) > 0 ||abs(muz(ii+1,jj-1)) > 0 ||abs(muz(ii+1,jj+1)) > 0)

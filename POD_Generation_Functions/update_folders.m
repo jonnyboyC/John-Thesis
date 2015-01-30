@@ -41,4 +41,5 @@ end
 [~, ~, ~] = movefile([direct '\*.vc7'], [direct '\Raw Data']); 
 [~, ~, ~] = movefile([direct '\*.im7'], [direct '\Raw Data']); 
 [~, ~, ~] = movefile([direct '\*.mat'], [direct '\Raw Data']); 
+[~, ~, ~] = movefile([direct '\*.dat'], [direct '\Raw Data']); 
 end
