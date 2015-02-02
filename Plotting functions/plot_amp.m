@@ -13,7 +13,8 @@ leg_names = cell(size(modal_amp, 2), 1);
 for i = 1:size(modal_amp,2);
     leg_names{i} = ['Modal Amplitude ' num2str(i)]; 
 end
-legend(leg_names);
+legend(ax, leg_names);
+legend(ax, 'hide')
 if numel(t) < 2 
    if nargout == 1
        handle = h;
@@ -32,7 +33,6 @@ drawnow;
 
 % Save figure in Figure\Galerkin folder
 saveas(h, file_name, 'fig');
-
 
 if nargout == 1
     handle = h;
