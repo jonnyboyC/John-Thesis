@@ -41,7 +41,7 @@ function res = Galerkin_Proj(varargin)
 % fft_window = [0 2000]
 % Specify the hertz range that the fft plot should capture
 %
-% run_num = 'newest'
+% run_num = 'first'
 % Specify which run this Galerkn Projection should be based from, default
 % is to use the most recent
 
