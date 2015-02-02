@@ -50,15 +50,15 @@ if override_coef == false;
    end
 end
 
-%if uniform == true
+if uniform == true
     % Use build in laplcian, and gradient functions
     [udx1, udy1, vdx1, vdy1, pod_udx1, pod_udy1, pod_vdx1, pod_vdy1, l_dot1, l1] = ...
         components_fast(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, vol_frac, num_modes, num_elem);
-%else
+else
     % Old method allows for non_uniform mesh, SLOW
     [udx, udy, vdx, vdy, pod_udx, pod_udy, pod_vdx, pod_vdy, l_dot, l] = ...
         components(x, y, mean_u, mean_v, pod_u, pod_v, dimensions,  vol_frac, num_modes, num_elem, bnd_idx, z);
-%end
+end
 clear x y dimensions bnd_idx z
 
 l_dot = l_dot + clt;
@@ -172,7 +172,7 @@ end
 clear pod_u pod_v pod_udx pod_udy pod_vdx pod_vdy 
 clear pod_u_pod_u_x pod_u_pod_v_x  pod_v_pod_u_y pod_v_pod_v_y
 
-cduv = reshape(cduv, num_modes, num_modes^2);
+cduv = reshape(cduv, num_modes, num_modes*num_modes);
 q = -(cdt + cduv);
 
 cutoff = num_modes;

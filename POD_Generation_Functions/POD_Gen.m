@@ -101,8 +101,8 @@ num_images = size(u,3);
 data_points = numel(x);
 
 % find boundaries of velocity image
-% [~, ~, ~, ~, ~, ~, bnd_idx] = boundary_check_chabot(x, y, mean_u);
-[~, ~, ~, ~, ~, ~, bnd_idx] = boundary_check(x, y, mean_u);
+[~, ~, ~, ~, ~, ~, bnd_idx] = boundary_check_chabot(x, y, mean_u);
+% [~, ~, ~, ~, ~, ~, bnd_idx] = boundary_check(x, y, mean_u);
 
 % Calculate volume elements of the mesh
 vol_frac = voln_piv2(x, y, bnd_idx);

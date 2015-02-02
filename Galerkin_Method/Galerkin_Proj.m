@@ -148,11 +148,11 @@ fprintf('Generating coefficients for unresolved modes using %d modes\n\n', cutof
 pod_ut = pod_u(:,1:num_pods);
 pod_vt = pod_v(:,1:num_pods);
 
-l_dot   = lc_dot(1:num_pods);
-l       = lc(1:num_pods, 1:num_pods);
-q_2dot  = qc_2dot(1:num_pods);
-q_dot   = qc_dot(1:num_pods, 1:num_pods);
-q       = qc(1:num_pods, 1:num_pods^2);
+coef_problem.pod_u = pod_ut;
+coef_problem.pod_v = pod_vt;
+coef_problem.override_coef = true;
+
+[l_dot, l, q_2dot, q_dot, q] = visocity_coefficients_new(coef_problem);
 
 % Free memory
 clear pod_u pod_v mean_u mean_v
