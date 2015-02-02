@@ -33,6 +33,18 @@ function res = Galerkin_Proj(varargin)
 % problem.direct = ''
 % Specify directory that will be searched for POD data, default is to
 % prompt user
+%
+% problem.Re0_gen = @Re0_gen_shear
+% Fuction handle used to produced Reynolds number for the run, takes one
+% input of working project directory
+%
+% fft_window = [0 2000]
+% Specify the hertz range that the fft plot should capture
+%
+% run_num = 'newest'
+% Specify which run this Galerkn Projection should be based from, default
+% is to use the most recent
+
 
 % Set format, clear figures, and set up correct directory
 format long g
@@ -82,9 +94,9 @@ fprintf('\nLoading POD variables\n\n');
 
 % Prompt User for folder if directory is not provided
 if strcmp(direct, '');
-    [data, direct] = prompt_folder('POD');
+    [data, direct] = prompt_folder('POD', run_num);
 else
-    [data, direct] = prompt_folder('POD', direct, run_num);
+    [data, direct] = prompt_folder('POD', run_num, direct);
 end
 
 % Check folders are up to most recent format
@@ -141,8 +153,8 @@ coef_problem.override_coef  = override_coef;
 coef_problem.direct         = direct;
 coef_problem.uniform        = false; %uniform;
 
+% Generate unresolved coefficients
 fprintf('Generating coefficients for unresolved modes using %d modes\n\n', cutoff);
-
 [lc_dot, lc, qc_2dot, qc_dot, qc] = visocity_coefficients_new(coef_problem);
 
 pod_ut = pod_u(:,1:num_pods);
@@ -150,8 +162,9 @@ pod_vt = pod_v(:,1:num_pods);
 
 coef_problem.pod_u = pod_ut;
 coef_problem.pod_v = pod_vt;
-coef_problem.override_coef = true;
 
+% Generate resolved coefficients
+fprintf('Generating coefficients for resolved modes using %d modes\n\n', num_pods);
 [l_dot, l, q_2dot, q_dot, q] = visocity_coefficients_new(coef_problem);
 
 % Free memory
@@ -165,10 +178,11 @@ fprintf('Calculating viscous disspation terms\n\n');
 
 %  calculate coefficeitns detailed by Noack
 niu = viscious_dis(modal_amp, num_pods, lambda2, l, q_dot, q);
+%niu1 = old_vis_dis(modal_amp, num_pods, lambda2, l, q_dot, q);
 
 % calculate coefficients detailed by Couplet
 niu_c = viscious_dis_couplet(modal_amp, num_pods, lc_dot, lc, qc_2dot, qc_dot, qc, Re0, niu);
-
+%niu_c1 = old_vis_dis_coup(modal_amp, num_pods, lc_dot, lc, qc_2dot, qc_dot, qc, Re0);
                             
 % From Couplet (v + v_tilde) ie (1/Re + v_tilde)
 ni   = diag(niu) + (ones(num_pods))/Re0;
@@ -282,6 +296,8 @@ results.l = l;
 results.l_dot = l_dot;
 results.li = li;
 results.li_c = li_c;
+results.ni = ni;
+results.ni_c = ni_c;
 results.q = q;
 results.q_dot = q_dot;
 results.q_2dot = q_2dot;

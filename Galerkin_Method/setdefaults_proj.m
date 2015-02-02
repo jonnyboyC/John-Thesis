@@ -18,7 +18,7 @@ correct = {'fft', 'amp', 'video'};
 correct_members = ismember(problem.plot_pred, correct);
 for i = 1:size(correct_members,2)
     if ~correct_members(i)
-        fprintf('%s is not a correct input\n', problem.save_figure{i});
+        fprintf('%s is not a correct input for problem.plot_pred\n', problem.plot_pred{i});
     end
 end
 problem.plot_pred = problem.plot_pred(correct_members);
@@ -49,7 +49,7 @@ if isempty(problem.init) || ~isscalar(problem.init)
 end
 
 % Default for direct
-if isempty(problem.direct) || ~ischar(problem.direct) || isempty(problem.run_num)
+if isempty(problem.direct) || ~ischar(problem.direct) 
     fprintf('Using default values for direct\nproblem.direct = ""\n\n');
     problem.direct = '';    % User prompt
 end
@@ -58,21 +58,29 @@ end
 % which is most likely not true if we are generating Reynolds number
 % Default for Re0
 if isempty(problem.Re0_gen) || (~isscalar(problem.Re0_gen) && ~isa(problem.Re0_gen, 'function_handle'))
-    fprintf('Using default values for Re0_gen\nproblem.Re0_gen = @Re0_gen\nn');
+    fprintf('Using default values for Re0_gen\nproblem.Re0_gen = @Re0_gen\n\n');
     problem.Re0_gen = @Re0_gen;   	% Claimed high speed side
 end
 
 % Default for fft_window
 if isempty(problem.fft_window) || (isnumeric(problem.fft_window) && ...
         size(problem.fft_window, 1) == 1 && size(problem.fft_window,2) == 2)
-    fprintf('Using default value for fft_window\nproblem.fft_window = [0 2000]\nn');
+    fprintf('Using default value for fft_window\nproblem.fft_window = [0 2000]\n\n');
     problem.fft_window = [0 2000];     % time range of integration
 end
 
 % Default for run_num
-if isempty(problem.run_num) || ~isscalar(problem.run_num)
-    fprintf('Using default value for run_num\nproblem.num_pods = 0\nn');
-    problem.run_num = 0;        % use 10 modes
+if isempty(problem.run_num) || ~isscalar(problem.run_num) || ~ischar(problem.run_num)
+    fprintf('Using default value for run_num\nproblem.run_num = "first"\n\n');
+    problem.run_num = 'first';        % use 10 modes
+end
+
+% Check to make sure incorrect strings are not passed
+correct = {'first'};
+correct_members = ismember(problem.plot_pred, correct);
+if ~correct_members
+    fprintf('%s is not a correct input for problem.run_num\n', problem.run_num);
+    problem.run_num = 'first';
 end
 
 end

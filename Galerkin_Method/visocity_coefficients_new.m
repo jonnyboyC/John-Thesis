@@ -37,9 +37,10 @@ memory_limit = floor(system.PhysicalMemory.Available/(bytesPerDouble*num_modes*n
 if override_coef == false;
    saved_files = dir([direct '\Viscous Coeff\Coeff_*']);
    if size(saved_files,1) ~= 0
-       run_nums = regexp({saved_files.name}, num2str(run_num));
-       if any(cell2mat(run_nums))
-           data = load([direct '\Viscous Coeff\Coeff_' num2str(run_num) '.mat']);
+       match_run = regexp({saved_files.name}, num2str(run_num));
+       match_modes = regexp({saved_files.name}, ['m' num2str(num_modes) '\.']);
+       if any(cell2mat(match_run)) && any(cell2mat(match_modes))
+           data = load([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_m' num2str(num_modes) '.mat']);
            l_dot =  data.l_dot;
            l        = data.l;
            q_2dot   = data.q_2dot;
@@ -52,7 +53,7 @@ end
 
 if uniform == true
     % Use build in laplcian, and gradient functions
-    [udx1, udy1, vdx1, vdy1, pod_udx1, pod_udy1, pod_vdx1, pod_vdy1, l_dot1, l1] = ...
+    [udx, udy, vdx, vdy, pod_udx, pod_udy, pod_vdx, pod_vdy, l_dot, l] = ...
         components_fast(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, vol_frac, num_modes, num_elem);
 else
     % Old method allows for non_uniform mesh, SLOW
@@ -176,7 +177,7 @@ cduv = reshape(cduv, num_modes, num_modes*num_modes);
 q = -(cdt + cduv);
 
 cutoff = num_modes;
-save([direct '\Viscous Coeff\Coeff_' num2str(run_num) '.mat'], ...
+save([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_m' num2str(num_modes) '.mat'], ...
     'l_dot', 'l', 'q_2dot', 'q_dot', 'q', 'cutoff', 'run_num', '-v7.3'); 
 
 parpool('local', 3);

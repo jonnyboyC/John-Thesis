@@ -8,7 +8,7 @@ P_unres = zeros(num_modes, num_images);
 D_res = zeros(num_modes, num_images);
 
 % Calculate resolved terms for D
-for k = 1:num_modes
+for k = 1:num_images
     for i = 1:num_modes
         D_res(i,k)=l_dot(i);
         for j = 1:num_modes
