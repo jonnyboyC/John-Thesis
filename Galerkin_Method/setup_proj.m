@@ -1,5 +1,5 @@
 problem_base1.num_pods = 10;
-problem_base1.tspan = 0:0.001:5;
+problem_base1.tspan = 0:0.001:20;
 problem_base1.direct = 'D:\thesis\PIVData\shear layer\Baseline';
 problem_base1.Re0_gen = @Re0_gen_shear;
 

@@ -12,7 +12,7 @@ function res = Galerkin_Proj(varargin)
 % problem.num_pods = 10
 % Specify the number of modes that will calculated in Galerkin projection
 %
-% problem.plot_pred = {'amp', 'fft'}
+% problem.plot_type = {'amp', 'fft'}
 % Specify which outout graphes are desired, current options are modal
 % amplitude 'amp', fourier fast transform 'fft', and 'video which produces
 % a video of the simulated flow
@@ -57,7 +57,7 @@ clc;
 % be added later
 
 %List of fields that will be checked
-fields = {  'num_pods',     'plot_pred',    'save_coef', ...
+fields = {  'num_pods',     'plot_type',    'save_coef', ...
             'override_coef','tspan',        'init', ...
             'direct' ,      'Re0_gen',      'fft_window', ...
             'run_num'};
@@ -74,7 +74,7 @@ end
 % Create more readable names
 num_pods        = problem.num_pods;
 run_num         = problem.run_num;
-plot_pred       = problem.plot_pred;
+plot_type       = problem.plot_type;
 save_coef       = problem.save_coef;
 override_coef   = problem.override_coef;
 tspan           = problem.tspan;
@@ -151,7 +151,7 @@ coef_problem.z              = z;
 coef_problem.run_num        = run_num;
 coef_problem.override_coef  = override_coef;
 coef_problem.direct         = direct;
-coef_problem.uniform        = false; %uniform;
+coef_problem.uniform        = true; %uniform;
 
 % Generate unresolved coefficients
 fprintf('Generating coefficients for unresolved modes using %d modes\n\n', cutoff);
@@ -246,7 +246,7 @@ fprintf('Completed in %f6.4 seconds\n\n', toc3);
 %% Plotting functions
 
 % Plot modal amplitudes
-if any(strcmp(plot_pred, 'amp'))
+if any(strcmp(plot_type, 'amp'))
     plot_amp(modal_amp(:, 1:num_pods), t1, direct, init);
     plot_amp(modal_amp_vis1(:, 1:num_pods), t2, direct, init, 'vis1');
     plot_amp(modal_amp_vis2(:, 1:num_pods), t3, direct, init, 'vis2');
@@ -254,14 +254,14 @@ end
 
 % TODO significant overhaul to this function
 % Produce time response video
-if any(strcmp(plot_pred, 'video'))
-    plot_prediction(pod_ut, pod_vt, x, y, modal_amp, t1, num_pods, dimensions, direct)
-    plot_prediction(pod_ut, pod_vt, x, y, modal_amp_vis1, t2, num_pods, dimensions, direct)
-    plot_prediction(pod_ut, pod_vt, x, y, modal_amp_vis2, t3, num_pods, dimensions, direct)
+if any(strcmp(plot_type, 'video'))
+    plot_typeiction(pod_ut, pod_vt, x, y, modal_amp, t1, num_pods, dimensions, direct)
+    plot_typeiction(pod_ut, pod_vt, x, y, modal_amp_vis1, t2, num_pods, dimensions, direct)
+    plot_typeiction(pod_ut, pod_vt, x, y, modal_amp_vis2, t3, num_pods, dimensions, direct)
 end
 
 % Plot modal fft
-if any(strcmp(plot_pred, 'fft'))
+if any(strcmp(plot_type, 'fft'))
     if num_pods > 4
         num2plot = 1:4;
     else

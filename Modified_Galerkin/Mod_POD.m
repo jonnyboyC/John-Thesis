@@ -1,88 +1,18 @@
 function res = Mod_POD(varargin)
 % TODO really fill out varargin/help
 
-
 format long g
 close all
 clc;
 
-% switch nargin
-%     case 0
-%         RD_nm = 8;
-%         plot_type = 'none';
-%         save_mod = true;
-%         init = 1;
-%         line_range = 200;
-%         direct = '';
-%         mat_name = [];
-%     case 1
-%         RD_nm = varargin{1};
-%         plot_type = 'none';
-%         save_mod = true;
-%         init = 1;
-%         line_range = 200;
-%         direct = '';
-%         mat_name = [];
-%     case 2
-%         RD_nm = varargin{1};
-%         plot_type = varargin{2};
-%         save_mod = true;
-%         init = 1;
-%         line_range = 200;
-%         direct = '';
-%         mat_name = [];
-%     case 3
-%         RD_nm = varargin{1};
-%         plot_type = varargin{2};
-%         save_mod = varargin{3};
-%         init = 1;
-%         line_range = 200;
-%         direct = '';
-%         mat_name = [];
-%     case 4
-%         RD_nm = varargin{1};
-%         plot_type = varargin{2};
-%         save_mod = varargin{3};
-%         init = varargin{4};
-%         line_range = 200;
-%         direct = '';
-%         mat_name = [];
-%     case 5
-%         RD_nm = varargin{1};
-%         plot_type = varargin{2};
-%         save_mod = varargin{3};
-%         init = varargin{4};
-%         line_range = varargin{5};
-%         direct = '';
-%         mat_name = [];
-%     case 6
-%         RD_nm = varargin{1};
-%         plot_type = varargin{2};
-%         save_mod = varargin{3};
-%         init = varargin{4};
-%         line_range = varargin{5};
-%         direct = varargin{6};
-%         mat_name = [];
-%     case 7
-%         RD_nm = varargin{1};
-%         plot_type = varargin{2};
-%         save_mod = varargin{3};
-%         init = varargin{4};
-%         line_range = varargin{5};
-%         direct = varargin{6};
-%         mat_name = varargin{7};
-%     otherwise
-%         error('Too many input arguments');
-% end
-
 %List of fields that will be checked
 fields = {  'RD_nm',        'plot_type',    'save_mod', ...
-            'init',         'line_range'    'init', ...
-            'direct' ,      'mat_name'};
+            'init',         'line_range',   'direct' ,...
+            'run_num',      'type'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
-    problem = parse_inputs(fields, @setdefaults_proj, varargin{1});
+    problem = parse_inputs(fields, @setdefaults_mod, varargin{1});
 else
     fprintf('Provide a single structure as input, use help Galerkin_Proj for information.\n');
     fprintf('Using Defaults\n\n');
@@ -91,11 +21,12 @@ end
 
 RD_nm       = problem.RD_nm;
 plot_type   = problem.plot_type;
-save_mod    = problem.sav_mod;
+save_mod    = problem.save_mod;
 init        = problem.init;
 line_range  = problem.line_range;
 direct      = problem.direct;
-mat_name    = problem.mat_name;
+run_num     = problem.run_num;
+type        = problem.type;
 
 % Check that parallel pool is ready
 if isempty(gcp)
@@ -106,18 +37,21 @@ gcp();
 
 % Handle File IO
 if strcmp(direct, '');
-    [data, direct] = prompt_folder({'POD', 'Galerkin'});
+    [data1, direct] = prompt_folder('POD', run_num);
+    [data2, direct] = prompt_folder('Galerkin', run_num, direct);
 else
-    if isempty(mat_name)
-        mat_name = {[]; []};
-    end
-    [data, direct] = prompt_folder({'POD', 'Galerkin'}, direct, mat_name);
+    [data1, direct] = prompt_folder('POD', run_num, direct);
+    [data2, direct] = prompt_folder('Galerkin', run_num, direct);
 end
 
 % Make sure folders are up to date and load collected data
 update_folders(direct);
-vars1 = load(data{1}, 'eig_func', 'lambda2', 'pod_u', 'pod_v', 'dimensions', 'x', 'y');
-vars2 = load(data{2}, 'num_pods', 'q', 'ci_c', 'li_c', 't3', 'modal_amp_vis2'); %'c', 'l', 't',
+
+% TODO load variables based on type provided
+vars1 = load(data1, 'eig_func', 'lambda2', 'pod_u', 'pod_v', 'dimensions', 'x', 'y');
+vars2 = load(data2, 'num_pods', 'q', 'ci_c', 'li_c', 't3', 'modal_amp_vis2'); %'c', 'l', 't',
+
+% TODO working up to here
 
 % Need to explictly declare all the loaded variables for parfor loop
 eig_func    = vars1.eig_func;
@@ -135,7 +69,7 @@ l           = vars2.li_c;
 t           = vars2.t3;
 modal_amp   = vars2.modal_amp_vis2;
 
-clear data1 data2
+clear var1 var2
 
 OG_nm = num_pods; % Original number of modes
 

@@ -56,7 +56,7 @@ end
 % Default for flip_x
 if isempty(problem.flip_x) || ~islogical(problem.flip_x)
     fprintf('Using default value for flip_x\nproblem.flip_x = false\n\n');
-    problem.save_pod = false;        % save pod results
+    problem.flip_x = false;        % save pod results
 end
 
 % Default for flip_y

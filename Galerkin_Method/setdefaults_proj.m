@@ -3,25 +3,25 @@ function problem = setdefaults_proj(problem)
 
 % Default for num_pod 
 if isempty(problem.num_pods) || ~isscalar(problem.num_pods)
-    fprintf('Using default value for num_pods\nproblem.num_pods = 1000\n\n');
+    fprintf('Using default value for num_pods\nproblem.num_pods = 10\n\n');
     problem.num_pods = 10;        % use 10 modes
 end
 
-% Default for plot_pred
-if isempty(problem.plot_pred) || ~ischar(problem.plot_pred) || iscell(problem.plot_pred);
-    fprintf('Using default value for plot_pred\nproblem.plot_pred = {"amp", "fft"}\n\n');
-    problem.plot_pred = {'amp', 'fft'};      % plot types to be used
+% Default for plot_type
+if isempty(problem.plot_type) || ~ischar(problem.plot_type) || iscell(problem.plot_type);
+    fprintf('Using default value for plot_type\nproblem.plot_type = {"amp", "fft"}\n\n');
+    problem.plot_type = {'amp', 'fft'};      % plot types to be used
 end
 
 % Check to make sure incorrect strings are not passed
 correct = {'fft', 'amp', 'video'};
-correct_members = ismember(problem.plot_pred, correct);
+correct_members = ismember(problem.plot_type, correct);
 for i = 1:size(correct_members,2)
     if ~correct_members(i)
-        fprintf('%s is not a correct input for problem.plot_pred\n', problem.plot_pred{i});
+        fprintf('%s is not a correct input for problem.plot_type\n', problem.plot_type{i});
     end
 end
-problem.plot_pred = problem.plot_pred(correct_members);
+problem.plot_type = problem.plot_type(correct_members);
 
 % Default for save_coef
 if isempty(problem.save_coef) || ~islogical(problem.save_coef)
@@ -59,7 +59,7 @@ end
 % Default for Re0
 if isempty(problem.Re0_gen) || (~isscalar(problem.Re0_gen) && ~isa(problem.Re0_gen, 'function_handle'))
     fprintf('Using default values for Re0_gen\nproblem.Re0_gen = @Re0_gen\n\n');
-    problem.Re0_gen = @Re0_gen;   	% Claimed high speed side
+    problem.Re0_gen = @Re0_gen_shear;   	% Claimed high speed side
 end
 
 % Default for fft_window
@@ -76,11 +76,13 @@ if isempty(problem.run_num) || ~isscalar(problem.run_num) || ~ischar(problem.run
 end
 
 % Check to make sure incorrect strings are not passed
-correct = {'first'};
-correct_members = ismember(problem.plot_pred, correct);
-if ~correct_members
-    fprintf('%s is not a correct input for problem.run_num\n', problem.run_num);
-    problem.run_num = 'first';
+if ischar(problem.run_num)
+    correct = {'first'};
+    correct_members = ismember(problem.type, correct);
+    if ~correct_members 
+        fprintf('%s is not a correct input for problem.run_num\n', problem.run_num);
+        problem.run_num = 'first';
+    end
 end
 
 end

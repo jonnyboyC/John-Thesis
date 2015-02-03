@@ -15,25 +15,14 @@ function [file_loc, direct] = prompt_folder(data, run_num, direct, mat_name)
 % PROMPT_FOLDER(DATA, DIRECT, MAT_NAME) same as prior but provides mat name
 % explicitly 
 
-% Preallocate if cell
-if ~iscell(data)
-    data = {data};
-end
-
-data_folder = cell(size(data,2),1);
-file_loc = cell(size(data,2),1);
-
 % Select correct subfolder
-for i = 1:size(data,2)
-    data_temp = check_data(data, i);
-    switch data_temp;
-        case 'POD'
-            data_folder{i} = '\POD Data\';
-        case 'Raw'
-            data_folder{i} = '\Raw Data\';
-        case 'Galerkin'
-            data_folder{i} = '\Galerkin Coeff\';
-    end
+switch data;
+    case 'POD'
+        data_folder = '\POD Data\';
+    case 'Raw'
+        data_folder = '\Raw Data\';
+    case 'Galerkin'
+        data_folder = '\Galerkin Coeff\';
 end
 
 % if mat_name is empty fill with empty cells
@@ -47,18 +36,15 @@ if nargin == 2
     start_direct = 'D:\shear layer\PIVData';
     
     % Prompt the user for location of Test folder
-    fprintf(1, ['Please choose test data ' data_folder{i}(2:end-1) '\n']);
-    direct = uigetdir(start_direct, data_folder{i}(2:end-1)); 
+    fprintf(1, ['Please choose test data ' data_folder(2:end-1) '\n']);
+    direct = uigetdir(start_direct, data_folder(2:end-1)); 
 end
 
 % Get file(s) information
-for i = 1:size(data,2);
-    file_loc{i} = get_data(data_folder{i}, data_temp, direct, run_num, mat_name);
-end
-    
+file_loc = get_data(data_folder, data, direct, run_num, mat_name);
 end
 
-function file_loc = get_data(data_folder, data_temp, direct, run_num, mat_name)
+function file_loc = get_data(data_folder, data, direct, run_num, mat_name)
 
 % Get .mat wildcard
 wildcard = get_wild(run_num, direct, data_folder);
@@ -68,7 +54,7 @@ files = dir([direct data_folder wildcard]);
 
 % If none are found prompt user to run previous level code
 if size(files,1) == 0
-    error(['Run required code to generate' data_temp ' data for run ' num2str(run_num)]); 
+    error(['Run required code to generate' data ' data for run ' num2str(run_num)]); 
 
 % If only one is found use that as the file location
 elseif size(files, 1) == 1
@@ -79,7 +65,7 @@ elseif size(files, 1) == 1
 elseif size(files, 1) > 1
     if isempty(mat_name{1})
         cd([direct data_folder]);
-        fprintf(1, 'Please choose .mat file for Galerkin\n');
+        fprintf(1, 'Please choose specific .mat file\n');
         mat_name = uigetfile({'*.mat'}, 'Choose .mat file');
         file_loc = [direct data_folder mat_name];
     else
@@ -111,15 +97,5 @@ elseif isscalar(run_num)
     end
 else
     wildcard = '*.mat';
-end
-end
-
-% Check to see if cell array
-function data_temp = check_data(data, i)
-
-if iscell(data)
-    data_temp = data{i};
-else
-    data_temp = data;
 end
 end
