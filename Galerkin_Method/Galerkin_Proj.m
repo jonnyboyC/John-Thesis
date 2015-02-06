@@ -9,7 +9,7 @@ function res = Galerkin_Proj(varargin)
 % GALERKIN_PROJ(problem) Using fields provided in the structure PROBLEM
 % sets up analysis specified by PROBLEM. all unfilled fields go to defaults
 %
-% problem.num_pods = 10
+% problem.num_modesG = 10
 % Specify the number of modes that will calculated in Galerkin projection
 %
 % problem.plot_type = {'amp', 'fft'}
@@ -57,7 +57,7 @@ clc;
 % be added later
 
 %List of fields that will be checked
-fields = {  'num_pods',     'plot_type',    'save_coef', ...
+fields = {  'num_modesG',     'plot_type',    'save_coef', ...
             'override_coef','tspan',        'init', ...
             'direct' ,      'Re0_gen',      'fft_window', ...
             'run_num'};
@@ -72,7 +72,7 @@ else
 end
 
 % Create more readable names
-num_pods        = problem.num_pods;
+num_modesG      = problem.num_modesG;
 run_num         = problem.run_num;
 plot_type       = problem.plot_type;
 save_coef       = problem.save_coef;
@@ -94,16 +94,16 @@ fprintf('\nLoading POD variables\n\n');
 
 % Prompt User for folder if directory is not provided
 if strcmp(direct, '');
-    [data, direct] = prompt_folder('POD', run_num);
+    [direct_POD, direct] = prompt_folder('POD', run_num);
 else
-    [data, direct] = prompt_folder('POD', run_num, direct);
+    [direct_POD, direct] = prompt_folder('POD', run_num, direct);
 end
 
 % Check folders are up to most recent format
 update_folders(direct);
 
 % Load POD variables
-vars = load(data{1}, 'results');
+vars = load(direct_POD, 'results');
 
 % Create more readable names
 x           = vars.results.x;           % mesh coordinates in x direction
@@ -115,7 +115,7 @@ mean_v      = vars.results.mean_v;      % mean spanwise velocity
 pod_u       = vars.results.pod_u;       % streamwise pod modes
 pod_v       = vars.results.pod_v;       % spanwise pod modes
 lambda2     = vars.results.lambda2;     % eigenvalues of modes
-modal_amp   = vars.results.modal_amp;    % Need to find a better name
+modal_amp_raw = vars.results.modal_amp_raw;   % modal amplitude of each image in pod basis
 dimensions  = vars.results.dimensions;  % dimensions of mesh
 vol_frac    = vars.results.vol_frac;    % mesh area size
 bnd_idx     = vars.results.bnd_idx;     % location of boundaries
@@ -123,11 +123,13 @@ uniform     = vars.results.uniform;     % logical if mesh is uniform
 run_num     = vars.results.run_num;     % POD run numbers
 cutoff      = vars.results.cutoff;      % number of modes at cutoff
 
-clear results
+clear vars
 
 % TODO may want to pass calculated high side velocity and calculate this
-Re0 = Re0_gen(direct);        % Get Reynolds number        
-z = ones(size(x));      % Depth of velocity field
+Re0 = Re0_gen(direct);      % Get Reynolds number        
+z = ones(size(x));          % Depth of velocity field
+t_scale = u_scale/l_scale;  % time scale
+tspan = tspan*t_scale;      % non dimensionalized timescale
 
 % Determine sampling frequency from provided tspan
 if length(tspan) > 2
@@ -151,20 +153,20 @@ coef_problem.z              = z;
 coef_problem.run_num        = run_num;
 coef_problem.override_coef  = override_coef;
 coef_problem.direct         = direct;
-coef_problem.uniform        = true; %uniform;
+coef_problem.uniform        = uniform; %uniform;
 
 % Generate unresolved coefficients
 fprintf('Generating coefficients for unresolved modes using %d modes\n\n', cutoff);
 [lc_dot, lc, qc_2dot, qc_dot, qc] = visocity_coefficients_new(coef_problem);
 
-pod_ut = pod_u(:,1:num_pods);
-pod_vt = pod_v(:,1:num_pods);
+pod_ut = pod_u(:,1:num_modesG);
+pod_vt = pod_v(:,1:num_modesG);
 
 coef_problem.pod_u = pod_ut;
 coef_problem.pod_v = pod_vt;
 
 % Generate resolved coefficients
-fprintf('Generating coefficients for resolved modes using %d modes\n\n', num_pods);
+fprintf('Generating coefficients for resolved modes using %d modes\n\n', num_modesG);
 [l_dot, l, q_2dot, q_dot, q] = visocity_coefficients_new(coef_problem);
 
 % Free memory
@@ -177,16 +179,14 @@ fprintf('Calculating viscous disspation terms\n\n');
 % Attempt to estimate the neglected viscoius dissapation function
 
 %  calculate coefficeitns detailed by Noack
-niu = viscious_dis(modal_amp, num_pods, lambda2, l, q_dot, q);
-%niu1 = old_vis_dis(modal_amp, num_pods, lambda2, l, q_dot, q);
+niu = viscious_dis(modal_amp_raw, num_modesG, lambda2, l, q_dot, q);
 
 % calculate coefficients detailed by Couplet
-niu_c = viscious_dis_couplet(modal_amp, num_pods, lc_dot, lc, qc_2dot, qc_dot, qc, Re0, niu);
-%niu_c1 = old_vis_dis_coup(modal_amp, num_pods, lc_dot, lc, qc_2dot, qc_dot, qc, Re0);
+niu_c = viscious_dis_couplet(modal_amp_raw, num_modesG, lc_dot, lc, qc_2dot, qc_dot, qc, Re0, niu);
                             
 % From Couplet (v + v_tilde) ie (1/Re + v_tilde)
-ni   = diag(niu) + (ones(num_pods))/Re0;
-ni_c = diag(niu_c) + (ones(num_pods))/Re0; 
+ni   = diag(niu) + (ones(num_modesG))/Re0;
+ni_c = diag(niu_c) + (ones(num_modesG))/Re0; 
 
 % Calculate Constant terms terms
 c    = l_dot/Re0 + q_2dot;
@@ -206,17 +206,17 @@ Gal_coeff_vis2 = [ci_c, li_c, q];
 %% Time integration
 
 % Will reduce number of coefficients if we want a smaller model
-reduced_model_coeff = -ode_coefficients(num_pods, num_pods, Gal_coeff);
-reduced_model_coeff_vis1 = -ode_coefficients(num_pods, num_pods, Gal_coeff_vis1);
-reduced_model_coeff_vis2 = -ode_coefficients(num_pods, num_pods, Gal_coeff_vis2);
+reduced_model_coeff_og   = -ode_coefficients(num_modesG, num_modesG, Gal_coeff);
+reduced_model_coeff_vis1 = -ode_coefficients(num_modesG, num_modesG, Gal_coeff_vis1);
+reduced_model_coeff_vis2 = -ode_coefficients(num_modesG, num_modesG, Gal_coeff_vis2);
 options = odeset('RelTol', 1e-7, 'AbsTol', 1e-9);
 
 fprintf('Performing ode113 on base Galerkin system\n');
 
 % Integrate Base Galerkin System
 tic;
-[t1, modal_amp] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff), tspan, ...
-    modal_amp(init,1:num_pods), options);
+[t1, modal_amp_og] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff_og), tspan, ...
+    modal_amp_raw(init,1:num_modesG), options);
 toc1 = toc;
 fprintf('Completed in %f6.4 seconds\n\n', toc1);
 
@@ -227,7 +227,7 @@ fprintf('Performing ode113 on Galerkin system with 1st viscous dissapation\n');
 % Integrate Galerkin System with 1st viscous dissapation model
 tic;
 [t2, modal_amp_vis1] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff_vis1), tspan, ...
-    modal_amp(init,1:num_pods), options);
+    modal_amp_raw(init,1:num_modesG), options);
 toc2 = toc;
 fprintf('Completed in %f6.4 seconds\n\n', toc2);
 
@@ -238,56 +238,41 @@ fprintf('Performing ode113 on Galerkin system with 2nd viscous dissapation\n');
 % Integrate Galerkin System with 2nd viscous dissapation model
 tic;
 [t3, modal_amp_vis2] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff_vis2), tspan, ...
-    modal_amp(init,1:num_pods), options);
+    modal_amp_raw(init,1:num_modesG), options);
 toc3 = toc;
 fprintf('Completed in %f6.4 seconds\n\n', toc3);
 
 
 %% Plotting functions
 
-% Plot modal amplitudes
-if any(strcmp(plot_type, 'amp'))
-    plot_amp(modal_amp(:, 1:num_pods), t1, direct, init);
-    plot_amp(modal_amp_vis1(:, 1:num_pods), t2, direct, init, 'vis1');
-    plot_amp(modal_amp_vis2(:, 1:num_pods), t3, direct, init, 'vis2');
-end
+% Prepare data
+plot_data.num_modes     = num_modesG;
+plot_data.direct        = direct;
+plot_data.init          = init;
+plot_data.pod_ut        = pod_ut;
+plot_data.pod_vt        = pod_vt;
+plot_data.dimensions    = dimensions;
+plot_data.fft_window    = fft_window;
+plot_data.u_scale       = u_scale;
+plot_data.l_scale       = l_scale;
+plot_data.plot_type     = plot_type;
+plot_data.sample_freq   = sample_freq;
 
-% TODO significant overhaul to this function
-% Produce time response video
-if any(strcmp(plot_type, 'video'))
-    plot_typeiction(pod_ut, pod_vt, x, y, modal_amp, t1, num_pods, dimensions, direct)
-    plot_typeiction(pod_ut, pod_vt, x, y, modal_amp_vis1, t2, num_pods, dimensions, direct)
-    plot_typeiction(pod_ut, pod_vt, x, y, modal_amp_vis2, t3, num_pods, dimensions, direct)
-end
+all_ids = {'og', 'vis', 'vis2'};
+all_modal_amps = {modal_amp_og, modal_amp_vis1, modal_amp_vis2};
+all_t = {t1, t2, t3};
 
-% Plot modal fft
-if any(strcmp(plot_type, 'fft'))
-    if num_pods > 4
-        num2plot = 1:4;
-    else
-        num2plot = 1:num_pods;
-    end
-    window_size = zeros(3,1);
-    t = {t1, t2, t3};
-    sample_freq = sample_freq*(u_scale/l_scale);
-    for i = 1:3
-        t{i} = t{i}*(u_scale/l_scale);
-        if size(t{i},1) > 4096
-            window_size(i) = 20000; %8192
-        else
-            window_size(i) = size(t{i},1);
-        end
-    end
-    modal_fft(modal_amp, num2plot, window_size(1), ...
-        sample_freq, fft_window, direct);
-    modal_fft(modal_amp_vis1, num2plot, window_size(2),...
-        sample_freq, fft_window, direct, 'vis1')
-    modal_fft(modal_amp_vis2, num2plot, window_size(3),...
-        sample_freq, fft_window, direct, 'vis2')
+% Cycle through and plot all requested figures
+for i = 1:size(all_ids,2);
+   plot_data.id = all_ids{i};
+   plot_data.modal_amp = all_modal_amps{i};
+   plot_data.t = all_t{i};
+   produce_plots(plot_data);
 end
 
 fprintf('Saving Galerkin Variables\n');
 
+% Prepare data
 results.num_run = run_num;
 results.c = c;
 results.ci = ci;
@@ -301,8 +286,8 @@ results.ni_c = ni_c;
 results.q = q;
 results.q_dot = q_dot;
 results.q_2dot = q_2dot;
-results.num_pods = num_pods;
-results.modal_amp = modal_amp;
+results.num_modesG = num_modesG;
+results.modal_amp_og = modal_amp_og;
 results.modal_amp_vis1 = modal_amp_vis1;
 results.modal_amp_vis2 = modal_amp_vis2;
 results.t1 = t1;
@@ -312,7 +297,7 @@ results.sample_freq = sample_freq;
 
 % Save relavent coefficients
 if save_coef == true
-    save([direct '\Galerkin Coeff\Coeff_m' num2str(num_pods) '_i' num2str(init) '_r'...
+    save([direct '\Galerkin Coeff\Coeff_m' num2str(num_modesG) '_i' num2str(init) '_r'...
         num2str(run_num) '.mat'], 'results', '-v7.3');
 end
 

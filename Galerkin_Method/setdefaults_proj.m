@@ -2,9 +2,9 @@ function problem = setdefaults_proj(problem)
 % Function to set defaults for Galerkin_Proj
 
 % Default for num_pod 
-if isempty(problem.num_pods) || ~isscalar(problem.num_pods)
-    fprintf('Using default value for num_pods\nproblem.num_pods = 10\n\n');
-    problem.num_pods = 10;        % use 10 modes
+if isempty(problem.num_modesG) || ~isscalar(problem.num_modesG)
+    fprintf('Using default value for num_modesG\nproblem.num_modesG = 10\n\n');
+    problem.num_modesG = 10;        % use 10 modes
 end
 
 % Default for plot_type
@@ -78,7 +78,7 @@ end
 % Check to make sure incorrect strings are not passed
 if ischar(problem.run_num)
     correct = {'first'};
-    correct_members = ismember(problem.type, correct);
+    correct_members = ismember(problem.run_num, correct);
     if ~correct_members 
         fprintf('%s is not a correct input for problem.run_num\n', problem.run_num);
         problem.run_num = 'first';

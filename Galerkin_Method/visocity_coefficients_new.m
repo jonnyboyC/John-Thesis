@@ -34,7 +34,7 @@ if override_coef == false;
    if size(saved_files,1) ~= 0
        match_run = regexp({saved_files.name}, num2str(run_num));
        match_modes = regexp({saved_files.name}, ['m' num2str(num_modes) '\.']);
-       if any(cell2mat(match_run)) && any(cell2mat(match_modes))
+       if any(~cellfun(@isempty, match_run) & ~cellfun(@isempty, match_modes))
            data = load([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_m' num2str(num_modes) '.mat']);
            l_dot =  data.l_dot;
            l        = data.l;

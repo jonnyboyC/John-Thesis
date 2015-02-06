@@ -22,6 +22,13 @@ for i = 1:size(correct_members,2)
 end
 problem.plot_type = problem.plot_type(correct_members);
 
+% Default for fft_window
+if isempty(problem.fft_window) || (isnumeric(problem.fft_window) && ...
+        size(problem.fft_window, 1) == 1 && size(problem.fft_window,2) == 2)
+    fprintf('Using default value for fft_window\nproblem.fft_window = [0 2000]\n\n');
+    problem.fft_window = [0 2000];     % time range of integration
+end
+
 % Default for save_mod
 if isempty(problem.save_mod) || ~islogical(problem.save_mod)
     fprintf('Using default value for save_mod\nproblem.save_mod = true\n\n');
@@ -63,17 +70,19 @@ if ischar(problem.run_num)
 end
 
 % Default for previous galerkin type
-if isempty(problem.type) || ~ischar(problem.type)
+if isempty(problem.type) || ~iscell(problem.type);
     fprintf('Using default value for type\nproblem.type = "vis1"\n\n');
-    problem.type = 'vis1';      % previous galerkin type
+    problem.type = {'vis1'};      % previous galerkin type
 end
 
 % Check to make sure incorrect strings are not passed
 correct = {'og', 'vis1', 'vis2'};
 correct_members = ismember(problem.type, correct);
-if ~correct_members
-    fprintf('%s is not a correct input for problem.type\n', problem.type{i});
-    problem.type = 'vis1';
+for i = 1:size(correct_members,2)
+    if ~correct_members(i)
+        fprintf('%s is not a correct input for problem.type\n', problem.type{i});
+    end
 end
+problem.type = problem.type(correct_members);
 
 end

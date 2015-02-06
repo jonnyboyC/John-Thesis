@@ -1,4 +1,4 @@
-function [pod_u, pod_v, lambda2, modal_amp, cutoff] = calc_eig_modes2(co_var, ...
+function [pod_u, pod_v, lambda2, modal_amp_raw, cutoff] = calc_eig_modes2(co_var, ...
     u_flux, v_flux)
 %% TODO add in options to hard limit number of modes
 
@@ -7,14 +7,14 @@ sz_co_var = length(co_var);
 
 % Perform single value decomposition to get empirial eigenfunctions for
 % first num_modes singular values
-[modal_amp, lambda2, ~] = svd(co_var);
+[modal_amp_raw, lambda2, ~] = svd(co_var);
 
 % Produce pod modes
-pod_u = (u_flux*modal_amp);
-pod_v = (v_flux*modal_amp);  
+pod_u = (u_flux*modal_amp_raw);
+pod_v = (v_flux*modal_amp_raw);  
 
 % Normalize
-modal_amp = modal_amp*sqrt(lambda2*sz_co_var);
+modal_amp_raw = modal_amp_raw*sqrt(lambda2*sz_co_var);
 
 % Normalize pod modeses
 pod_u = pod_u/sqrt(sz_co_var*lambda2)';

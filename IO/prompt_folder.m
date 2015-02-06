@@ -1,4 +1,4 @@
-function [file_loc, direct] = prompt_folder(data, run_num, direct, mat_name)
+function [file_loc, direct] = prompt_folder(data, run_num, direct, num_modes)
 % TODO really change this
 % PROMPT_FOLDER Handles all the IO for selecting the correct data, can
 % either select data manually by selection or with additional input
@@ -27,7 +27,7 @@ end
 
 % if mat_name is empty fill with empty cells
 if nargin < 4
-    mat_name = cell(size(data,2),1);
+    num_modes = 0;
 end
 
 % If only one one input given prompt for directory
@@ -41,13 +41,13 @@ if nargin == 2
 end
 
 % Get file(s) information
-file_loc = get_data(data_folder, data, direct, run_num, mat_name);
+file_loc = get_data(data_folder, data, direct, run_num, num_modes);
 end
 
-function file_loc = get_data(data_folder, data, direct, run_num, mat_name)
+function file_loc = get_data(data_folder, data, direct, run_num, num_modes)
 
 % Get .mat wildcard
-wildcard = get_wild(run_num, direct, data_folder);
+wildcard = get_wild(run_num, direct, data_folder, num_modes);
 
 % Look in provided directory for .mat files
 files = dir([direct data_folder wildcard]);
@@ -63,35 +63,49 @@ elseif size(files, 1) == 1
 % If more than one is found, either select the provided mat_name from
 % input or prompt user to select mat
 elseif size(files, 1) > 1
-    if isempty(mat_name{1})
-        cd([direct data_folder]);
-        fprintf(1, 'Please choose specific .mat file\n');
-        mat_name = uigetfile({'*.mat'}, 'Choose .mat file');
-        file_loc = [direct data_folder mat_name];
-    else
-        file_loc = [direct data_folder mat_name];
-    end
+    cd([direct data_folder]);
+    fprintf(1, 'Please choose specific .mat file\n');
+    num_modes = uigetfile({'*.mat'}, 'Choose .mat file');
+    file_loc = [direct data_folder num_modes];
 end
 
 end
 
-function wildcard = get_wild(run_num, direct, data_folder)
+% TODO clean this up
+function wildcard = get_wild(run_num, direct, data_folder, num_modes)
 if ischar(run_num)
     if strcmp(run_num, 'first')
         % Find newest file
         files = dir([direct data_folder]);
         [~, idx] = sort([files.datenum], 2, 'descend');
+        files = files(idx);
+        matches_idx = 0;
+        if num_modes > 0
+            matches = regexp({files.name}, ['m' num2str(num_modes)]);
+            matches_idx = find(~cellfun(@isempty,matches));
+        end
         for i = 1:length(idx)
-            if ~files(idx(i)).isdir
-                wildcard = files(idx(i)).name;
-                break;
+            if ~files(i).isdir 
+                if ~matches_idx(1)
+                    wildcard = files(i).name;
+                    return;
+                else
+                    if i == matches_idx(1)
+                        wildcard = files(i).name;
+                        return;
+                    end
+                end
             end
         end
+        wildcard = '*.mat';
     end
 elseif isscalar(run_num)
     if run_num > 0
-        % find particular run_num
-        wildcard = ['*' num2str(run_num) '.mat'];
+        if num_modes > 0
+            wildcard = ['*' num2str(run_num) '_m' num2str(num_modes) '.mat'];
+            return;
+        end
+        wildcard = ['*' num2str(run_num) '*.mat'];
     else
         wildcard = '*.mat';
     end

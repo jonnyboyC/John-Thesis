@@ -132,7 +132,7 @@ data.y = y;
 
 %% Perform Proper Orthogonal Decomposition
 covariance = cal_covariance_mat(flux_u, flux_v, vol_frac);
-[pod_u, pod_v, lambda2, modal_amp, cutoff] =  calc_eig_modes2(covariance, flux_u, flux_v); 
+[pod_u, pod_v, lambda2, modal_amp_raw, cutoff] =  calc_eig_modes2(covariance, flux_u, flux_v); 
 
 pod_u = regroup(pod_u, dimensions);
 pod_v = regroup(pod_v, dimensions);
@@ -181,7 +181,7 @@ results.mean_u = mean_u;
 results.mean_v = mean_v;
 results.pod_u = pod_u;
 results.pod_v = pod_v;
-results.modal_amp = modal_amp;
+results.modal_amp_raw = modal_amp_raw;
 results.lambda2 = lambda2;
 results.l_scale = l_scale;
 results.u_scale = u_scale;
