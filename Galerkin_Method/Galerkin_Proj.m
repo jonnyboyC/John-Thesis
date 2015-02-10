@@ -84,11 +84,9 @@ Re0_gen         = problem.Re0_gen;
 fft_window      = problem.fft_window;
 
 % Check status of parrallel pool
-if isempty(gcp)
-    parpool;
+if ~isempty(gcp)
+    delete(gcp);
 end
-
-gcp();
 
 fprintf('\nLoading POD variables\n\n');
 
@@ -157,7 +155,7 @@ coef_problem.uniform        = uniform; %uniform;
 
 % Generate unresolved coefficients
 fprintf('Generating coefficients for unresolved modes using %d modes\n\n', cutoff);
-[lc_dot, lc, qc_2dot, qc_dot, qc] = visocity_coefficients_new(coef_problem);
+[lc_dot, lc, qc_2dot, qc_dot, qc] = visocity_coefficients(coef_problem);
 
 pod_ut = pod_u(:,1:num_modesG);
 pod_vt = pod_v(:,1:num_modesG);
@@ -167,7 +165,7 @@ coef_problem.pod_v = pod_vt;
 
 % Generate resolved coefficients
 fprintf('Generating coefficients for resolved modes using %d modes\n\n', num_modesG);
-[l_dot, l, q_2dot, q_dot, q] = visocity_coefficients_new(coef_problem);
+[l_dot, l, q_2dot, q_dot, q] = visocity_coefficients(coef_problem);
 
 % Free memory
 clear pod_u pod_v mean_u mean_v

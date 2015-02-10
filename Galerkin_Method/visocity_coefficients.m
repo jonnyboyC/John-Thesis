@@ -1,4 +1,4 @@
-function [l_dot, l, q_2dot, q_dot, q] = visocity_coefficients_new(coef_problem)
+function [l_dot, l, q_2dot, q_dot, q] = visocity_coefficients(coef_problem)
 
 mean_u      = coef_problem.mean_u;
 mean_v      = coef_problem.mean_v;
@@ -113,8 +113,6 @@ q_dot = q_dot + cct;
 
 % Free memory
 clear cct cu cv
-pool = gcp();
-delete(pool);
 
 % max modes in memeory at once
 bytesPerDouble = 8;
@@ -180,7 +178,6 @@ cutoff = num_modes;
 save([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_m' num2str(num_modes) '.mat'], ...
     'l_dot', 'l', 'q_2dot', 'q_dot', 'q', 'cutoff', 'run_num', '-v7.3'); 
 
-parpool('local', 3);
 end
 
 % allow writing to disk asynchronously
