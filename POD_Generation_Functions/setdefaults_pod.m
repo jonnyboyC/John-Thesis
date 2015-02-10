@@ -22,7 +22,7 @@ end
 % Default for load_raw
 if isempty(problem.save_figures) || ~iscell(problem.save_figures)
     fprintf('Using default value for save_figures\nproblem.save_pod = {}\n\n');
-    problem.save_figures = {};     % Save as figure
+    problem.save_figures = {'fig'};     % Save as figure
 end
 
 % Check to make sure incorrect strings are not passed

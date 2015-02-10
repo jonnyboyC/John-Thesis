@@ -62,12 +62,16 @@ function [xi, yi, ui, vi, u_scale] = load_mat(img_files, num_files, num_images, 
 % Get dimensions of image
 load([direct '\Raw Data\' img_files(1).name], 'x', 'y');
 
-if isempty(image_range)
-    num_x = size(x,1);
-    num_y = size(x,2);
-else
-    num_x = image_range(2)-image_range(1);
-    num_y = image_range(4)-image_range(3);
+num_x = size(x,1);
+num_y = size(x,2);
+
+if ~isempty(image_range)
+    if image_range(2) < num_x && image_range(1) >= 0
+        num_x = image_range(2)-image_range(1)+1;
+    end
+    if image_range(4) < num_y && image_range(3) >= 0
+        num_y = image_range(4)-image_range(3)+1;
+    end
 end
 
 % Preallocate Matrices
@@ -110,12 +114,16 @@ function [xi, yi, ui, vi, u_scale] = load_vc7(img_files, num_files, num_images, 
 % Get dimensions of image
 lavdata = readimx([direct '\Raw Data\' img_files(1).name]);
 
-if isempty(image_range)
-    num_x = lavdata.Nx;
-    num_y = lavdata.Ny;
-else
-    num_x = image_range(2)-image_range(1)+1;
-    num_y = image_range(4)-image_range(3)+1;
+num_x = lavdata.Nx;
+num_y = lavdata.Ny;
+
+if ~isempty(image_range)
+    if image_range(2) < num_x && image_range(1) >= 0
+        num_x = image_range(2)-image_range(1)+1;
+    end
+    if image_range(4) < num_y && image_range(3) >= 0
+        num_y = image_range(4)-image_range(3)+1;
+    end
 end
 
 % Preallocate matrices 
@@ -161,8 +169,78 @@ save([direct '\Processed Data\Processed.mat'], 'xi', 'yi', 'ui', 'vi', 'num_x', 
 end
 
 %TODO currently stub 
-function [xi, yi, ui, vi, u_scale] = load_dat(img_files, num_files, num_images, image_range, l_scale, u_scale_gen, direct)
-   error('myApp:argChk', 'Load dat is currently stub need to implement');
+function [xi, yi, ui, vi, u_scale] = load_dat(img_files, num_files, num_images, image_range, ...
+                                    l_scale, u_scale_gen, flip_x, flip_y, direct)
+
+data_file = fopen([direct '\Raw Data\' img_files(1).name]);
+
+fgets(data_file); fgets(data_file);
+fscanf(data_file,'%c',7);
+num_x_org = fscanf(data_file,'%u',2);
+num_x = num_x_org;
+
+fscanf(data_file,'%c',4);
+num_y_org = fscanf(data_file,'%u',2);
+num_y = num_y_org;
+
+fclose(data_file);
+
+
+if ~isempty(image_range)
+    if image_range(2) < num_x && image_range(1) >= 0
+        num_x = image_range(2)-image_range(1)+1;
+    end
+    if image_range(4) < num_y && image_range(3) >= 0
+        num_y = image_range(4)-image_range(3)+1;
+    end
+end
+
+% Preallocate matrices 
+xi = zeros(num_x, num_y);  
+yi = zeros(num_x, num_y);
+ui = zeros(num_x, num_y, num_files);
+vi = zeros(num_x, num_y, num_files);
+
+% Load images
+for i = 1:num_files
+    % Show current progress
+    file_name = update_progress(img_files(i));
+    data_file = fopen([direct '\Raw Data\' file_name]);
+    fgets(data_file); fgets(data_file); fgets(data_file);
+    data = fscanf(data_file,'%g %g %g %g', [4 inf]);
+    fclose(data_file);
+    
+    % Original file also takes the any additional files that contain a
+    % * concatentated onto the end; such as B00001.vc7*. It also took
+    % the file absolute path, currently these are not included
+
+    x = reshape(data(1,:), num_x_org, num_y_org);
+    y = reshape(data(2,:), num_x_org, num_y_org);
+    u = reshape(data(3,:), num_x_org, num_y_org);
+    v = reshape(data(4,:), num_x_org, num_y_org);
+
+    
+
+    % Rotate images to proper orientation
+    if isempty(image_range)
+        [xi, yi, ui(:,:,i), vi(:,:,i)] = image_rotation(x, y, u, v, flip_x, flip_y); 
+    else
+        [x_temp, y_temp, u_temp, v_temp] = image_rotation(x, y, u, v, flip_x, flip_y);
+        xi = x_temp(image_range(1):image_range(2), image_range(3):image_range(4));
+        yi = y_temp(image_range(1):image_range(2), image_range(3):image_range(4));
+        ui(:,:,i) = u_temp(image_range(1):image_range(2), image_range(3):image_range(4));
+        vi(:,:,i) = v_temp(image_range(1):image_range(2), image_range(3):image_range(4));
+    end
+end   
+
+% Apply any scaling that is present and translate x/y
+[xi, yi, ui, vi, u_scale] = apply_scales(xi, yi, ui, vi, l_scale, u_scale_gen, direct);
+[xi, yi] = correct_dims(xi, yi);
+
+% Save Data to processed folder
+num_processed = num_images;
+save([direct '\Processed Data\Processed.mat'], 'xi', 'yi', 'ui', 'vi', 'num_x', 'num_y', 'u_scale', 'num_processed', '-v7.3');
+
 end
 
 %% Helper Functions

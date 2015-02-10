@@ -248,7 +248,6 @@ fprintf('Completed in %f6.4 seconds\n\n', toc3);
 % Prepare data
 plot_data.num_modes     = num_modesG;
 plot_data.direct        = direct;
-plot_data.init          = init;
 plot_data.pod_ut        = pod_ut;
 plot_data.pod_vt        = pod_vt;
 plot_data.dimensions    = dimensions;

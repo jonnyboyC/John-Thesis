@@ -31,7 +31,7 @@ freq_response_dB = 20*log10(freq_response);
 % Plot fft
 h = figure;
 ax = newplot;
-if freq_response_dB < 2
+if size(freq_response_dB,1) < 2
    if nargout == 1
        handle = h;
    end

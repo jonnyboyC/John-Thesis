@@ -127,7 +127,6 @@ if num_modes < memory_limit;
     % Quadractic terms preallocation
     cduv = zeros(num_modes, num_modes, num_modes);
 
-    tic;
     % Calculate terms
     for k = 1:num_modes
         pod_u_pod_u_x = (pod_u(:,k)*ones(1,num_modes)).*pod_udx;
@@ -136,9 +135,6 @@ if num_modes < memory_limit;
         pod_v_pod_v_y = (pod_v(:,k)*ones(1,num_modes)).*pod_vdy;
         cduv(:,:,k) = inner_prod(pod_u_pod_u_x + pod_v_pod_u_y, pod_u, vol_frac) + ...
                       inner_prod(pod_u_pod_v_x + pod_v_pod_v_y, pod_v, vol_frac);
-        if k == 10
-            toc;
-        end
         fprintf('%d of %d coefficients computed\n', k, num_modes);
         
 

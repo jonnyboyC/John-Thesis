@@ -30,3 +30,9 @@ problem_airfoil.l_scale = 0.2032;
 problem_airfoil.u_scale_gen = @u_scale_gen_airfoil;
 problem_airfoil.flip_x = true;
 problem_airfoil.flip_y = false;
+
+problem_cavity.num_images = 2000;
+problem_cavity.load_raw = false;
+problem_cavity.save_pod = true;
+problem_cavity.save_figures = {'fig', 'jpg'};
+problem_cavity.l_scale = 0.0127;
