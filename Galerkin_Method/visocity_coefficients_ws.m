@@ -1,4 +1,6 @@
-function [l_dot, l, q_2dot, q_dot, q] = visocity_coefficients(coef_problem)
+function [l_dot, l, q_2dot, q_dot, q] = visocity_coefficients_ws(coef_problem)
+
+% TODO really comb this over 
 
 mean_u      = coef_problem.mean_u;
 mean_v      = coef_problem.mean_v;
@@ -8,8 +10,6 @@ pod_u       = coef_problem.pod_u;
 pod_v       = coef_problem.pod_v;
 dimensions  = coef_problem.dimensions;
 vol_frac    = coef_problem.vol_frac;
-bnd_idx     = coef_problem.bnd_idx;
-z           = coef_problem.z;
 run_num     = coef_problem.run_num;
 override_coef = coef_problem.override_coef;
 direct      = coef_problem.direct;
@@ -24,12 +24,36 @@ cbt = 0;
 cct = 0;
 cdt = 0;
 
+num_elem = numel(x);
+num_modes = size(pod_u, 2);
+
+% If we are using the same number of cutoff modes and overwrite is set to
+% false look for previous data
+if override_coef == false;
+   saved_files = dir([direct '\Viscous Coeff\Coeff_*']);
+   if size(saved_files,1) ~= 0
+       match_run = regexp({saved_files.name}, num2str(run_num));
+       match_modes = regexp({saved_files.name}, ['m' num2str(num_modes) '\.']);
+       weak = regexp({saved_files.name}, 'wk');
+       if any(~cellfun(@isempty, match_run) & ~cellfun(@isempty, match_modes) & ~cellfun(@isempty, weak))
+           data = load([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_wk_m' num2str(num_modes) '.mat']);
+           l_dot =  data.l_dot;
+           l        = data.l;
+           q_2dot   = data.q_2dot;
+           q_dot    = data.q_dot;
+           q        = data.q;
+           return;
+       end
+   end
+end
+
 if uniform == true
     % Use build in laplcian, and gradient functions
     [udx, udy, vdx, vdy, pod_udx, pod_udy, pod_vdx, pod_vdy] = ...
         components_ws_fast(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, num_modes, num_elem);
 else
-    %% TODO 
+    [udx, udy, vdx, vdy, pod_udx, pod_udy, pod_vdx, pod_vdy] = ...
+        components_ws(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, num_modes);
 end
 
 qu = mean_u.*udx + mean_v.*udy;
@@ -44,15 +68,15 @@ cqvx = inner_prod(vdx, pod_vdx, vol_frac);
 cquy = inner_prod(udy, pod_udy, vol_frac);
 cqvy = inner_prod(vdy, pod_vdy, vol_frac);
 
-if min(min(y)) < -0.0001
-    cqu1= inerpros(udx,   pod_u,x,y,1);
-    cqu2= inerpros(udy,   pod_u,x,y,2);
-    cqu3= inerpros(udx,   pod_u,x,y,3);
-    cqu4= inerpros(mean_u,pod_u,x,y,4);
-    cqv1= inerpros(vdx,   pod_v,x,y,1);
-    cqv2= inerpros(vdy,   pod_v,x,y,2);
-    cqv3= inerpros(vdx,   pod_v,x,y,3);
-    cqv4= inerpros(mean_v,pod_v,x,y,4);
+if  min(min(y)) < -0.0001
+    cqu1= inner_prods(udx,   pod_u,x,y,1);
+    cqu2= inner_prods(udy,   pod_u,x,y,2);
+    cqu3= inner_prods(udx,   pod_u,x,y,3);
+    cqu4= inner_prods(mean_u,pod_u,x,y,4);
+    cqv1= inner_prods(vdx,   pod_v,x,y,1);
+    cqv2= inner_prods(vdy,   pod_v,x,y,2);
+    cqv3= inner_prods(vdx,   pod_v,x,y,3);
+    cqv4= inner_prods(mean_v,pod_v,x,y,4);
 else
     cqu1=0;
     cqu2=0;
@@ -106,18 +130,18 @@ cv = u_pod_vx + v_pod_vy + vx_pod_u + vy_pod_v;
 ccux = inner_prod(pod_udx, pod_udx, vol_frac);
 ccvx = inner_prod(pod_vdx, pod_vdx, vol_frac);
 
-ccuy = inner_prod(pod_udv, pod_udy, vol_frac);
+ccuy = inner_prod(pod_udy, pod_udy, vol_frac);
 ccvy = inner_prod(pod_vdy, pod_vdy, vol_frac);
 
-if min(min(y)) < -0.0001
-    ccu1= inerpros(pod_udx, pod_u,x,y,1);
-    ccu2= inerpros(pod_udv, pod_u,x,y,2);
-    ccu3= inerpros(pod_udx, pod_u,x,y,3);
-    ccu4= inerpros(pod_u,   pod_u,x,y,4);
-    ccv1= inerpros(pod_vdx, pod_v,x,y,1);
-    ccv2= inerpros(pod_vdy, pod_v,x,y,2);
-    ccv3= inerpros(pod_vdx, pod_v,x,y,3);
-    ccv4= inerpros(pod_v,   pod_v,x,y,4);
+if  min(min(y)) < -0.0001
+    ccu1= inner_prods(pod_udx, pod_u,x,y,1);
+    ccu2= inner_prods(pod_udv, pod_u,x,y,2);
+    ccu3= inner_prods(pod_udx, pod_u,x,y,3);
+    ccu4= inner_prods(pod_u,   pod_u,x,y,4);
+    ccv1= inner_prods(pod_vdx, pod_v,x,y,1);
+    ccv2= inner_prods(pod_vdy, pod_v,x,y,2);
+    ccv3= inner_prods(pod_vdx, pod_v,x,y,3);
+    ccv4= inner_prods(pod_v,   pod_v,x,y,4);
 else
     ccu1=0;
     ccu2=0;
@@ -198,10 +222,9 @@ cduv = reshape(cduv, num_modes, num_modes*num_modes);
 q = -(cdt + cduv);
 
 cutoff = num_modes;
-save([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_m' num2str(num_modes) '.mat'], ...
+save([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_wk_m' num2str(num_modes) '.mat'], ...
     'l_dot', 'l', 'q_2dot', 'q_dot', 'q', 'cutoff', 'run_num', '-v7.3'); 
 
-parpool('local', 3);
 end
 
 % allow writing to disk asynchronously

@@ -34,8 +34,9 @@ if override_coef == false;
    if size(saved_files,1) ~= 0
        match_run = regexp({saved_files.name}, num2str(run_num));
        match_modes = regexp({saved_files.name}, ['m' num2str(num_modes) '\.']);
-       if any(~cellfun(@isempty, match_run) & ~cellfun(@isempty, match_modes))
-           data = load([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_m' num2str(num_modes) '.mat']);
+       orig = regexp({saved_files.name}, 'og');
+       if any(~cellfun(@isempty, match_run) & ~cellfun(@isempty, match_modes) & ~cellfun(@isempty, orig))
+           data = load([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_og_m' num2str(num_modes) '.mat']);
            l_dot =  data.l_dot;
            l        = data.l;
            q_2dot   = data.q_2dot;
@@ -175,7 +176,7 @@ cduv = reshape(cduv, num_modes, num_modes*num_modes);
 q = -(cdt + cduv);
 
 cutoff = num_modes;
-save([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_m' num2str(num_modes) '.mat'], ...
+save([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_og_m' num2str(num_modes) '.mat'], ...
     'l_dot', 'l', 'q_2dot', 'q_dot', 'q', 'cutoff', 'run_num', '-v7.3'); 
 
 end

@@ -1,5 +1,5 @@
 function niu = viscious_dis_couplet(modal_amp, num_modes, ...
-                                    l_dot, l, q_2dot, q_dot, q, Re0, niu)
+                                    l_dot, l, q_2dot, q_dot, q, Re0)
 num_images = size(modal_amp, 1);
 num_cutoff = size(q_2dot,1);    % Number of modes used for cutoff
 

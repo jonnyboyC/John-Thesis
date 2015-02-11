@@ -84,7 +84,7 @@ Re0_gen         = problem.Re0_gen;
 fft_window      = problem.fft_window;
 
 % Check status of parrallel pool
-if ~isempty(gcp)
+if ~isempty(gcp('nocreate'))
     delete(gcp);
 end
 
@@ -155,7 +155,8 @@ coef_problem.uniform        = uniform; %uniform;
 
 % Generate unresolved coefficients
 fprintf('Generating coefficients for unresolved modes using %d modes\n\n', cutoff);
-[lc_dot, lc, qc_2dot, qc_dot, qc] = visocity_coefficients(coef_problem);
+[lc_dot , lc,  qc_2dot,  qc_dot,  qc]  = visocity_coefficients(coef_problem);
+[lwc_dot, lwc, qwc_2dot, qwc_dot, qwc] = visocity_coefficients_ws(coef_problem); 
 
 pod_ut = pod_u(:,1:num_modesG);
 pod_vt = pod_v(:,1:num_modesG);
@@ -165,7 +166,8 @@ coef_problem.pod_v = pod_vt;
 
 % Generate resolved coefficients
 fprintf('Generating coefficients for resolved modes using %d modes\n\n', num_modesG);
-[l_dot, l, q_2dot, q_dot, q] = visocity_coefficients(coef_problem);
+[l_dot,  l,  q_2dot,  q_dot,  q] = visocity_coefficients(coef_problem);
+[lw_dot, lw, qw_2dot, qw_dot, qw]= visocity_coefficients_ws(coef_problem);
 
 % Free memory
 clear pod_u pod_v mean_u mean_v
@@ -178,28 +180,40 @@ fprintf('Calculating viscous disspation terms\n\n');
 
 %  calculate coefficeitns detailed by Noack
 niu = viscious_dis(modal_amp_raw, num_modesG, lambda2, l, q_dot, q);
+niuw = viscious_dis(modal_amp_raw, num_modesG, lambda2, lw, qw_dot, qw);
 
 % calculate coefficients detailed by Couplet
-niu_c = viscious_dis_couplet(modal_amp_raw, num_modesG, lc_dot, lc, qc_2dot, qc_dot, qc, Re0, niu);
+niu_c = viscious_dis_couplet(modal_amp_raw, num_modesG, lc_dot, lc, qc_2dot, qc_dot, qc, Re0);
+niuw_c = viscious_dis_couplet(modal_amp_raw, num_modesG, lwc_dot, lwc, qwc_2dot, qwc_dot, qwc, Re0);
+
                             
 % From Couplet (v + v_tilde) ie (1/Re + v_tilde)
 ni   = diag(niu) + (ones(num_modesG))/Re0;
 ni_c = diag(niu_c) + (ones(num_modesG))/Re0; 
+niw  = diag(niuw) + (ones(num_modesG))/Re0;
+niw_c = diag(niuw_c) + (ones(num_modesG))/Re0;
 
 % Calculate Constant terms terms
 c    = l_dot/Re0 + q_2dot;
 ci   = ni*l_dot + q_2dot;
+ciw  = niw*lw_dot + qw_2dot;
 ci_c = ni_c*l_dot+ q_2dot;
+ciw_c = niw_c*lw_dot + qw_2dot;
+
 
 % Calculate Linear terms
 l    = l + q_dot;
 li   = ni.*l   + q_dot;
+liw  = niw*lw  + qw_dot;
 li_c = ni_c.*l + q_dot;
+liw_c = niw_c.*lw + qw_dot;
 
 % System coefficients
 Gal_coeff      = [c  l  q];
 Gal_coeff_vis1 = [ci li q];
 Gal_coeff_vis2 = [ci_c, li_c, q];
+Gal_coeff_vis3 = [ciw, liw, q];
+Gal_coeff_vis4 = [ciw_c, liw_c, q];
 
 %% Time integration
 
@@ -207,6 +221,8 @@ Gal_coeff_vis2 = [ci_c, li_c, q];
 reduced_model_coeff_og   = -ode_coefficients(num_modesG, num_modesG, Gal_coeff);
 reduced_model_coeff_vis1 = -ode_coefficients(num_modesG, num_modesG, Gal_coeff_vis1);
 reduced_model_coeff_vis2 = -ode_coefficients(num_modesG, num_modesG, Gal_coeff_vis2);
+reduced_model_coeff_vis3 = -ode_coefficients(num_modesG, num_modesG, Gal_coeff_vis3);
+reduced_model_coeff_vis4 = -ode_coefficients(num_modesG, num_modesG, Gal_coeff_vis4);
 options = odeset('RelTol', 1e-7, 'AbsTol', 1e-9);
 
 fprintf('Performing ode113 on base Galerkin system\n');
@@ -241,6 +257,29 @@ toc3 = toc;
 fprintf('Completed in %f6.4 seconds\n\n', toc3);
 
 
+
+
+fprintf('Performing ode113 on Galerkin system with 2nd viscous dissapation\n');
+
+% Integrate Galerkin System with 2nd viscous dissapation model
+tic;
+[t4, modal_amp_vis3] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff_vis3), tspan, ...
+    modal_amp_raw(init,1:num_modesG), options);
+toc3 = toc;
+fprintf('Completed in %f6.4 seconds\n\n', toc3);
+
+
+
+fprintf('Performing ode113 on Galerkin system with 2nd viscous dissapation\n');
+
+% Integrate Galerkin System with 2nd viscous dissapation model
+tic;
+[t5, modal_amp_vis4] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff_vis4), tspan, ...
+    modal_amp_raw(init,1:num_modesG), options);
+toc3 = toc;
+fprintf('Completed in %f6.4 seconds\n\n', toc3);
+
+
 %% Plotting functions
 
 % Prepare data
@@ -255,9 +294,9 @@ plot_data.l_scale       = l_scale;
 plot_data.plot_type     = plot_type;
 plot_data.sample_freq   = sample_freq;
 
-all_ids = {'og', 'vis', 'vis2'};
-all_modal_amps = {modal_amp_og, modal_amp_vis1, modal_amp_vis2};
-all_t = {t1, t2, t3};
+all_ids = {'og', 'vis', 'vis2', 'vis3', 'vis4'};
+all_modal_amps = {modal_amp_og, modal_amp_vis1, modal_amp_vis2, modal_amp_vis3, modal_amp_vis4};
+all_t = {t1, t2, t3, t4, t5};
 
 % Cycle through and plot all requested figures
 for i = 1:size(all_ids,2);
