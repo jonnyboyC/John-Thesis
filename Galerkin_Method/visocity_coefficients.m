@@ -169,7 +169,7 @@ else
     cduv = data.cduv;
 end
 
-clear pod_u pod_v pod_udx pod_udy pod_vdx pod_vdy 
+clear pod_u pod_v pod_udx pod_udy pod_vdx pod_vdy f
 clear pod_u_pod_u_x pod_u_pod_v_x  pod_v_pod_u_y pod_v_pod_v_y
 
 cduv = reshape(cduv, num_modes, num_modes*num_modes);

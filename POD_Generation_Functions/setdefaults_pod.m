@@ -19,7 +19,7 @@ if isempty(problem.save_pod) || ~islogical(problem.save_pod)
     problem.save_pod = true;        % save pod results
 end
 
-% Default for load_raw
+% Default for save_figures
 if isempty(problem.save_figures) || ~iscell(problem.save_figures)
     fprintf('Using default value for save_figures\nproblem.save_pod = {}\n\n');
     problem.save_figures = {'fig'};     % Save as figure
@@ -34,6 +34,22 @@ for i = 1:size(correct_members,2)
     end
 end
 problem.save_figures = problem.save_figures(correct_members);
+
+% Default for sides
+if isempty(problem.sides) || ~iscell(problem.sides)
+    fprintf('Using default value for sides\nproblem.sides = {"left", "right"}\n\n');
+    problem.sides = {'left', 'right'};     % Save as figure
+end
+
+% Check to make sure incorrect strings are not passed
+correct = {'left', 'right', 'top', 'bottom'};
+correct_members = ismember(problem.sides, correct);
+for i = 1:size(correct_members,2)
+    if ~correct_members(i)
+        fprintf('%s is not a correct input\n', problem.sides{i});
+    end
+end
+problem.sides = problem.sides(correct_members);
 
 % Default for direct
 if isempty(problem.direct) || ~ischar(problem.direct)

@@ -14,6 +14,8 @@ run_num     = coef_problem.run_num;
 override_coef = coef_problem.override_coef;
 direct      = coef_problem.direct;
 uniform     = coef_problem.uniform;
+bnd_x       = coef_problem.bnd_x;
+bnd_y       = coef_problem.bnd_y;
 
 clear coef_problem
 
@@ -133,15 +135,15 @@ ccvx = inner_prod(pod_vdx, pod_vdx, vol_frac);
 ccuy = inner_prod(pod_udy, pod_udy, vol_frac);
 ccvy = inner_prod(pod_vdy, pod_vdy, vol_frac);
 
-if  min(min(y)) < -0.0001
-    ccu1= inner_prods(pod_udx, pod_u,x,y,1);
-    ccu2= inner_prods(pod_udv, pod_u,x,y,2);
-    ccu3= inner_prods(pod_udx, pod_u,x,y,3);
-    ccu4= inner_prods(pod_u,   pod_u,x,y,4);
-    ccv1= inner_prods(pod_vdx, pod_v,x,y,1);
-    ccv2= inner_prods(pod_vdy, pod_v,x,y,2);
-    ccv3= inner_prods(pod_vdx, pod_v,x,y,3);
-    ccv4= inner_prods(pod_v,   pod_v,x,y,4);
+if  true %min(min(y)) < -0.0001
+    ccu1= inerpros(pod_udx, pod_u,x,y,1);
+    ccu2= inerpros(pod_udy, pod_u,x,y,2);
+    ccu3= inerpros(pod_udx, pod_u,x,y,3);
+ %   ccu4= inerpros(pod_u,   pod_u,x,y,4);
+    ccv1= inerpros(pod_vdx, pod_v,x,y,1);
+    ccv2= inerpros(pod_vdy, pod_v,x,y,2);
+    ccv3= inerpros(pod_vdx, pod_v,x,y,3);
+ %   ccv4= inerpros(pod_v,   pod_v,x,y,4);
 else
     ccu1=0;
     ccu2=0;
@@ -153,8 +155,13 @@ else
     ccv4=0;
 end
 
-ccnt = (ccux + ccuy + ccu1 - ccu2 - ccu3 - ccu4)...
-     + (ccvx + ccvy + ccv1 - ccv2 - ccv3 - ccv4);
+surf_u = surf_inner_prod(pod_udx, pod_u, vol_frac, bnd_x) + ...
+         surf_inner_prod(pod_vdv, pod_u, vol_frac, bnd_y);
+surf_v = surf_inner_prod(pod_udx, pod_u, vol_frac, bnd_x) + ...
+         surf_inner_prod(pod_vdv, pod_u, vol_frac, bnd_y);
+
+
+ccnt = (ccux + ccuy + ccvx + ccvy);
 l = cbt + ccnt;
    
 q_dot = cct -(inner_prod(cu, pod_u, vol_frac) + inner_prod(cv, pod_v, vol_frac));

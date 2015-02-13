@@ -51,7 +51,7 @@ clc
 fields = {  'num_images',   'load_raw',     'save_pod', ...
             'image_range',  'direct',       'l_scale', ...
             'u_scale_gen',  'save_figures', 'flip_x', ...
-            'flip_y'};
+            'flip_y',       'sides'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -73,15 +73,9 @@ u_scale_gen = problem.u_scale_gen;
 save_figures= problem.save_figures;
 flip_x      = problem.flip_x;
 flip_y      = problem.flip_y;
+sides       = problem.sides;
 
 clear problem
-
-% Set up parrallel pool
-if isempty(gcp)
-    parpool;
-end
-
-gcp();
 
 %% Load and organize data
 
@@ -101,8 +95,11 @@ num_images = size(u,3);
 data_points = numel(x);
 
 % find boundaries of velocity image
-[~, ~, ~, ~, ~, ~, bnd_idx] = boundary_check_chabot(x, y, mean_u);
-% [~, ~, ~, ~, ~, ~, bnd_idx] = boundary_check(x, y, mean_u);
+[bnd_x, bnd_y, bnd_idx] = boundary_check_chabot(x, mean_u);
+% [bnd_x, bnd_y, bnd_idx] = boundary_check(x, y, mean_u);
+
+% TODO create a better function to handle boundaries
+[bnd_x, bnd_y] = open_boundaries(bnd_x, bnd_y, sides);
 
 % Calculate volume elements of the mesh
 vol_frac = voln_piv2(x, y, bnd_idx);
@@ -191,6 +188,8 @@ results.cutoff = cutoff;
 results.uniform = uniform;
 results.dimensions = dimensions;
 results.bnd_idx = bnd_idx;
+results.bnd_x = bnd_x;
+results.bnd_y = bnd_y;
 
 % Save variables relavent to Galerkin to .mat files
 if save_pod == true
