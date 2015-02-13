@@ -70,28 +70,12 @@ cqvx = inner_prod(vdx, pod_vdx, vol_frac);
 cquy = inner_prod(udy, pod_udy, vol_frac);
 cqvy = inner_prod(vdy, pod_vdy, vol_frac);
 
-if  min(min(y)) < -0.0001
-    cqu1= inner_prods(udx,   pod_u,x,y,1);
-    cqu2= inner_prods(udy,   pod_u,x,y,2);
-    cqu3= inner_prods(udx,   pod_u,x,y,3);
-    cqu4= inner_prods(mean_u,pod_u,x,y,4);
-    cqv1= inner_prods(vdx,   pod_v,x,y,1);
-    cqv2= inner_prods(vdy,   pod_v,x,y,2);
-    cqv3= inner_prods(vdx,   pod_v,x,y,3);
-    cqv4= inner_prods(mean_v,pod_v,x,y,4);
-else
-    cqu1=0;
-    cqu2=0;
-    cqu3=0;
-    cqu4=0;
-    cqv1=0;
-    cqv2=0;
-    cqv3=0;
-    cqv4=0;
-end
+surf_qu = surf_inner_prod(pod_udx, pod_u, vol_frac, bnd_x) + ...
+         surf_inner_prod(pod_vdy, pod_u, vol_frac, bnd_y);
+surf_qv = surf_inner_prod(pod_udx, pod_u, vol_frac, bnd_x) + ...
+         surf_inner_prod(pod_vdy, pod_u, vol_frac, bnd_y);
 
-cqnt = -(cqux + cquy + cqu1 - cqu2 - cqu3 - cqu4)...
-       -(cqvx + cqvy + cqv1 - cqv2 - cqv3 - cqv4);
+cqnt = -(cqux + cquy + cqvx + cqvy - surf_qu - surf_qv);
    
 l_dot = clt + cqnt;
 q_2dot = cqt + cqu + cqv;
@@ -135,33 +119,12 @@ ccvx = inner_prod(pod_vdx, pod_vdx, vol_frac);
 ccuy = inner_prod(pod_udy, pod_udy, vol_frac);
 ccvy = inner_prod(pod_vdy, pod_vdy, vol_frac);
 
-if  true %min(min(y)) < -0.0001
-    ccu1= inerpros(pod_udx, pod_u,x,y,1);
-    ccu2= inerpros(pod_udy, pod_u,x,y,2);
-    ccu3= inerpros(pod_udx, pod_u,x,y,3);
- %   ccu4= inerpros(pod_u,   pod_u,x,y,4);
-    ccv1= inerpros(pod_vdx, pod_v,x,y,1);
-    ccv2= inerpros(pod_vdy, pod_v,x,y,2);
-    ccv3= inerpros(pod_vdx, pod_v,x,y,3);
- %   ccv4= inerpros(pod_v,   pod_v,x,y,4);
-else
-    ccu1=0;
-    ccu2=0;
-    ccu3=0;
-    ccu4=0;
-    ccv1=0;
-    ccv2=0;
-    ccv3=0;
-    ccv4=0;
-end
+surf_cu = surf_inner_prod(pod_udx, pod_u, vol_frac, bnd_x) + ...
+         surf_inner_prod(pod_vdy, pod_u, vol_frac, bnd_y);
+surf_cv = surf_inner_prod(pod_udx, pod_u, vol_frac, bnd_x) + ...
+         surf_inner_prod(pod_vdy, pod_u, vol_frac, bnd_y);
 
-surf_u = surf_inner_prod(pod_udx, pod_u, vol_frac, bnd_x) + ...
-         surf_inner_prod(pod_vdv, pod_u, vol_frac, bnd_y);
-surf_v = surf_inner_prod(pod_udx, pod_u, vol_frac, bnd_x) + ...
-         surf_inner_prod(pod_vdv, pod_u, vol_frac, bnd_y);
-
-
-ccnt = (ccux + ccuy + ccvx + ccvy);
+ccnt = (ccux + ccuy + ccvx + ccvy - surf_cu - surf_cv);
 l = cbt + ccnt;
    
 q_dot = cct -(inner_prod(cu, pod_u, vol_frac) + inner_prod(cv, pod_v, vol_frac));
