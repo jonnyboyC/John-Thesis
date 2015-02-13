@@ -38,10 +38,10 @@ function res = Galerkin_Proj(varargin)
 % Fuction handle used to produced Reynolds number for the run, takes one
 % input of working project directory
 %
-% fft_window = [0 2000]
+% problem.fft_window = [0 2000]
 % Specify the hertz range that the fft plot should capture
 %
-% run_num = 'first'
+% problem.run_num = 'first'
 % Specify which run this Galerkn Projection should be based from, default
 % is to use the most recent
 
@@ -57,7 +57,7 @@ clc;
 % be added later
 
 %List of fields that will be checked
-fields = {  'num_modesG',     'plot_type',    'save_coef', ...
+fields = {  'num_modesG',   'plot_type',    'save_coef', ...
             'override_coef','tspan',        'init', ...
             'direct' ,      'Re0_gen',      'fft_window', ...
             'run_num'};

@@ -3,8 +3,8 @@ function problem = setdefaults_pod(problem)
 
 % Default for num_images 
 if isempty(problem.num_images) || ~isscalar(problem.num_images)
-    fprintf('Using default value for num_images\nproblem.num_images = 1000\n\n');
-    problem.num_images = 1000;      % use 1000 images
+    fprintf('Using default value for num_images\nproblem.num_images = 2000\n\n');
+    problem.num_images = 2000;  % use 2000 images
 end
 
 % Default for load_raw
@@ -59,14 +59,14 @@ end
 
 % Default for l_scale
 if isempty(problem.l_scale) || ~isscalar(problem.l_scale)
-    fprintf('Using default values for l_sacle\nproblem.l_scale = .3048\n\n');
-    problem.l_scale = .3048;    % Length of splitter plate
+    fprintf('Using default values for l_sacle\nproblem.l_scale = 1\n\n');
+    problem.l_scale = 1;    % Length Scale for problem
 end
 
 % Default for u_scale_gen
 if isempty(problem.u_scale_gen) || (~isscalar(problem.u_scale_gen) && ~isa(problem.u_scale_gen, 'function_handle'))
-    fprintf('Using default values for u_scale_gen\nproblem.u_scale_gen_shear = @u_scale_gen_shear\n\n');
-    problem.u_scale_gen = @u_scale_gen_shear;  	% Claimed high speed side
+    fprintf('Using default values for u_scale_gen\nproblem.u_scale_gen_shear = 1n\n');
+    problem.u_scale_gen = 1;  	% Length scale for problem
 end
 
 % Default for flip_x
@@ -79,6 +79,12 @@ end
 if isempty(problem.flip_y) || ~islogical(problem.flip_y)
     fprintf('Using default value for flip_y\nproblem.flip_y = false\n\n');
     problem.flip_y = false;        % save pod results
+end
+
+% Default for mask
+if isempty(problem.mask) || ~islogical(problem.mask)
+    fprintf('Using default value for mask\nproblem.mask = false\n\n');
+    problem.mask = false;        % save pod results
 end
 
 end

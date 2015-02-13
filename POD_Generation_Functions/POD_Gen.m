@@ -31,10 +31,10 @@ function res = POD_Gen(varargin)
 % Specify absolute path of top of data directory. '' will prompt user for
 % location
 % 
-% problem.l_scale = .3048
+% problem.l_scale = 1
 % Specify a scalar to be used as the lenght scale for the problem
 %
-% problem.u_scale_gen = @u_scale_gen_shear
+% problem.u_scale_gen = 1
 % Specify a scalar for function handle to calculate u_scale
 %
 % problem.flip_x = false
@@ -42,6 +42,14 @@ function res = POD_Gen(varargin)
 %
 % problem.flip_y = false
 % If treu reflect image about x axis
+% 
+% problem.sides = {'left', 'right'}
+% Specify the sides that are free flow boundaries, will update to include
+% exclusion areas
+%
+% problem.mask = false;
+% Specify if there is a region that should be excluded from consideration
+% as an open boundary
 
 format long g
 close all
@@ -51,7 +59,7 @@ clc
 fields = {  'num_images',   'load_raw',     'save_pod', ...
             'image_range',  'direct',       'l_scale', ...
             'u_scale_gen',  'save_figures', 'flip_x', ...
-            'flip_y',       'sides'};
+            'flip_y',       'sides',        'mask'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -74,6 +82,7 @@ save_figures= problem.save_figures;
 flip_x      = problem.flip_x;
 flip_y      = problem.flip_y;
 sides       = problem.sides;
+mask        = problem.mask;
 
 clear problem
 
@@ -98,8 +107,7 @@ data_points = numel(x);
 [bnd_x, bnd_y, bnd_idx] = boundary_check_chabot(x, mean_u);
 % [bnd_x, bnd_y, bnd_idx] = boundary_check(x, y, mean_u);
 
-% TODO create a better function to handle boundaries
-[bnd_x, bnd_y] = open_boundaries(bnd_x, bnd_y, sides);
+[bnd_x, bnd_y] = open_boundaries(bnd_x, bnd_y, mean_u, sides, mask);
 
 % Calculate volume elements of the mesh
 vol_frac = voln_piv2(x, y, bnd_idx);
