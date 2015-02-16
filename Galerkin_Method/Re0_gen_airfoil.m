@@ -1,4 +1,4 @@
-function Re0 = Re0_gen_airfoil(direct)
+function Re0 = Re0_gen_airfoil(direct, ~, ~)
 airfoil_path = [direct, '\Other\A2_CpPHF_NS_20100728b.xls'];
 [data, ~] = xlsread(airfoil_path, 'DataSheet');
 test = regexp(direct, '[0-9]*', 'match');

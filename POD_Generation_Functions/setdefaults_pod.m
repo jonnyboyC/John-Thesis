@@ -35,22 +35,6 @@ for i = 1:size(correct_members,2)
 end
 problem.save_figures = problem.save_figures(correct_members);
 
-% Default for sides
-if isempty(problem.sides) || ~iscell(problem.sides)
-    fprintf('Using default value for sides\nproblem.sides = {"left", "right"}\n\n');
-    problem.sides = {'left', 'right'};     % Save as figure
-end
-
-% Check to make sure incorrect strings are not passed
-correct = {'left', 'right', 'top', 'bottom'};
-correct_members = ismember(problem.sides, correct);
-for i = 1:size(correct_members,2)
-    if ~correct_members(i)
-        fprintf('%s is not a correct input\n', problem.sides{i});
-    end
-end
-problem.sides = problem.sides(correct_members);
-
 % Default for direct
 if isempty(problem.direct) || ~ischar(problem.direct)
     fprintf('Using default values for direct\nproblem.direct = ""\n\n');
@@ -81,10 +65,10 @@ if isempty(problem.flip_y) || ~islogical(problem.flip_y)
     problem.flip_y = false;        % save pod results
 end
 
-% Default for mask
-if isempty(problem.mask) || ~islogical(problem.mask)
-    fprintf('Using default value for mask\nproblem.mask = false\n\n');
-    problem.mask = false;        % save pod results
+% Default for new_mask
+if isempty(problem.new_mask) || ~islogical(problem.new_mask)
+    fprintf('Using default value for new_mask\nproblem.new_mask = false\n\n');
+    problem.new_mask = false;        % save pod results
 end
 
 end

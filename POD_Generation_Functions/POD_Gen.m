@@ -41,15 +41,10 @@ function res = POD_Gen(varargin)
 % If true reflect image about y axis
 %
 % problem.flip_y = false
-% If treu reflect image about x axis
+% If true reflect image about x axis
 % 
-% problem.sides = {'left', 'right'}
-% Specify the sides that are free flow boundaries, will update to include
-% exclusion areas
-%
-% problem.mask = false;
-% Specify if there is a region that should be excluded from consideration
-% as an open boundary
+% problem.new_mask = false;
+% If true launch gui to create a new mask to identify flow boundaries
 
 format long g
 close all
@@ -59,7 +54,7 @@ clc
 fields = {  'num_images',   'load_raw',     'save_pod', ...
             'image_range',  'direct',       'l_scale', ...
             'u_scale_gen',  'save_figures', 'flip_x', ...
-            'flip_y',       'sides',        'mask'};
+            'flip_y',       'new_mask'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -81,8 +76,7 @@ u_scale_gen = problem.u_scale_gen;
 save_figures= problem.save_figures;
 flip_x      = problem.flip_x;
 flip_y      = problem.flip_y;
-sides       = problem.sides;
-mask        = problem.mask;
+new_mask    = problem.new_mask;
 
 clear problem
 
@@ -107,7 +101,8 @@ data_points = numel(x);
 [bnd_x, bnd_y, bnd_idx] = boundary_check_chabot(x, mean_u);
 % [bnd_x, bnd_y, bnd_idx] = boundary_check(x, y, mean_u);
 
-[bnd_x, bnd_y] = open_boundaries(bnd_x, bnd_y, mean_u, sides, mask);
+% Exactly define flow boundaries
+[bnd_x, bnd_y] = refine_bounds(x, y, mean_u, bnd_idx, bnd_x, bnd_y, direct, new_mask);
 
 % Calculate volume elements of the mesh
 vol_frac = voln_piv2(x, y, bnd_idx);

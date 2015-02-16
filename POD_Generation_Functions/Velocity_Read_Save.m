@@ -186,7 +186,7 @@ num_y = num_y_org;
 fclose(data_file);
 
 
-if ~isempty(image_range)
+if ~isempty(image_range)edi
     if image_range(2) < num_x && image_range(1) >= 0
         num_x = image_range(2)-image_range(1)+1;
     end

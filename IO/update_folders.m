@@ -7,6 +7,9 @@ function update_folders(direct)
 if ~exist([direct '\Processed Data'], 'dir')
     mkdir(direct, '\Processed Data');
 end
+if ~exist([direct '\Processed Data\Mask'], 'dir')
+   mkdir([direct '\Processed Data\Mask']);
+end
 if ~exist([direct '\Other'], 'dir')
     mkdir(direct, '\Other');
 end
@@ -27,16 +30,16 @@ if ~exist([direct '\Viscous Coeff'], 'dir')
 end
 if ~exist([direct '\Figures'], 'dir')
    mkdir(direct, '\Figures');
-   if ~exist([direct '\Figures\POD'], 'dir')
-       mkdir(direct, '\Figures\POD');
-   end
-   if ~exist([direct '\Figures\Galerkin'], 'dir')
-       mkdir(direct, '\Figures\Galerkin');
-   end  
-   if ~exist([direct '\Figures\Movies'], 'dir')
-       mkdir(direct, '\Figures\Movies');
-   end 
 end
+if ~exist([direct '\Figures\POD'], 'dir')
+   mkdir(direct, '\Figures\POD');
+end
+if ~exist([direct '\Figures\Galerkin'], 'dir')
+   mkdir(direct, '\Figures\Galerkin');
+end  
+if ~exist([direct '\Figures\Movies'], 'dir')
+   mkdir(direct, '\Figures\Movies');
+end 
 % Move any vc7 or mat files into the Raw data folder
 [~, ~, ~] = movefile([direct '\*.vc7'], [direct '\Raw Data']); 
 [~, ~, ~] = movefile([direct '\*.im7'], [direct '\Raw Data']); 

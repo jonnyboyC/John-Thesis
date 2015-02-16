@@ -42,7 +42,7 @@ else
     gui_mainfcn(gui_State, varargin{:});
 end
 % End initialization code - DO NOT EDIT
-
+end
 
 % --- Executes just before mask_generation is made visible.
 function mask_generation_OpeningFcn(hObject, eventdata, handles, varargin)
@@ -52,15 +52,26 @@ function mask_generation_OpeningFcn(hObject, eventdata, handles, varargin)
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to mask_generation (see VARARGIN)
 
+data = varargin{1};
+bounds = varargin{2};
+bnd_idx = bounds.bnd_idx;
+bnd_x = bounds.bnd_x;
+bnd_y = bounds.bnd_y;
+
+handles.axes1 = Plottec2(data, handles.axes1, bnd_idx, bnd_x, bnd_y);
+
 % Choose default command line output for mask_generation
 handles.output = hObject;
+handles.bnd_x = bnd_x;
+handles.bnd_y = bnd_y;
+
 
 % Update handles structure
 guidata(hObject, handles);
 
 % UIWAIT makes mask_generation wait for user response (see UIRESUME)
-% uiwait(handles.figure1);
-
+uiwait(handles.figure1);
+end
 
 % --- Outputs from this function are returned to the command line.
 function varargout = mask_generation_OutputFcn(hObject, eventdata, handles) 
@@ -70,18 +81,20 @@ function varargout = mask_generation_OutputFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Get default command line output from handles structure
-varargout{1} = handles.output;
-
+varargout{1} = bnd_x;
+varargout{2} = bnd_y;
+end
 
 % --- Executes on button press in pushbutton1.
 function pushbutton1_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+end
 
 % --- Executes on button press in pushbutton3.
 function pushbutton3_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+end

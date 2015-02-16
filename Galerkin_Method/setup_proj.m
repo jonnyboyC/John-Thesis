@@ -18,6 +18,10 @@ problem_forced2.tspan = 0:0.0001:1;
 problem_forced2.direct = 'D:\shear layer\PIVData\shear layer\Forced1';
 problem_forced2.Re0_gen = @Re0_gen_shear;
 
+problem_cavity.num_modesG = 10;
+problem_cavity.tspan = 0:0.0001:1;
+problem_cavity.Re0_gen = @Re0_gen_cavity;
+
 problem_airfoil.num_modesG = 10;
 problem_airfoil.tspan = 0:0.0001:1;
 problem_airfoil.Re0_gen = @Re0_gen_airfoil;

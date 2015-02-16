@@ -29,3 +29,13 @@ bnd_idx(edge(bnd_idx, 'canny')) = 0;
 
 % Determine the vector normal of the boundary
 [bnd_x, bnd_y] = gradient(bnd_idx);
+
+bnd_x(:,1) = ones(size(x,1),1);
+bnd_x(:,end) = -ones(size(x,1),1);
+
+bnd_y(end,:) = -ones(size(x,2),1);
+bnd_y(1,:) = ones(size(x,2),1);
+
+bnd_x(bnd_idx == -1) = 0;
+bnd_y(bnd_idx == -1) = 0;
+end
