@@ -8,20 +8,14 @@ if isempty(problem.num_modesG) || ~isscalar(problem.num_modesG)
 end
 
 % Default for plot_type
-if isempty(problem.plot_type) || ~ischar(problem.plot_type) || iscell(problem.plot_type);
+if isempty(problem.plot_type) || ~iscell(problem.plot_type);
     fprintf('Using default value for plot_type\nproblem.plot_type = {"amp", "fft"}\n\n');
     problem.plot_type = {'amp', 'fft'};      % plot types to be used
 end
 
 % Check to make sure incorrect strings are not passed
 correct = {'fft', 'amp', 'video'};
-correct_members = ismember(problem.plot_type, correct);
-for i = 1:size(correct_members,2)
-    if ~correct_members(i)
-        fprintf('%s is not a correct input for problem.plot_type\n', problem.plot_type{i});
-    end
-end
-problem.plot_type = problem.plot_type(correct_members);
+problem.plot_type = list_check(problem.plot_type, correct, 'plot_type');
 
 % Default for save_coef
 if isempty(problem.save_coef) || ~islogical(problem.save_coef)
@@ -54,8 +48,6 @@ if isempty(problem.direct) || ~ischar(problem.direct)
     problem.direct = '';    % User prompt
 end
 
-% TODO currently assuming this function does not require additional inputs
-% which is most likely not true if we are generating Reynolds number
 % Default for Re0
 if isempty(problem.Re0_gen) || (~isscalar(problem.Re0_gen) && ~isa(problem.Re0_gen, 'function_handle'))
     fprintf('Using default values for Re0_gen\nproblem.Re0_gen = @Re0_gen\n\n');
@@ -68,6 +60,27 @@ if isempty(problem.fft_window) || (isnumeric(problem.fft_window) && ...
     fprintf('Using default value for fft_window\nproblem.fft_window = [0 2000]\n\n');
     problem.fft_window = [0 2000];     % time range of integration
 end
+
+% Default for dissapation
+if isempty(problem.dissapation) || ~iscell(problem.dissapation);
+    fprintf('Using default value for dissapation\nproblem.dissapation = {"Noack", "Couplet"}\n\n');
+    problem.dissapation = {'Noack', 'Couplet'};      % plot types to be used
+end
+
+% Check to make sure incorrect strings are not passed
+correct = {'Noack', 'Couplet'};
+problem.dissapation = list_check(problem.dissapation, correct, 'dissapation');
+
+% Default for solution
+if isempty(problem.solution) || ~iscell(problem.solution);
+    fprintf('Using default value for solution\nproblem.solution = {"Base", "Weak"}\n\n');
+    problem.solution = {'Base', 'Weak'};      % plot types to be used
+end
+
+% Check to make sure incorrect strings are not passed
+correct = {'Base', 'Weak'};
+problem.solution = list_check(problem.solution, correct, 'solution');
+
 
 % Default for run_num
 if isempty(problem.run_num) || ~isscalar(problem.run_num) || ~ischar(problem.run_num)

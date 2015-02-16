@@ -17,9 +17,6 @@ end
 % Set up the folders properly
 update_folders(direct);
 
-% change overwrtie of number of images requested changes
-load_raw = update_overwrite(load_raw, num_images, direct);
-
 % Check the now set up folders for data
 img_files = dir([direct '\Raw Data\*']);
 
@@ -36,7 +33,7 @@ if exist([direct '\Processed Data\Processed.mat'], 'file') == 2
     num_processed = data.num_processed;
     if (load_raw == false && num_processed == num_images)
         load([direct '\Processed Data\Processed.mat'], 'xi', 'yi', 'ui', 'vi', 'num_x', 'num_y', 'u_scale');
-        return
+        return;
     end
 end
 
@@ -267,21 +264,6 @@ end
 function [xi, yi] = correct_dims(xi, yi)
 xi = xi + abs(min(min(xi)));
 yi = yi + abs(min(min(yi)));
-end
-
-% Check to see if number of images processed last time is same as this
-% time. If it isn't update load_raw to true
-function load_raw = update_overwrite(load_raw, num_images, direct)
-    if load_raw == false
-        if ~exist([direct '\Processed Data\Num_Processed.mat'], 'file')
-            load_raw = true;
-            return;
-        end
-        load([direct '\Processed Data\Num_Processed.mat'], 'num_processed');
-        if num_images ~= num_processed
-            load_raw = true;
-        end
-    end
 end
 
 % extract file name and number print current file
