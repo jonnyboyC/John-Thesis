@@ -14,6 +14,8 @@ u_scale     = plot_data.u_scale;
 l_scale     = plot_data.l_scale;
 id          = plot_data.id;
 plot_type   = plot_data.plot_type;
+x           = plot_data.x;
+y           = plot_data.y;
 
 t_scale = u_scale/l_scale;
 sample_freq = sample_freq*t_scale;
@@ -26,7 +28,7 @@ end
 
 % TODO significant overhaul to this function
 if any(strcmp(plot_type, 'video'))
-    plot_prediction(pod_ut, pod_vt, x, y, modal_amp, t, num_modes, dimensions, direct)
+    plot_prediction(pod_ut, pod_vt, x, y, modal_amp, t, num_modes, dimensions, direct, id)
 end
 
 % Plot modal fft

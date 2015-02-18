@@ -348,6 +348,8 @@ plot_data.u_scale       = u_scale;
 plot_data.l_scale       = l_scale;
 plot_data.plot_type     = plot_type;
 plot_data.sample_freq   = sample_freq;
+plot_data.x             = x;
+plot_data.y             = y;
 
 all_ids = {'og'};
 all_ids(2:5) = niu(:,2)';
@@ -362,6 +364,12 @@ for i = 1:size(all_ids,2);
         plot_data.id = all_ids{i};
         plot_data.modal_amp = all_modal_amps{i};
         plot_data.t = all_t{i};
+        % TODO remove
+        if i == 5
+            plot_data.plot_type = {'amp', 'fft', 'video'};
+        else
+            plot_data.plot_type = {'amp', 'fft'};
+        end
         produce_plots(plot_data);
     end
 end
