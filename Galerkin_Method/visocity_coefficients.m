@@ -49,12 +49,12 @@ end
 
 if uniform == true
     % Use build in laplcian, and gradient functions
-    [udx, udy, vdx, vdy, pod_udx, pod_udy, pod_vdx, pod_vdy, l_dot, l] = ...
-        components_fast(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, vol_frac, num_modes, num_elem);
+    [udx, udy, vdx, vdy, pod_udx, pod_udy, pod_vdx, pod_vdy, mean_u, mean_v, pod_u, pod_v, vol_frac, l_dot, l] = ...
+        components_fast(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, vol_frac, num_modes, num_elem, bnd_idx);
 else
     % Old method allows for non_uniform mesh, SLOW
-    [udx, udy, vdx, vdy, pod_udx, pod_udy, pod_vdx, pod_vdy, l_dot, l] = ...
-        components(x, y, mean_u, mean_v, pod_u, pod_v, dimensions,  vol_frac, num_modes, num_elem, bnd_idx, z);
+    [udx, udy, vdx, vdy, pod_udx, pod_udy, pod_vdx, pod_vdy, mean_u, mean_v, pod_u, pod_v, vol_frac, l_dot, l] = ...
+        components(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, vol_frac, num_modes, num_elem, bnd_idx, z);
 end
 clear x y dimensions bnd_idx z
 

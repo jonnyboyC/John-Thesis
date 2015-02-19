@@ -1,5 +1,5 @@
-function [udx, udy, vdx, vdy, pod_udx, pod_udy, pod_vdx, pod_vdy] = ...
-        components_ws_fast(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, num_modes, num_elem)
+function [udx, udy, vdx, vdy, pod_udx, pod_udy, pod_vdx, pod_vdy, mean_u, mean_v, pod_u, pod_v, vol_frac] = ...
+        components_ws_fast(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, num_modes, vol_frac, bnd_idx, num_elem)
 
 hu = mean(mean(x(1:end-1,:),2) - mean(x(2:end,:),2));
 hv = mean(mean(y(:,1:end-1),1) - mean(y(:,2:end),1));
@@ -24,6 +24,14 @@ for i = 1:size(pod_u,3)
    [pod_vdy(:,:,i),pod_vdx(:,:,i)] = gradient(pod_v(:,:,i), hu, hv);
 end
 
+pod_u = reshape(pod_u, [], num_modes);
+pod_v = reshape(pod_v, [], num_modes);
+mean_u = reshape(mean_u, [], 1);
+mean_v = reshape(mean_v, [], 1);
+
+[pod_u, pod_v, mean_u, mean_v, vol_frac] = ...
+    strip_boundaries(bnd_idx, pod_u, pod_v, mean_u, mean_v, vol_frac);
+
 % Convert all matrix quantities to vectors for mean derivatives and
 % laplacian
 udx     = reshape(udx, num_elem, 1);
@@ -31,10 +39,16 @@ udy     = reshape(udy, num_elem, 1);
 vdx     = reshape(vdx, num_elem, 1);
 vdy     = reshape(vdy, num_elem, 1);
 
+[udx, udy, vdx, vdy] = strip_boundaries(bnd_idx, udx, udy, vdx, vdy);
+
 % Convert all matrix quantities to vectors for pod derivatives and
 % laplacian
 pod_udx     = reshape(pod_udx, num_elem, num_modes);
 pod_udy     = reshape(pod_udy, num_elem, num_modes);
 pod_vdx     = reshape(pod_vdx, num_elem, num_modes);
 pod_vdy     = reshape(pod_vdy, num_elem, num_modes);
+
+[pod_udx, pod_udy, pod_vdx, pod_vdy] = ...
+    strip_boundaries(bnd_idx, pod_udx, pod_udy, pod_vdx, pod_vdy);
+
 end

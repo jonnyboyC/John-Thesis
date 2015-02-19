@@ -1,5 +1,5 @@
-function [udx, udy, vdx, vdy, pod_udx, pod_udy, pod_vdx, pod_vdy] = ...
-        components_ws(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, num_modes)
+function [udx, udy, vdx, vdy, pod_udx, pod_udy, pod_vdx, pod_vdy, mean_u, mean_v, pod_u, pod_v, vol_frac] = ...
+        components_ws(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, num_modes, vol_frac, bnd_idx)
 
 if num_modes > 30
     if isempty(gcp);
@@ -16,10 +16,15 @@ end
 [vdx, ~, vdy, ~] = derivatives(mean_v, dimensions, z, xxi, yxi,...
     xet, yet, aj, bnd_idx);
 
+[udx, udy, vdx, vdy, mean_u, mean_v, vol_frac] ...
+    = strip_boundaries(bnd_idx, udx, udy, vdx, vdy, mean_u, mean_v, vol_frac);
+
 % Calculate coefficients for for pod_u's & pod_v's derivatives
 [pod_udx, ~, pod_udy, ~] = derivatives(pod_u, dimensions, ...
     z, xxi, yxi, xet, yet, aj, bnd_idx);
 [pod_vdx, ~, pod_vdy, ~] = derivatives(pod_v, dimensions, ...
     z, xxi, yxi, xet, yet, aj, bnd_idx);
 
+[pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v] = ...
+    strip_boundaries(bnd_idx, pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v);
 end

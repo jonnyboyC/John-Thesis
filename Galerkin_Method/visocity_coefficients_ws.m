@@ -14,6 +14,7 @@ run_num     = coef_problem.run_num;
 override_coef = coef_problem.override_coef;
 direct      = coef_problem.direct;
 uniform     = coef_problem.uniform;
+bnd_idx     = coef_problem.bnd_idx;
 bnd_x       = coef_problem.bnd_x;
 bnd_y       = coef_problem.bnd_y;
 
@@ -28,6 +29,9 @@ cdt = 0;
 
 num_elem = numel(x);
 num_modes = size(pod_u, 2);
+bnd_x = reshape(bnd_x, num_elem, 1);
+bnd_y = reshape(bnd_y, num_elem, 1);
+[bnd_x, bnd_y] = strip_boundaries(bnd_idx, bnd_x, bnd_y);
 
 % If we are using the same number of cutoff modes and overwrite is set to
 % false look for previous data
@@ -51,11 +55,11 @@ end
 
 if uniform == true
     % Use build in laplcian, and gradient functions
-    [udx, udy, vdx, vdy, pod_udx, pod_udy, pod_vdx, pod_vdy] = ...
-        components_ws_fast(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, num_modes, num_elem);
+    [udx, udy, vdx, vdy, pod_udx, pod_udy, pod_vdx, pod_vdy, mean_u, mean_v, pod_u, pod_v, vol_frac] = ...
+        components_ws_fast(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, num_modes, vol_frac, bnd_idx, num_elem);
 else
-    [udx, udy, vdx, vdy, pod_udx, pod_udy, pod_vdx, pod_vdy] = ...
-        components_ws(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, num_modes);
+    [udx, udy, vdx, vdy, pod_udx, pod_udy, pod_vdx, pod_vdy, mean_u, mean_v, pod_u, pod_v, vol_frac] = ...
+        components_ws(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, num_modes, vol_frac, bnd_idx);
 end
 
 qu = mean_u.*udx + mean_v.*udy;
