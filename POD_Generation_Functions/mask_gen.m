@@ -88,7 +88,7 @@ uiwait(f);
   % Push button callbacks. Each callback plots current_data in the
   % specified plot type.
 
-    function hsave_Callback(source, eventdata) 
+    function hsave_Callback(~, ~) 
     % Display mesh plot of the currently selected data.
         bnd_x = bnd_x_temp;
         bnd_y = bnd_y_temp;
@@ -96,7 +96,7 @@ uiwait(f);
         close all
     end
 
-    function hupdate_Callback(source, eventdata) 
+    function hupdate_Callback(~, ~) 
     % Display contour plot of the currently selected data.
         bounds = htable.Data;
 
@@ -146,7 +146,7 @@ uiwait(f);
         [~, haxes] = Plottec2(data, haxes, bnd_idx, bnd_x_temp, bnd_y_temp);
     end
 
-    function hclear_Callback(source, eventdata)
+    function hclear_Callback(~, ~)
         htable.Data = cell(8, 4);
         bnd_x_temp = bnd_x;
         bnd_y_temp = bnd_y;

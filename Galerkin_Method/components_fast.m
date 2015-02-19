@@ -39,6 +39,15 @@ vdy     = reshape(vdy, num_elem, 1);
 d2u     = reshape(d2u, num_elem, 1);
 d2v     = reshape(d2v, num_elem, 1);
 
+stripped = strip_boundaries({udx, udy, vdx, vdy, d2u, d2v}, bnd_idx);
+
+udx = stripped{1};
+udy = stripped{2};
+vdx = stripped{3};
+vdy = stripped{4};
+d2u = stripped{5};
+d2u = stripped{6};
+
 % Convert all matrix quantities to vectors for pod derivatives and
 % laplacian
 pod_udx     = reshape(pod_udx, num_elem, num_modes);

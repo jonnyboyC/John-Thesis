@@ -131,7 +131,7 @@ data.x = x;
 data.y = y;
 
 %% Perform Proper Orthogonal Decomposition
-covariance = cal_covariance_mat(flux_u, flux_v, vol_frac);
+covariance = cal_covariance_mat2(flux_u, flux_v, vol_frac, bnd_idx);
 [pod_u, pod_v, lambda2, modal_amp_raw, cutoff] =  calc_eig_modes2(covariance, flux_u, flux_v); 
 
 pod_u = regroup(pod_u, dimensions);
