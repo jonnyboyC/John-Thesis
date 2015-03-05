@@ -1,5 +1,5 @@
 function [xi, yi, ui, vi, u_scale, direct] = Velocity_Read_Save(num_images, load_raw, image_range, ...
-                                            l_scale, u_scale_gen, flip_x, flip_y, direct)
+                                            l_scale, u_scale_gen, flip, direct)
 % VELOCITY_READ_PLOT_SAVE read num_images number of images from a selected
 % directory.
 %   [x, y, u, v, num_x, num_y] = VELOCITY_READ_PLOT_SAVE(num_images)
@@ -42,11 +42,11 @@ if num_images < num_files
 end
 
 if strcmpi(file_type, '.mat')
-    [xi, yi, ui, vi, u_scale] = load_mat(img_files, num_files, num_images, image_range, l_scale, u_scale_gen, flip_x, flip_y, direct);
+    [xi, yi, ui, vi, u_scale] = load_mat(img_files, num_files, num_images, image_range, l_scale, u_scale_gen, flip, direct);
 elseif any(strcmpi(file_type, {'.vc7', '.im7'}))
-    [xi, yi, ui, vi, u_scale] = load_vc7(img_files, num_files, num_images, image_range, l_scale, u_scale_gen, flip_x, flip_y, direct);
+    [xi, yi, ui, vi, u_scale] = load_vc7(img_files, num_files, num_images, image_range, l_scale, u_scale_gen, flip, direct);
 else
-    [xi, yi, ui, vi, u_scale] = load_dat(img_files, num_files, num_images, image_range, l_scale, u_scale_gen, flip_x, flip_y, direct);
+    [xi, yi, ui, vi, u_scale] = load_dat(img_files, num_files, num_images, image_range, l_scale, u_scale_gen, flip, direct);
 end
 end
 
@@ -54,7 +54,7 @@ end
 
 % Function to load files of .mat format
 function [xi, yi, ui, vi, u_scale] = load_mat(img_files, num_files, num_images, image_range, ...
-                                    l_scale, u_scale_gen, flip_x, flip_y, direct)
+                                    l_scale, u_scale_gen, flip, direct)
 
 % Get dimensions of image
 load([direct '\Raw Data\' img_files(1).name], 'x', 'y');
@@ -85,9 +85,9 @@ for i = 1:num_files
 
     % Perform image rotation if necessary
     if isempty(image_range)
-        [xi, yi, ui(:,:,i), vi(:,:,i)] = image_rotation(x, y, u, v, flip_x, flip_y);
+        [xi, yi, ui(:,:,i), vi(:,:,i)] = image_rotation(x, y, u, v, flip);
     else
-        [x_temp, y_temp, u_temp, v_temp] = image_rotation(x, y, u, v, flip_x, flip_y);
+        [x_temp, y_temp, u_temp, v_temp] = image_rotation(x, y, u, v, flip);
         xi = x_temp(image_range(1):image_range(2), image_range(3):image_range(4));
         yi = y_temp(image_range(1):image_range(2), image_range(3):image_range(4));
         ui(:,:,i) = u_temp(image_range(1):image_range(2), image_range(3):image_range(4),i);
@@ -106,7 +106,7 @@ end
 
 % Function to load files of the .vc7/.im7 format
 function [xi, yi, ui, vi, u_scale] = load_vc7(img_files, num_files, num_images, image_range, ...
-                                    l_scale, u_scale_gen, flip_x, flip_y, direct)
+                                    l_scale, u_scale_gen, flip, direct)
 
 % Get dimensions of image
 lavdata = readimx([direct '\Raw Data\' img_files(1).name]);
@@ -146,9 +146,9 @@ for i = 1:num_files
 
     % Rotate images to proper orientation
     if isempty(image_range)
-        [xi, yi, ui(:,:,i), vi(:,:,i)] = image_rotation(x, y, u, v, flip_x, flip_y); 
+        [xi, yi, ui(:,:,i), vi(:,:,i)] = image_rotation(x, y, u, v, flip); 
     else
-        [x_temp, y_temp, u_temp, v_temp] = image_rotation(x, y, u, v, flip_x, flip_y);
+        [x_temp, y_temp, u_temp, v_temp] = image_rotation(x, y, u, v, flip);
         xi = x_temp(image_range(1):image_range(2), image_range(3):image_range(4));
         yi = y_temp(image_range(1):image_range(2), image_range(3):image_range(4));
         ui(:,:,i) = u_temp(image_range(1):image_range(2), image_range(3):image_range(4));
@@ -167,7 +167,7 @@ end
 
 %TODO currently stub 
 function [xi, yi, ui, vi, u_scale] = load_dat(img_files, num_files, num_images, image_range, ...
-                                    l_scale, u_scale_gen, flip_x, flip_y, direct)
+                                    l_scale, u_scale_gen, flip, direct)
 
 data_file = fopen([direct '\Raw Data\' img_files(1).name]);
 
@@ -183,7 +183,7 @@ num_y = num_y_org;
 fclose(data_file);
 
 
-if ~isempty(image_range)edi
+if ~isempty(image_range)
     if image_range(2) < num_x && image_range(1) >= 0
         num_x = image_range(2)-image_range(1)+1;
     end
@@ -220,9 +220,9 @@ for i = 1:num_files
 
     % Rotate images to proper orientation
     if isempty(image_range)
-        [xi, yi, ui(:,:,i), vi(:,:,i)] = image_rotation(x, y, u, v, flip_x, flip_y); 
+        [xi, yi, ui(:,:,i), vi(:,:,i)] = image_rotation(x, y, u, v, flip); 
     else
-        [x_temp, y_temp, u_temp, v_temp] = image_rotation(x, y, u, v, flip_x, flip_y);
+        [x_temp, y_temp, u_temp, v_temp] = image_rotation(x, y, u, v, flip);
         xi = x_temp(image_range(1):image_range(2), image_range(3):image_range(4));
         yi = y_temp(image_range(1):image_range(2), image_range(3):image_range(4));
         ui(:,:,i) = u_temp(image_range(1):image_range(2), image_range(3):image_range(4));

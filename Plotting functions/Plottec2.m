@@ -44,7 +44,7 @@ if nargin == 1 || nargin >= 3
     set(ax, 'View', [0 90]);
     set(ax, 'Box', 'on');
     axis([minx maxx miny maxy]);
-    colormap(ax, jet);
+    colormap(ax, 'jet');
     axis(ax, 'equal')
     axis(ax, 'tight');
 else

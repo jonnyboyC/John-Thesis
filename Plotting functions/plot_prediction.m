@@ -1,11 +1,13 @@
-function plot_prediction(pod_u, pod_v, x, y, modal_amp, t, num_pods, dimensions, direct, id)
+function plot_prediction(pod_u, pod_v, pod_vor, x, y, bnd_idx, modal_amp, t, num_pods, dimensions, direct, id)
 % Create a movie of the time response of the predicted Galerkin sytem
 
 % Check to match sure requested image isn't too large
-if size(modal_amp,1) > 5000
-    step_size = ceil(size(modal_amp,1)/5000);
-    plot_points = 1:step_size:size(modal_amp,1);
-end
+% if size(modal_amp,1) > 5000
+%     step_size = ceil(size(modal_amp,1)/5000);
+%     plot_points = 1:step_size:size(modal_amp,1);
+% else
+    plot_points = 1:size(modal_amp,1);
+% end
 
 % Fill all plots with blank images to set renderer to opengl
 dummie = zeros(2,2);
@@ -35,6 +37,9 @@ axis tight
 set(gca, 'nextplot', 'replacechildren');
 set(h, 'Renderer', 'opengl');
 
+if length(t) < 2 
+    return;
+else
 Hz = 1/(t(2) - t(1));
 
 % Intialize Video creator
@@ -67,7 +72,7 @@ for i = plot_points;
         data_v(:,:,idx) =  data_v(:,:,idx)...
             + reshape(pod_v(:,j)*modal_amp(i,j),dimensions(1), dimensions(2));
         data_vor(:,:,idx) =  data_vor(:,:,idx)...
-            + reshape(pod_v(:,j)*modal_amp(i,j),dimensions(1), dimensions(2));
+            + reshape(pod_vor(:,j)*modal_amp(i,j),dimensions(1), dimensions(2));
     end
     data_m(:,:,idx) = sqrt(data_u(:,:,idx).^2+data_v(:,:,idx).^2);
     idx = idx + 1;
@@ -99,7 +104,7 @@ for i = 1:size(plot_points,2)
         data_temp.cmax = cmax(j);
         subplot(2,2,j);
         if i == 1
-            [h_sub(j), ax_sub(j)] = Plottec2(data_temp);
+            [h_sub(j), ax_sub(j)] = Plottec2(data_temp, 0, bnd_idx);
             ax_sub(j).Title = title(type{j}, 'fontname','times new roman','fontsize', 14);
             ax_sub(j).XLabel = xlabel('x/D', 'fontname','times new roman','fontsize',12);
             ax_sub(j).YLabel = ylabel('y/D', 'fontname','times new roman','fontsize',12);

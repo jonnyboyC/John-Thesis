@@ -120,6 +120,7 @@ mean_u      = vars.results.mean_u;      % mean streamwise velocity
 mean_v      = vars.results.mean_v;      % mean spanwise velocity
 pod_u       = vars.results.pod_u;       % streamwise pod modes
 pod_v       = vars.results.pod_v;       % spanwise pod modes
+pod_vor     = vars.results.pod_vor;     % vorticity modes
 lambda2     = vars.results.lambda2;     % eigenvalues of modes
 modal_amp_raw = vars.results.modal_amp_raw;   % modal amplitude of each image in pod basis
 dimensions  = vars.results.dimensions;  % dimensions of mesh
@@ -199,6 +200,7 @@ end
 
 pod_ut = pod_u(:,1:num_modesG);
 pod_vt = pod_v(:,1:num_modesG);
+pod_vor = pod_vor(:,1:num_modesG);
 
 coef_problem.pod_u = pod_ut;
 coef_problem.pod_v = pod_vt;
@@ -242,11 +244,21 @@ if ismember('Couplet', dissapation);
         niu{1,1} = viscious_dis_couplet(modal_amp_raw, num_modesG, l_dot{1,1}, ...
             l{1,1}, q_2dot{1,1}, q_dot{1,1}, q{1,1}, Re0);
         niu{1,2} = 'Base Couplet';
+        l_dot{1,1} = l_dot{3,1};
+        l{1,1} = l{3,1};
+        q_2dot{1,1} = q_2dot{3,1};
+        q_dot{1,1} = q_dot{3,1};
+        q{1,1} = q{3,1};
     end
     if ismember('Weak', solution)
         niu{2,1} = viscious_dis_couplet(modal_amp_raw, num_modesG, l_dot{2,1}, ...
             l{2,1}, q_2dot{2,1}, q_dot{2,1}, q{2,1}, Re0);
         niu{2,2} = 'Weak Couplet';
+        l_dot{2,1} = l_dot{4,1};
+        l{2,1} = l{4,1};
+        q_2dot{2,1} = q_2dot{4,1};
+        q_dot{2,1} = q_dot{4,1};
+        q{2,1} = q{4,1};
     end
 end
 
@@ -342,6 +354,7 @@ plot_data.num_modes     = num_modesG;
 plot_data.direct        = direct;
 plot_data.pod_ut        = pod_ut;
 plot_data.pod_vt        = pod_vt;
+plot_data.pod_vor     = pod_vor;
 plot_data.dimensions    = dimensions;
 plot_data.fft_window    = fft_window;
 plot_data.u_scale       = u_scale;
@@ -350,6 +363,7 @@ plot_data.plot_type     = plot_type;
 plot_data.sample_freq   = sample_freq;
 plot_data.x             = x;
 plot_data.y             = y;
+plot_data.bnd_idx       = bnd_idx;
 
 all_ids = {'og'};
 all_ids(2:5) = niu(:,2)';
@@ -364,12 +378,6 @@ for i = 1:size(all_ids,2);
         plot_data.id = all_ids{i};
         plot_data.modal_amp = all_modal_amps{i};
         plot_data.t = all_t{i};
-        % TODO remove
-        if i == 5
-            plot_data.plot_type = {'amp', 'fft', 'video'};
-        else
-            plot_data.plot_type = {'amp', 'fft'};
-        end
         produce_plots(plot_data);
     end
 end

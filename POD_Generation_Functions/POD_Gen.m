@@ -53,8 +53,8 @@ clc
 % List of fields that will be checked
 fields = {  'num_images',   'load_raw',     'save_pod', ...
             'image_range',  'direct',       'l_scale', ...
-            'u_scale_gen',  'save_figures', 'flip_x', ...
-            'flip_y',       'new_mask'};
+            'u_scale_gen',  'save_figures', 'flip',...
+            'new_mask'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -74,8 +74,7 @@ direct      = problem.direct;
 l_scale     = problem.l_scale;
 u_scale_gen = problem.u_scale_gen;
 save_figures= problem.save_figures;
-flip_x      = problem.flip_x;
-flip_y      = problem.flip_y;
+flip        = problem.flip;
 new_mask    = problem.new_mask;
 
 clear problem
@@ -84,7 +83,7 @@ clear problem
 
 % Load simulation data from raw .vc7 or .mat, or from processed .mat
 [x, y, u, v, u_scale, direct] = Velocity_Read_Save(num_images, load_raw, image_range, ...
-                            l_scale, u_scale_gen, flip_x, flip_y, direct);
+                            l_scale, u_scale_gen, flip, direct);
 
 % mean velocities and picture dimensions
 mean_u = mean(u,3);
@@ -149,12 +148,12 @@ end
 
 % Currently using built in curl function may need to have option for
 % non-uniform mesh 
-vorticity = calc_vorticity2(pod_u, pod_v, dimensions, cutoff);
+pod_vor = calc_vorticity2(pod_u, pod_v, dimensions, cutoff);
 
-% Calculate vorticity
+% Calculate pod_vor
 pod_u = reshape(pod_u, data_points, cutoff);
 pod_v = reshape(pod_v, data_points, cutoff);
-vorticity = reshape(vorticity, data_points, cutoff);
+pod_vor = reshape(pod_vor, data_points, cutoff);
 
 %% Setup for Plotting and Plotting
 if cutoff > 40
@@ -166,7 +165,7 @@ end
 % Plot pod modes
 Plotsvd2(data, pod_u(:,1:num_plot), dimensions, 'u', lambda2, bnd_idx, direct, save_figures);
 Plotsvd2(data, pod_v(:,1:num_plot), dimensions, 'v', lambda2, bnd_idx, direct, save_figures);
-Plotsvd2(data, vorticity(:,1:num_plot), dimensions, 'vorticity', lambda2, bnd_idx, direct, save_figures);
+Plotsvd2(data, pod_vor(:,1:num_plot), dimensions, 'vorticity', lambda2, bnd_idx, direct, save_figures);
 
 %% Save / Dump variables
 run_num = floor(100000*rand(1));
@@ -186,7 +185,7 @@ results.lambda2 = lambda2;
 results.l_scale = l_scale;
 results.u_scale = u_scale;
 results.vol_frac = vol_frac;
-results.vorticty = vorticity;
+results.pod_vor = pod_vor;
 results.cutoff = cutoff;
 results.uniform = uniform;
 results.dimensions = dimensions;

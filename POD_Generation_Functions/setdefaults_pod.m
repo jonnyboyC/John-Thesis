@@ -43,26 +43,20 @@ end
 
 % Default for l_scale
 if isempty(problem.l_scale) || ~isscalar(problem.l_scale)
-    fprintf('Using default values for l_sacle\nproblem.l_scale = 1\n\n');
+    fprintf('Using default values for l_scale\nproblem.l_scale = 1\n\n');
     problem.l_scale = 1;    % Length Scale for problem
 end
 
 % Default for u_scale_gen
 if isempty(problem.u_scale_gen) || (~isscalar(problem.u_scale_gen) && ~isa(problem.u_scale_gen, 'function_handle'))
-    fprintf('Using default values for u_scale_gen\nproblem.u_scale_gen_shear = 1n\n');
+    fprintf('Using default values for u_scale_gen\nproblem.u_scale_gen_shear = 1\n\n');
     problem.u_scale_gen = 1;  	% Length scale for problem
 end
 
-% Default for flip_x
-if isempty(problem.flip_x) || ~islogical(problem.flip_x)
-    fprintf('Using default value for flip_x\nproblem.flip_x = false\n\n');
-    problem.flip_x = false;        % save pod results
-end
-
-% Default for flip_y
-if isempty(problem.flip_y) || ~islogical(problem.flip_y)
-    fprintf('Using default value for flip_y\nproblem.flip_y = false\n\n');
-    problem.flip_y = false;        % save pod results
+% Default for flip
+if isempty(problem.flip) || ~isequal(size(problem.flip), [1, 4]) || ~all(arrayfun(@islogical, problem.flip)) 
+    fprintf('Using default value for flip_x\nproblem.flip = [false, false, false, false]\n\n');
+    problem.flip = [false, false, false, false];        % save pod results
 end
 
 % Default for new_mask

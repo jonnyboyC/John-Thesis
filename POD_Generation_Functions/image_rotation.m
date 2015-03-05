@@ -1,4 +1,4 @@
-function [xn, yn, un, vn] = image_rotation(x, y, u, v, flip_x, flip_y)
+function [xn, yn, un, vn] = image_rotation(x, y, u, v, flip)
 %% Rotation PIV images, if data is originally presented in a flipped format
 
 % prefill for speed
@@ -7,22 +7,21 @@ yn = zeros(size(y));
 un = zeros(size(u));
 vn = zeros(size(v));
 
-% TODO come up with more elegant solution
-if all(x <= 0)
-    x = x*-1;
-end
-
 % create vector of indexes to avoid loops
 x_idx = 1:size(x,1);
 y_idx = 1:size(y,2);
 
 % Flip x and y if requested
-if flip_x
+if flip(1) 
     x = -x; 
+end
+if flip(2)
+    y = -y;
+end
+if flip(3)
     u = -u;
 end
-if flip_y
-    y = -y;
+if flip(4)
     v = -y;
 end
 

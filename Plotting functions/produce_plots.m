@@ -7,6 +7,7 @@ t           = plot_data.t;
 direct      = plot_data.direct;
 pod_ut      = plot_data.pod_ut;
 pod_vt      = plot_data.pod_vt;
+pod_vor   = plot_data.pod_vor;
 dimensions  = plot_data.dimensions;
 fft_window  = plot_data.fft_window;
 sample_freq = plot_data.sample_freq;
@@ -16,6 +17,7 @@ id          = plot_data.id;
 plot_type   = plot_data.plot_type;
 x           = plot_data.x;
 y           = plot_data.y;
+bnd_idx     = plot_data.bnd_idx;
 
 t_scale = u_scale/l_scale;
 sample_freq = sample_freq*t_scale;
@@ -28,7 +30,7 @@ end
 
 % TODO significant overhaul to this function
 if any(strcmp(plot_type, 'video'))
-    plot_prediction(pod_ut, pod_vt, x, y, modal_amp, t, num_modes, dimensions, direct, id)
+    plot_prediction(pod_ut, pod_vt, pod_vor, x, y, bnd_idx, modal_amp, t, num_modes, dimensions, direct, id)
 end
 
 % Plot modal fft
