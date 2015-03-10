@@ -98,7 +98,6 @@ data_points = numel(x);
 
 % find boundaries of velocity image
 [bnd_x, bnd_y, bnd_idx] = boundary_check_chabot(x, mean_u);
-% [bnd_x, bnd_y, bnd_idx] = boundary_check(x, y, mean_u);
 
 % Exactly define flow boundaries
 [bnd_x, bnd_y] = refine_bounds(x, y, mean_u, bnd_idx, bnd_x, bnd_y, direct, new_mask);
@@ -148,7 +147,9 @@ end
 
 % Currently using built in curl function may need to have option for
 % non-uniform mesh 
-pod_vor = calc_vorticity2(pod_u, pod_v, dimensions, cutoff);
+if uniform
+    pod_vor = calc_pod_vor_fast(pod_u, pod_v, dimensions, cutoff);
+end
 
 % Calculate pod_vor
 pod_u = reshape(pod_u, data_points, cutoff);
@@ -195,7 +196,7 @@ results.bnd_y = bnd_y;
 
 % Save variables relavent to Galerkin to .mat files
 if save_pod == true
-    save([direct '\POD Data\POD_run_' num2str(run_num) '.mat'], 'results', '-v7.3');
+    save([direct filesep 'POD Data' filesep 'POD_run_' num2str(run_num) '.mat'], 'results', '-v7.3');
 end
 
 if nargout == 1

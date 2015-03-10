@@ -18,11 +18,11 @@ function [file_loc, direct] = prompt_folder(data, run_num, direct, num_modes)
 % Select correct subfolder
 switch data;
     case 'POD'
-        data_folder = '\POD Data\';
+        data_folder = 'POD Data';
     case 'Raw'
-        data_folder = '\Raw Data\';
+        data_folder = 'Raw Data';
     case 'Galerkin'
-        data_folder = '\Galerkin Coeff\';
+        data_folder = 'Galerkin Coeff';
 end
 
 % if mat_name is empty fill with empty cells
@@ -31,13 +31,10 @@ if nargin < 4
 end
 
 % If only one one input given prompt for directory
-if nargin == 2
-    % Used by uigetdir to location initial folder    
-    start_direct = 'D:\shear layer\PIVData';
-    
+if nargin == 2    
     % Prompt the user for location of Test folder
     fprintf(1, ['Please choose test data ' data_folder(2:end-1) '\n']);
-    direct = uigetdir(start_direct, data_folder(2:end-1)); 
+    direct = uigetdir('', data_folder(2:end-1)); 
 end
 
 % Get file(s) information
@@ -50,7 +47,7 @@ function file_loc = get_data(data_folder, data, direct, run_num, num_modes)
 wildcard = get_wild(run_num, direct, data_folder, num_modes);
 
 % Look in provided directory for .mat files
-files = dir([direct data_folder wildcard]);
+files = dir([direct filesep data_folder filesep wildcard]);
 
 % If none are found prompt user to run previous level code
 if size(files,1) == 0
@@ -58,15 +55,15 @@ if size(files,1) == 0
 
 % If only one is found use that as the file location
 elseif size(files, 1) == 1
-    file_loc = [direct data_folder files(1).name];
+    file_loc = [direct filesep data_folder filesep files(1).name];
 
 % If more than one is found, either select the provided mat_name from
 % input or prompt user to select mat
 elseif size(files, 1) > 1
-    cd([direct data_folder]);
+    cd([direct filesep data_folder]);
     fprintf(1, 'Please choose specific .mat file\n');
     num_modes = uigetfile({'*.mat'}, 'Choose .mat file');
-    file_loc = [direct data_folder num_modes];
+    file_loc = [direct filesep data_folder filesep num_modes];
 end
 
 end
@@ -76,7 +73,7 @@ function wildcard = get_wild(run_num, direct, data_folder, num_modes)
 if ischar(run_num)
     if strcmp(run_num, 'first')
         % Find newest file
-        files = dir([direct data_folder]);
+        files = dir([direct filesep data_folder]);
         [~, idx] = sort([files.datenum], 2, 'descend');
         files = files(idx);
         matches_idx = 0;
