@@ -1,4 +1,4 @@
-function [udx, udy, vdx, vdy, pod_udx, pod_udy, pod_vdx, pod_vdy, mean_u, mean_v, pod_u, pod_v, vol_frac] = ...
+function [pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac] = ...
         components_ws(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, num_modes, vol_frac, bnd_idx)
 
 if num_modes > 30
@@ -9,15 +9,10 @@ end
 
 % TODO figure out what is really being calculated here
 [xxi, yxi, xet, yet, aj] = metric2(x, y);
-    
-% Calculate coefficients for u's & v's derivatives
-[udx, ~, udy, ~] = derivatives(mean_u, dimensions, z, xxi, yxi,...
-    xet, yet, aj, bnd_idx);
-[vdx, ~, vdy, ~] = derivatives(mean_v, dimensions, z, xxi, yxi,...
-    xet, yet, aj, bnd_idx);
 
-[udx, udy, vdx, vdy, mean_u, mean_v, vol_frac] ...
-    = strip_boundaries(bnd_idx, udx, udy, vdx, vdy, mean_u, mean_v, vol_frac);
+% Add mean flows as mode zero
+pod_u = [mean_u, pod_u];
+pod_v = [mean_v, pod_v];
 
 % Calculate coefficients for for pod_u's & pod_v's derivatives
 [pod_udx, ~, pod_udy, ~] = derivatives(pod_u, dimensions, ...
@@ -25,6 +20,6 @@ end
 [pod_vdx, ~, pod_vdy, ~] = derivatives(pod_v, dimensions, ...
     z, xxi, yxi, xet, yet, aj, bnd_idx);
 
-[pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v] = ...
-    strip_boundaries(bnd_idx, pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v);
+[pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac] = ...
+    strip_boundaries(bnd_idx, pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac);
 end

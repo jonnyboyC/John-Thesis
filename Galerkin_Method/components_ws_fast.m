@@ -1,17 +1,16 @@
-function [udx, udy, vdx, vdy, pod_udx, pod_udy, pod_vdx, pod_vdy, mean_u, mean_v, pod_u, pod_v, vol_frac] = ...
+function [pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac] = ...
         components_ws_fast(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, num_modes, vol_frac, bnd_idx, num_elem)
+% Calculate spacing
+hu = abs(mean(mean(x(1:end-1,:),2) - mean(x(2:end,:),2)));
+hv = abs(mean(mean(y(:,1:end-1),1) - mean(y(:,2:end),1)));
 
-hu = mean(mean(x(1:end-1,:),2) - mean(x(2:end,:),2));
-hv = mean(mean(y(:,1:end-1),1) - mean(y(:,2:end),1));
+% Add mean flows as mode zero
+pod_u = [mean_u, pod_u];
+pod_v = [mean_v, pod_v];
 
 % TODO determine why these all need to be negative to match
-mean_u = reshape(mean_u, dimensions(1), dimensions(2));
-mean_v = reshape(mean_v, dimensions(1), dimensions(2));
 pod_u = regroup(pod_u, dimensions);
 pod_v = regroup(pod_v, dimensions);
-
-[udy,udx] = gradient(mean_u, hu, hv);   % gradient of mean u flow
-[vdy,vdx] = gradient(mean_v, hu, hv);   % gradient of mean v flow
 
 pod_udx = zeros(size(pod_u));   % x derivative pod_u
 pod_udy = zeros(size(pod_u));   % y derivative pod_u
@@ -26,29 +25,14 @@ end
 
 pod_u = reshape(pod_u, [], num_modes);
 pod_v = reshape(pod_v, [], num_modes);
-mean_u = reshape(mean_u, [], 1);
-mean_v = reshape(mean_v, [], 1);
 
-[pod_u, pod_v, mean_u, mean_v, vol_frac] = ...
-    strip_boundaries(bnd_idx, pod_u, pod_v, mean_u, mean_v, vol_frac);
-
-% Convert all matrix quantities to vectors for mean derivatives and
-% laplacian
-udx     = reshape(udx, num_elem, 1);
-udy     = reshape(udy, num_elem, 1);
-vdx     = reshape(vdx, num_elem, 1);
-vdy     = reshape(vdy, num_elem, 1);
-
-[udx, udy, vdx, vdy] = strip_boundaries(bnd_idx, udx, udy, vdx, vdy);
-
-% Convert all matrix quantities to vectors for pod derivatives and
-% laplacian
+% Convert all matrices to vectors for later Calculation
 pod_udx     = reshape(pod_udx, num_elem, num_modes);
 pod_udy     = reshape(pod_udy, num_elem, num_modes);
 pod_vdx     = reshape(pod_vdx, num_elem, num_modes);
 pod_vdy     = reshape(pod_vdy, num_elem, num_modes);
 
-[pod_udx, pod_udy, pod_vdx, pod_vdy] = ...
-    strip_boundaries(bnd_idx, pod_udx, pod_udy, pod_vdx, pod_vdy);
-
+% Strip boundaries
+[pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac] = ...
+    strip_boundaries(bnd_idx, pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac);
 end

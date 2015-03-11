@@ -47,9 +47,7 @@ function res = Galerkin_Proj(varargin)
 %
 % problem.dissapation = {'Noack', 'Couplet'}
 % Specify which viscious dissapation method(s) to use
-%
-% problem.solution = {'Base', 'Weak'}
-% Specify how visocity coefficients are calculated
+
 
 
 % Set format, clear figures, and set up correct directory
@@ -59,14 +57,12 @@ clc;
 
 % TODO need to allow to have multiple datasets present to more rapidly
 % experiement with runs
-% TODO make calculating coefficeints and plotting more generic so more can
-% be added later
 
 %List of fields that will be checked
 fields = {  'num_modesG',   'plot_type',    'save_coef', ...
             'override_coef','tspan',        'init', ...
             'direct' ,      'Re0_gen',      'fft_window', ...
-            'run_num',      'dissapation',  'solution'};
+            'run_num',      'dissapation'};
         
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -88,7 +84,6 @@ init            = problem.init;
 direct          = problem.direct;
 Re0_gen         = problem.Re0_gen;     
 fft_window      = problem.fft_window;
-solution        = problem.solution;
 dissapation     = problem.dissapation;
 
 % Check status of parrallel pool
@@ -122,7 +117,8 @@ pod_u       = vars.results.pod_u;       % streamwise pod modes
 pod_v       = vars.results.pod_v;       % spanwise pod modes
 pod_vor     = vars.results.pod_vor;     % vorticity modes
 lambda2     = vars.results.lambda2;     % eigenvalues of modes
-modal_amp_raw = vars.results.modal_amp_raw;   % modal amplitude of each image in pod basis
+modal_amp_mean = vars.results.modal_amp_mean;   % modal amplitude mean from raw data
+modal_amp_flux = vars.results.modal_amp_flux;   % modal amplitude flucuations from raw data
 dimensions  = vars.results.dimensions;  % dimensions of mesh
 vol_frac    = vars.results.vol_frac;    % mesh area size
 bnd_idx     = vars.results.bnd_idx;     % location of boundaries
@@ -134,8 +130,9 @@ cutoff      = vars.results.cutoff;      % number of modes at cutoff
 
 clear vars
 
-% TODO may want to pass calculated high side velocity and calculate this
-Re0 = Re0_gen(direct, u_scale, l_scale);    % Get Reynolds number        
+% Get Reynolds number 
+Re0 = Re0_gen(direct, u_scale, l_scale);      
+
 z = ones(size(x));          % Depth of velocity field
 t_scale = u_scale/l_scale;  % time scale
 tspan = tspan*t_scale;      % non dimensionalized timescale
@@ -167,68 +164,47 @@ coef_problem.override_coef  = override_coef;
 coef_problem.direct         = direct;
 coef_problem.uniform        = uniform; 
 
+% Free memory 
+clear mean_u mean_v pod_u pod_v vol_frac bnd_x bnd_y 
+clear z override_coef uniform
+
 % Prefill Cells
 l       = cell(4,2);
-l_dot   = cell(4,2);
-q_2dot  = cell(4,2);
-q_dot   = cell(4,2);
 q       = cell(4,2);
 
-% Generate unresolved coefficients, calculating only requested values
+% Generate values up to cutoff to be used for Couplet viscous dissipation
 if ismember('Couplet', dissapation);
-    if ismember('Base', solution)
-        fprintf('Generating coefficients for unresolved modes using %d modes\n\n', cutoff);
-        [l_dot{1,1} , l{1,1},  q_2dot{1,1},  q_dot{1,1},  q{1,1}]  = ...
-            visocity_coefficients(coef_problem);
-        l_dot{1,2}     = 'Base cutoff';
-        l{1,2}         = 'Base cutoff';
-        q_2dot{1,2}    = 'Base cutoff';
-        q_dot{1,2}     = 'Base cutoff';
-        q{1,2}         = 'Base cutoff';
-    end
-    if ismember('Weak', solution)
-        fprintf('Generating coefficients for unresolved modes using %d modes for Weak Solution \n\n', cutoff);
-        [l_dot{2,1} , l{2,1},  q_2dot{2,1},  q_dot{2,1},  q{2,1}] = ...
-            visocity_coefficients_ws(coef_problem); 
-        l_dot{2,2}     = 'Weak cutoff';
-        l{2,2}         = 'Weak cutoff';
-        q_2dot{2,2}    = 'Weak cutoff';
-        q_dot{2,2}     = 'Weak cutoff';
-        q{2,2}         = 'Weak cutoff';
-    end
+    % Calculate for traditional Galerkin Projection
+    fprintf('Generating coefficients for unresolved modes using %d modes\n\n', cutoff);
+    [l{1,1}, q{1,1}] = visocity_coefficients(coef_problem);
+    l{1,2}         = 'Base cutoff';
+    q{1,2}         = 'Base cutoff';
+    
+    % Calculate for weak formulation Galerkin Projection
+    fprintf('Generating coefficients for unresolved modes using %d modes for Weak Solution \n\n', cutoff);
+    l{2,1}  = visocity_coefficients_ws(coef_problem); 
+    l{2,2}  = 'Weak cutoff';
+    q{2,1}  = q{1,1}; 
+    q{2,2}  = 'Weak cutoff';
 end
 
-pod_ut = pod_u(:,1:num_modesG);
-pod_vt = pod_v(:,1:num_modesG);
+pod_ut  = coef_problem.pod_u(:,1:num_modesG);
+pod_vt  = coef_problem.pod_v(:,1:num_modesG);
 pod_vor = pod_vor(:,1:num_modesG);
 
 coef_problem.pod_u = pod_ut;
 coef_problem.pod_v = pod_vt;
 
-% Generate resolved coefficients, calculating only requested values
-if ismember('Base', solution)
-    fprintf('Generating coefficients for resolved modes using %d modes\n\n', num_modesG);
-    [l_dot{3,1} , l{3,1},  q_2dot{3,1},  q_dot{3,1},  q{3,1}] = ... 
-        visocity_coefficients(coef_problem);
-    l_dot{3,2}     = 'Base num modes';
-    l{3,2}         = 'Base num modes';
-    q_2dot{3,2}    = 'Base num modes';
-    q_dot{3,2}     = 'Base num modes';
-    q{3,2}         = 'Base num modes';
-end
-if ismember('Weak', solution)
-    fprintf('Generating coefficients for resolved modes using %d modes for Weak Solution \n\n', num_modesG);
-    [l_dot{4,1} , l{4,1},  q_2dot{4,1},  q_dot{4,1},  q{4,1}] = ...
-        visocity_coefficients_ws(coef_problem); 
-    l_dot{4,2}     = 'Weak num modes';
-    l{4,2}         = 'Weak num modes';
-    q_2dot{4,2}    = 'Weak num modes';
-    q_dot{4,2}     = 'Weak num modes';
-    q{4,2}         = 'Weak num modes';
-end
+fprintf('Generating coefficients for resolved modes using %d modes\n\n', num_modesG);
+[l{3,1}, q{3,1}] = visocity_coefficients(coef_problem);
+l{3,2}	= 'Base num modes';
+q{3,2}	= 'Base num modes';
 
-% Free memory
-clear pod_u pod_v mean_u mean_v
+fprintf('Generating coefficients for resolved modes using %d modes for Weak Solution \n\n', num_modesG);
+l{4,1}  = visocity_coefficients_ws(coef_problem); 
+l{4,2}	= 'Weak num modes';
+q{4,1}  = q{3,1};
+q{4,2}	= 'Weak num modes';
 
 %% Modified coefficients 
 
@@ -240,74 +216,50 @@ niu   = cell(4,2);
 
 % calculate coefficients detailed by Couplet
 if ismember('Couplet', dissapation);
-    if ismember('Base', solution)
-        niu{1,1} = viscious_dis_couplet(modal_amp_raw, num_modesG, l_dot{1,1}, ...
-            l{1,1}, q_2dot{1,1}, q_dot{1,1}, q{1,1}, Re0);
-        niu{1,2} = 'Base Couplet';
-        l_dot{1,1} = l_dot{3,1};
-        l{1,1} = l{3,1};
-        q_2dot{1,1} = q_2dot{3,1};
-        q_dot{1,1} = q_dot{3,1};
-        q{1,1} = q{3,1};
-    end
-    if ismember('Weak', solution)
-        niu{2,1} = viscious_dis_couplet(modal_amp_raw, num_modesG, l_dot{2,1}, ...
-            l{2,1}, q_2dot{2,1}, q_dot{2,1}, q{2,1}, Re0);
-        niu{2,2} = 'Weak Couplet';
-        l_dot{2,1} = l_dot{4,1};
-        l{2,1} = l{4,1};
-        q_2dot{2,1} = q_2dot{4,1};
-        q_dot{2,1} = q_dot{4,1};
-        q{2,1} = q{4,1};
-    end
+    niu{1,1} = viscious_dis_couplet(modal_amp_flux, modal_amp_mean, num_modesG, l{1,1}, q{1,1}, Re0);
+    niu{1,2} = 'Base Couplet';
+    l{1,1} = l{3,1};
+    q{1,1} = q{3,1};
+
+    niu{2,1} = viscious_dis_couplet(modal_amp_flux, modal_amp_mean, num_modesG, l{2,1}, q{2,1}, Re0);
+    niu{2,2} = 'Weak Couplet';
+    l{2,1} = l{4,1};
+    q{2,1} = q{4,1};
 end
 
-%  calculate coefficeints detailed by Noack
-if ismember('Base', solution)
-    niu{3,1} = viscious_dis(modal_amp_raw, num_modesG, lambda2, l{3,1}, q_dot{3,1}, q{3,1});
-    niu{3,2} = 'Base Noack';
-end
-if ismember('Weak', solution)
-    niu{4,1} = viscious_dis(modal_amp_raw, num_modesG, lambda2, l{4,1}, q_dot{4,1}, q{4,1});
-    niu{4,2} = 'Weak Noack';
-end
+% Calculate coefficeints detailed by Noack
+niu{3,1} = viscious_dis(modal_amp_flux, modal_amp_mean, num_modesG, lambda2, l{3,1}, q{3,1}, Re0);
+niu{3,2} = 'Base Noack';
+
+niu{4,1} = viscious_dis(modal_amp_flux, modal_amp_mean, num_modesG, lambda2, l{4,1}, q{4,1}, Re0);
+niu{4,2} = 'Weak Noack';
                             
 % From Couplet (v + v_tilde) ie (1/Re + v_tilde)
 ni = cell(size(niu,1), 2);
 for i = 1:size(niu,1);
     if ~isempty(niu{i,1})
-        ni{i,1} = diag(niu{i,1}) + ones(num_modesG)/Re0;
+        ni{i,1} = repmat(niu{i,1} + 1/Re0,1,11);
         ni{i,2} = niu{i,2};
     end
 end
 
-% Calculate Constant terms terms
-c_og   = l_dot{3,1}/Re0 + q_2dot{3,1};
-ci  = cell(4,2);
-for i = 1:size(ni,1);
-    if ~isempty(ni{i,1})
-        ci{i,1} = ni{i,1}*l_dot{i,1} + q_2dot{i,1};
-        ci{i,2} = ni{i,2};
-    end
-end
-
 % Calculate Linear terms
-l_og    = l{3,1} + q_dot{3,1};
+l_og = l{3,1};
 li = cell(4,2);
 for i = 1:size(ni,1)
     if ~isempty(ni{i,1})
-        li{i,1} = ni{i,1}*l{i,1} + q_dot{i,1};
+        li{i,1} = ni{i,1}.*l{i,1};
         li{i,2} = ni{i,2};
     end
 end
 
 % System coefficients
 q_og = q{3,1};
-Gal_coeff      = [c_og  l_og  q_og];
+Gal_coeff     = [l_og  q_og];
 Gal_coeff_vis = cell(4,2);
 for i = 1:size(ni,1)
     if ~isempty(ni{i,1})
-        Gal_coeff_vis{i,1} = [ci{i,1}, li{i,1}, q{i,1}];
+        Gal_coeff_vis{i,1} = [li{i,1}, q{i,1}];
         Gal_coeff_vis{i,2} = ni{i,2};
     end
 end
@@ -329,7 +281,7 @@ options = odeset('RelTol', 1e-7, 'AbsTol', 1e-9);
 fprintf('Performing ode113 on base Galerkin system\n');
 tic;
 [t_og, modal_amp_og] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff_og), tspan, ...
-    modal_amp_raw(init,1:num_modesG), options);
+    modal_amp(init,1:num_modesG), options);
 toc1 = toc;
 fprintf('Completed in %f6.4 seconds\n\n', toc1);
 
@@ -341,7 +293,7 @@ for i = 1:size(ni,1)
         fprintf('Performing ode113 on Galerkin system with %s\n', reduced_model_coeff_vis{i,2});
         tic;
         [t_vis{i,1}, modal_amp_vis{i,1}] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff_vis{i,1}), tspan, ...
-            modal_amp_raw(init,1:num_modesG), options);
+            modal_amp(init,1:num_modesG), options);
         toc2 = toc;
         fprintf('Completed in %f6.4 seconds\n\n', toc2);
     end
@@ -354,7 +306,7 @@ plot_data.num_modes     = num_modesG;
 plot_data.direct        = direct;
 plot_data.pod_ut        = pod_ut;
 plot_data.pod_vt        = pod_vt;
-plot_data.pod_vor     = pod_vor;
+plot_data.pod_vor       = pod_vor;
 plot_data.dimensions    = dimensions;
 plot_data.fft_window    = fft_window;
 plot_data.u_scale       = u_scale;
@@ -386,18 +338,12 @@ fprintf('Saving Galerkin Variables\n');
 
 % Prepare data
 results.num_run = run_num;
-results.c_og = c_og;
 results.l_og = l_og;
 results.q_og = q_og;
 results.l = l;
-results.l_dot = l_dot;
 results.q = q;
-results.q_dot = q_dot;
-results.q_2dot = q_2dot;
-results.ci = ci;
 results.li = li;
 results.ni = ni;
-results.niu = niu;
 results.num_modesG = num_modesG;
 results.modal_amp_og = modal_amp_og;
 results.modal_amp_vis = modal_amp_vis;

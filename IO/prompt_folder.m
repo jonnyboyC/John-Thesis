@@ -33,8 +33,8 @@ end
 % If only one one input given prompt for directory
 if nargin == 2    
     % Prompt the user for location of Test folder
-    fprintf(1, ['Please choose test data ' data_folder(2:end-1) '\n']);
-    direct = uigetdir('', data_folder(2:end-1)); 
+    fprintf(1, ['Please choose test data ' data_folder '\n']);
+    direct = uigetdir('', data_folder); 
 end
 
 % Get file(s) information

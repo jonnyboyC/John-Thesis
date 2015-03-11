@@ -10,8 +10,8 @@ end
 % TODO figure out what is really being calculated here
 [xxi, yxi, xet, yet, aj] = metric2(x, y);
 
-pod_u = cat(3,mean_u, pod_u);
-pod_v = cat(3,mean_v, pod_v);
+pod_u = [mean_u, pod_u];
+pod_v = [mean_v, pod_v];
 
 % Calculate coefficients for for pod_u's & pod_v's derivatives
 [pod_udx, pod_ud2x, pod_udy, pod_ud2y] = derivatives(pod_u, dimensions, ...
@@ -42,6 +42,7 @@ d2pod_v = (pod_vd2x + pod_vd2y);
 cbu = inner_prod(d2pod_u, pod_u, vol_frac);
 cbv = inner_prod(d2pod_v, pod_v, vol_frac);
 l = cbu + cbv;
+l = l(2:end,:);
 
 if ~isempty(gcp)
     delete(gcp);

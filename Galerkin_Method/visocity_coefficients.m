@@ -1,5 +1,5 @@
-function [l_dot, l, q_2dot, q_dot, q] = visocity_coefficients(coef_problem)
-
+function [l, q] = visocity_coefficients(coef_problem)
+% Unpack Variables
 mean_u      = coef_problem.mean_u;
 mean_v      = coef_problem.mean_v;
 x           = coef_problem.x;
@@ -37,7 +37,7 @@ if override_coef == false;
    end
 end
 
-% will have mode zero corresponding to mean flow
+% Will have mode zero corresponding to mean flow
 num_modes = num_modes + 1;
 
 if uniform 
@@ -52,12 +52,12 @@ end
 clear x y dimensions bnd_idx z mean_u mean_v
 
 % max modes in memeory at once
-% bytesPerDouble = 8;
-% [~, system] = memory;
-% memory_limit = floor(system.PhysicalMemory.Available/(bytesPerDouble*num_modes*num_modes*1.2));
+bytesPerDouble = 8;
+[~, system] = memory;
+memory_limit = floor(system.PhysicalMemory.Available/(bytesPerDouble*num_modes*num_modes*1.2));
 
 % If Problem has over 400 modes need to break problem into chunks
-if true %num_modes < memory_limit;
+if num_modes < memory_limit;
     
     % Quadractic terms preallocation
     q = zeros(num_modes, num_modes, num_modes);
@@ -108,11 +108,11 @@ end
 clear pod_u pod_v pod_udx pod_udy pod_vdx pod_vdy f
 clear pod_u_pod_u_x pod_u_pod_v_x pod_v_pod_u_y pod_v_pod_v_y
 
-q = q(:,:,2:end);
+q = q(2:end,:,:);
 q = reshape(q, [], num_modes*num_modes);
 
-num_modes = num_modes;
-cutoff = num_modes-1;
+num_modes = num_modes-1;
+cutoff = num_modes;
 save([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_og_m' num2str(num_modes) '.mat'], ...
      'l', 'q', 'cutoff', 'run_num', '-v7.3'); 
 

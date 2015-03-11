@@ -71,17 +71,6 @@ end
 correct = {'Noack', 'Couplet'};
 problem.dissapation = list_check(problem.dissapation, correct, 'dissapation');
 
-% Default for solution
-if isempty(problem.solution) || ~iscell(problem.solution);
-    fprintf('Using default value for solution\nproblem.solution = {"Base", "Weak"}\n\n');
-    problem.solution = {'Base', 'Weak'};      % plot types to be used
-end
-
-% Check to make sure incorrect strings are not passed
-correct = {'Base', 'Weak'};
-problem.solution = list_check(problem.solution, correct, 'solution');
-
-
 % Default for run_num
 if isempty(problem.run_num) || ~isscalar(problem.run_num) || ~ischar(problem.run_num)
     fprintf('Using default value for run_num\nproblem.run_num = "first"\n\n');

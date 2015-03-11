@@ -1,23 +1,19 @@
-function niu = viscious_dis(modal_amp, num_modes, lambda2, l, q_dot, q)
+function modal_eddy_vis = viscious_dis(modal_amp, num_modes, lambda2, l, q, Re0)
 % Current Naive implementation of viscious disappation term, may want to
 % explore other proposed viscous dissapation methods
 
-% TODO what does nc mean, what is modal_amp
-nc = zeros(num_modes, num_modes);
-niu = zeros(num_modes,1);
-for k = 1:num_modes
-    idx = 1;
-    for i = 1:num_modes
-        for j = 1:num_modes
-            nc(i,j) = q(k,idx)*mean(modal_amp(:,i).*modal_amp(:,j).*modal_amp(:,k));
-            idx = idx+1;
+modal_eddy_vis = zeros(num_modes, 1);
+q_sum = zeros(num_modes,num_modes);
+num_modes = num_modes + 1;
+for i = 1:num_modes-1
+    q_temp = reshape(q(i,:), num_modes, num_modes);
+    for j = 1:num_modes;
+        for k = 1:num_modes;
+            q_sum(j,k) = q_temp(j, k)*mean(modal_amp(:,j).*modal_amp(:,k).*modal_amp(:,i));
         end
     end
-    mf_e = q_dot(k,k)*lambda2(k);
-    bc = l(k,k)*lambda2(k);
-    qc = sum(sum(nc));
-    uc = qc + mf_e;
-    niu(k) = -uc/bc;
+    l_sum = l(i,i)*lambda2(i);
+    modal_eddy_vis(i) = -(1/Re0 + sum(sum(q_sum))/l_sum);
 end
 
 end
