@@ -87,5 +87,11 @@ if ischar(problem.run_num)
     end
 end
 
+% Default for use chunks
+if isempty(problem.use_chunks) || ~islogical(problem.use_chunks)
+    fprintf('Using default value for use_chunks\nproblem.use_chunks = false\n\n');
+    problem.use_chunks = false;     % use chunks to calculate quadractic terms
+end
+
 end
 

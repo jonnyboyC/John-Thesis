@@ -1,9 +1,8 @@
 function [l, q] = visocity_coefficients(coef_problem)
 % Unpack Variables
-mean_u      = coef_problem.mean_u;
-mean_v      = coef_problem.mean_v;
 x           = coef_problem.x;
 y           = coef_problem.y;
+use_chunks  = coef_problem.use_chunks;
 pod_u       = coef_problem.pod_u;
 pod_v       = coef_problem.pod_v;
 dimensions  = coef_problem.dimensions;
@@ -37,27 +36,22 @@ if override_coef == false;
    end
 end
 
-% Will have mode zero corresponding to mean flow
-num_modes = num_modes + 1;
 
 if uniform 
     % Use build in laplcian, and gradient functions
     [pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac, l] = ...
-        components_fast(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, vol_frac, num_modes, num_elem, bnd_idx);
+        components_fast(x, y, pod_u, pod_v, dimensions, vol_frac, num_modes, num_elem, bnd_idx);
 else
     % Old method allows for non_uniform mesh, SLOW
     [pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac, l] = ...
-        components(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, vol_frac, num_modes, num_elem, bnd_idx, z);
+        components(x, y, pod_u, pod_v, dimensions, vol_frac, num_modes, num_elem, bnd_idx, z);
 end
+
+% Free memory
 clear x y dimensions bnd_idx z mean_u mean_v
 
-% max modes in memeory at once
-bytesPerDouble = 8;
-[~, system] = memory;
-memory_limit = floor(system.PhysicalMemory.Available/(bytesPerDouble*num_modes*num_modes*1.2));
-
 % If Problem has over 400 modes need to break problem into chunks
-if num_modes < memory_limit;
+if use_chunks == false
     
     % Quadractic terms preallocation
     q = zeros(num_modes, num_modes, num_modes);
@@ -105,13 +99,12 @@ else
     q = data.q;
 end
 
+% Free memory
 clear pod_u pod_v pod_udx pod_udy pod_vdx pod_vdy f
 clear pod_u_pod_u_x pod_u_pod_v_x pod_v_pod_u_y pod_v_pod_v_y
 
-q = q(2:end,:,:);
 q = reshape(q, [], num_modes*num_modes);
 
-num_modes = num_modes-1;
 cutoff = num_modes;
 save([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_og_m' num2str(num_modes) '.mat'], ...
      'l', 'q', 'cutoff', 'run_num', '-v7.3'); 

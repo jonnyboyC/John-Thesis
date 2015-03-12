@@ -1,7 +1,7 @@
 function res = Galerkin_Proj(varargin)
 % GALERKIN_PROJ perform Galerkin projection of the POD system onto Navier
 % Stokes. This requires POD_GEN to be run, Can produce save output graphs
-% see below
+% see below return results into RES if output is requested
 %
 % GALERKIN_PROJ() prompt user for analysis folders for a given test run,
 % will use all defaults detailed below
@@ -47,6 +47,10 @@ function res = Galerkin_Proj(varargin)
 %
 % problem.dissapation = {'Noack', 'Couplet'}
 % Specify which viscious dissapation method(s) to use
+%
+% problem.use_chunks = false
+% Set this to true if you are running out of memeory well write values of q
+% to disk 
 
 
 
@@ -62,7 +66,7 @@ clc;
 fields = {  'num_modesG',   'plot_type',    'save_coef', ...
             'override_coef','tspan',        'init', ...
             'direct' ,      'Re0_gen',      'fft_window', ...
-            'run_num',      'dissapation'};
+            'run_num',      'dissapation',  'use_chunks'};
         
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -85,6 +89,7 @@ direct          = problem.direct;
 Re0_gen         = problem.Re0_gen;     
 fft_window      = problem.fft_window;
 dissapation     = problem.dissapation;
+use_chunks      = problem.use_chunks;
 
 % Check status of parrallel pool
 if ~isempty(gcp('nocreate'))
@@ -126,7 +131,7 @@ bnd_x       = vars.results.bnd_x;       % location of flow boundaries normal to 
 bnd_y       = vars.results.bnd_y;       % location of flow boundaries normal to y
 uniform     = vars.results.uniform;     % logical if mesh is uniform
 run_num     = vars.results.run_num;     % POD run numbers
-cutoff      = vars.results.cutoff;      % number of modes at cutoff
+cutoff      = vars.results.cutoff;    % number of modes at cutoff
 
 clear vars
 
@@ -147,10 +152,14 @@ end
 
 %% Calculate Coefficients
 
-coef_problem.mean_u         = mean_u;
-coef_problem.mean_v         = mean_v;
+% Add mode 0
+pod_u = [mean_u, pod_u];
+pod_v = [mean_v, pod_v];
+
+% Ready Coef Problem Structure
 coef_problem.x              = x;
 coef_problem.y              = y;
+coef_problem.use_chunks     = use_chunks;
 coef_problem.pod_u          = pod_u;
 coef_problem.pod_v          = pod_v;
 coef_problem.dimensions     = dimensions;
@@ -228,15 +237,18 @@ if ismember('Couplet', dissapation);
 end
 
 % Calculate coefficeints detailed by Noack
-niu{3,1} = viscious_dis(modal_amp_flux, modal_amp_mean, num_modesG, lambda2, l{3,1}, q{3,1}, Re0);
+niu{3,1} = viscious_dis(modal_amp_flux, modal_amp_mean, num_modesG, l{3,1}, q{3,1}, Re0);
 niu{3,2} = 'Base Noack';
 
-niu{4,1} = viscious_dis(modal_amp_flux, modal_amp_mean, num_modesG, lambda2, l{4,1}, q{4,1}, Re0);
+niu{4,1} = viscious_dis(modal_amp_flux, modal_amp_mean, num_modesG, l{4,1}, q{4,1}, Re0);
 niu{4,2} = 'Weak Noack';
+
+% determine number of models
+vis_models = size(niu,1);
                             
 % From Couplet (v + v_tilde) ie (1/Re + v_tilde)
 ni = cell(size(niu,1), 2);
-for i = 1:size(niu,1);
+for i = 1:vis_models
     if ~isempty(niu{i,1})
         ni{i,1} = repmat(niu{i,1} + 1/Re0,1,11);
         ni{i,2} = niu{i,2};
@@ -246,7 +258,7 @@ end
 % Calculate Linear terms
 l_og = l{3,1};
 li = cell(4,2);
-for i = 1:size(ni,1)
+for i = 1:vis_models
     if ~isempty(ni{i,1})
         li{i,1} = ni{i,1}.*l{i,1};
         li{i,2} = ni{i,2};
@@ -257,7 +269,7 @@ end
 q_og = q{3,1};
 Gal_coeff     = [l_og  q_og];
 Gal_coeff_vis = cell(4,2);
-for i = 1:size(ni,1)
+for i = 1:vis_models
     if ~isempty(ni{i,1})
         Gal_coeff_vis{i,1} = [li{i,1}, q{i,1}];
         Gal_coeff_vis{i,2} = ni{i,2};
@@ -266,12 +278,12 @@ end
 
 %% Time integration
 
-% Will reduce number of coefficients if we want a smaller model
-reduced_model_coeff_og   = -ode_coefficients(num_modesG, num_modesG, Gal_coeff);
+% Convert systems coefficients to 1D row for each mode calculated
+reduced_model_coeff_og   = ode_coefficients(num_modesG, Gal_coeff);
 reduced_model_coeff_vis = cell(4,2);
-for i = 1:size(ni,1)
+for i = 1:vis_models
     if ~isempty(Gal_coeff_vis{i,1})
-        reduced_model_coeff_vis{i,1} = -ode_coefficients(num_modesG, num_modesG, Gal_coeff_vis{i,1});
+        reduced_model_coeff_vis{i,1} = ode_coefficients(num_modesG, num_modesG, Gal_coeff_vis{i,1});
         reduced_model_coeff_vis{i,2} = Gal_coeff_vis{i,2};
     end
 end
@@ -281,7 +293,7 @@ options = odeset('RelTol', 1e-7, 'AbsTol', 1e-9);
 fprintf('Performing ode113 on base Galerkin system\n');
 tic;
 [t_og, modal_amp_og] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff_og), tspan, ...
-    modal_amp(init,1:num_modesG), options);
+    modal_amp_flux(init,1:num_modesG)+modal_amp_mean(init, 1:num_modesG), options);
 toc1 = toc;
 fprintf('Completed in %f6.4 seconds\n\n', toc1);
 
@@ -293,7 +305,7 @@ for i = 1:size(ni,1)
         fprintf('Performing ode113 on Galerkin system with %s\n', reduced_model_coeff_vis{i,2});
         tic;
         [t_vis{i,1}, modal_amp_vis{i,1}] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff_vis{i,1}), tspan, ...
-            modal_amp(init,1:num_modesG), options);
+            modal_amp_flux(init,1:num_modesG)+modal_amp_mean(init, 1:num_modesG), options);
         toc2 = toc;
         fprintf('Completed in %f6.4 seconds\n\n', toc2);
     end

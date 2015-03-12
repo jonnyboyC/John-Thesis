@@ -1,5 +1,5 @@
 function [pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac] = ...
-        components_ws(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, num_modes, vol_frac, bnd_idx)
+        components_ws(x, y, pod_u, pod_v, dimensions, num_modes, vol_frac, bnd_idx)
 
 if num_modes > 30
     if isempty(gcp);
@@ -9,10 +9,6 @@ end
 
 % TODO figure out what is really being calculated here
 [xxi, yxi, xet, yet, aj] = metric2(x, y);
-
-% Add mean flows as mode zero
-pod_u = [mean_u, pod_u];
-pod_v = [mean_v, pod_v];
 
 % Calculate coefficients for for pod_u's & pod_v's derivatives
 [pod_udx, ~, pod_udy, ~] = derivatives(pod_u, dimensions, ...

@@ -1,5 +1,5 @@
 function [pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac, l] = ...
-    components(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, vol_frac, num_modes, num_elem, bnd_idx, z)
+    components(x, y, pod_u, pod_v, dimensions, vol_frac, num_modes, num_elem, bnd_idx, z)
 
 if num_modes > 30
     if isempty(gcp);
@@ -9,9 +9,6 @@ end
 
 % TODO figure out what is really being calculated here
 [xxi, yxi, xet, yet, aj] = metric2(x, y);
-
-pod_u = [mean_u, pod_u];
-pod_v = [mean_v, pod_v];
 
 % Calculate coefficients for for pod_u's & pod_v's derivatives
 [pod_udx, pod_ud2x, pod_udy, pod_ud2y] = derivatives(pod_u, dimensions, ...
@@ -42,7 +39,6 @@ d2pod_v = (pod_vd2x + pod_vd2y);
 cbu = inner_prod(d2pod_u, pod_u, vol_frac);
 cbv = inner_prod(d2pod_v, pod_v, vol_frac);
 l = cbu + cbv;
-l = l(2:end,:);
 
 if ~isempty(gcp)
     delete(gcp);

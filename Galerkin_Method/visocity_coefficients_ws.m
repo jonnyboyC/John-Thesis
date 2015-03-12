@@ -1,7 +1,5 @@
 function l = visocity_coefficients_ws(coef_problem)
 % Unpack Variables
-mean_u      = coef_problem.mean_u;
-mean_v      = coef_problem.mean_v;
 x           = coef_problem.x;
 y           = coef_problem.y;
 pod_u       = coef_problem.pod_u;
@@ -40,16 +38,13 @@ if override_coef == false;
    end
 end
 
-% Will have mode zero corresponding to mean flow
-num_modes = num_modes + 1;
-
 if uniform == true
     % Use build in laplcian, and gradient functions
     [pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac] = ...
-        components_ws_fast(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, num_modes, vol_frac, bnd_idx, num_elem);
+        components_ws_fast(x, y, pod_u, pod_v, dimensions, num_modes, vol_frac, bnd_idx, num_elem);
 else
     [pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac] = ...
-        components_ws(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, num_modes, vol_frac, bnd_idx);
+        components_ws(x, y, pod_u, pod_v, dimensions, num_modes, vol_frac, bnd_idx);
 end
 
 % Calculated Weak Solution Gradient inner products
@@ -66,7 +61,6 @@ surf_cv = surf_inner_prod(pod_vdx, pod_v, vol_frac, bnd_x) + ...
           surf_inner_prod(pod_vdy, pod_v, vol_frac, bnd_y);
 
 l = ccux + ccuy + ccvx + ccvy + surf_cu + surf_cv;
-l = l(2:end,:);
 
 cutoff = num_modes;
 save([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_wk_m' num2str(num_modes) '.mat'], ...

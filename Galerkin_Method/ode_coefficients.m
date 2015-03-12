@@ -1,40 +1,23 @@
-function reduced_mod_coeff = ode_coefficients(num_modes, desired_modes, fcuh)
-% Loop to generate full model coefficients and selectively pick
-% coefficients for use in a reduced model
+function mod_coeff = ode_coefficients(num_modes, fcuh)
+% Creating linear row of coefficients for eachs modes linear and quadratic
+% terms
+% ODE_COEFFICENTS(NUM_MODES, FCUH) created a row vector of coefficients for
+% every mode in FCUH for NUM_MODES modes.
 
-mod_coeff = model_coefficients(num_modes, fcuh);
+% Prefill array
+mod_coeff = zeros(num_modes, num_modes + 1 + (num_modes+1)*(num_modes+2)/2);
 
-% Pull off reduced num_modes, from mod_coeff
-%% TODO figure out why dm + 1
-reduced_mod_coeff = zeros(desired_modes, floor((desired_modes^2)/2) + ceil(1.5*desired_modes));
-reduced_mod_coeff(1:desired_modes, 1:desired_modes +1) ...
-    = mod_coeff(1:desired_modes, 1:desired_modes+1);
-
-
-idx = desired_modes + 1;
-for i = 1:desired_modes
-    for j = i:desired_modes
-        % index up half of matrix that is in column form
-        idx = idx + 1;
-        reduced_mod_coeff(:,idx) = mod_coeff(1:desired_modes, ...
-                                i/2*(2*num_modes-i+3) + (j-i+1));
-    end
-end
-end
-
-function mod_coeff = model_coefficients(num_modes, fcuh)
-% Prefill with zeros, pull first num_modes + 1 columns straight from fcuh
-% TODO figure out odd number of modes
-mod_coeff = zeros(size(fcuh,1), floor((num_modes^2)/2)+ceil(1.5*num_modes));
+% copy linear terms
 mod_coeff(:,1:num_modes+1) = fcuh(:,1:num_modes + 1);
 
-
-idx = num_modes + 1;
+% Create offset for quadratic terms
+idx = num_modes + 2;
 offset = idx;
-mat_size = [num_modes num_modes];
 
-% Loop through remaining num_modes^2 columns. Sum if off diagonal terms so
-% that mod_coeff = fcuh_ij + fcuh_ij
+% used by sub2ind
+mat_size = [num_modes+1 num_modes+1];
+
+% Add terms to the mod_coeff array, sum terms mirrored across the diagonal
 for i = 1:num_modes;
     for j = i:num_modes;
         idx = idx + 1;

@@ -1,13 +1,9 @@
 function [pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac, l] = ...
-    components_fast(x, y, mean_u, mean_v, pod_u, pod_v, dimensions, vol_frac, num_modes, num_elem, bnd_idx)
+    components_fast(x, y, pod_u, pod_v, dimensions, vol_frac, num_modes, num_elem, bnd_idx)
 
 % Calculate spacing
 hu = abs(mean(mean(x(1:end-1,:),2) - mean(x(2:end,:),2)));
 hv = abs(mean(mean(y(:,1:end-1),1) - mean(y(:,2:end),1)));
-
-% Add mean flows as mode zero
-pod_u = [mean_u, pod_u];
-pod_v = [mean_v, pod_v];
 
 pod_u = regroup(pod_u, dimensions);
 pod_v = regroup(pod_v, dimensions);
@@ -43,5 +39,4 @@ pod_v = reshape(pod_v, num_elem, num_modes);
     strip_boundaries(bnd_idx, pod_udx, pod_udy, pod_vdx, pod_vdy, d2pod_u, d2pod_v, pod_u, pod_v, vol_frac);
 
 l = inner_prod(d2pod_u, pod_u, vol_frac) + inner_prod(d2pod_v, pod_v, vol_frac);
-l = l(2:end,:);
 end

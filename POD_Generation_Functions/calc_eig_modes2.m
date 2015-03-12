@@ -1,4 +1,4 @@
-function [pod_u, pod_v, lambda2, modal_amp_flux, modal_amp_mean, cutoff] = ...
+function [pod_u, pod_v, lambda2, modal_amp_mean, modal_amp_flux, cutoff] = ...
     calc_eig_modes2(co_var, flux_u, flux_v)
 %% Calculate pod modes, pod lambda values, and the left eigenvector
 num_images = length(co_var);
@@ -18,10 +18,12 @@ pod_v = (flux_v*modal_amp)/sigma';
 modal_amp = modal_amp*sigma;
 modal_amp = [ones(num_images,1), modal_amp];
 
-modal_amp_mean = mean(modal_amp, 2);
+modal_amp_mean = mean(modal_amp, 1);
+modal_amp_mean(modal_amp_mean < 1e-15) = 0;
 
-for i = 1:num_images
-   modal_amp_flux = modal_amp(:,i) - modal_amp_mean; 
+modal_amp_flux = zeros(size(modal_amp));
+for i = 1:num_images+1
+   modal_amp_flux(:,i) = modal_amp(:,i) - modal_amp_mean(i); 
 end
 
 % pull off diagonal
@@ -29,7 +31,7 @@ lambda2 = diag(lambda2);
 
 % Find the number of modes need to account for 99% of the energy
 sum_mode_energy = cumsum(lambda2)./sum(lambda2);
-cutoff = find((sum_mode_energy >= 0.99), 1);
+cutoff = find((sum_mode_energy >= 0.99), 1)+1;
 
 % Display cutoff energy content
 fprintf('\nCutoff for Couplet Viscous Dissapation is %d mode at %3.4f percent total energy\n\n', ...
