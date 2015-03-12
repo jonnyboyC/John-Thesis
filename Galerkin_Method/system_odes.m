@@ -1,4 +1,4 @@
-function da = system_odes(~, a, model_coef)
+function da = system_odes(~, a, model_coef, ni)
 % System of ode for time evolution of POD/Galerkin system
 %
 % SYSTEM_ODES(~, A, MODEL_COEF) returns the the changes in modal amplitudes

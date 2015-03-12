@@ -2,7 +2,7 @@ function problem = setdefaults_proj(problem)
 % Function to set defaults for Galerkin_Proj
 
 % Default for num_pod 
-if isempty(problem.num_modesG) || ~isscalar(problem.num_modesG)
+if isempty(problem.num_modesG) || ~isscalar(problem.num_modesG) && ~ismatrix(problem.num_modesG)  
     fprintf('Using default value for num_modesG\nproblem.num_modesG = 10\n\n');
     problem.num_modesG = 10;        % use 10 modes
 end
