@@ -5,17 +5,17 @@ function mod_coeff = ode_coefficients(num_modes, fcuh)
 % every mode in FCUH for NUM_MODES modes.
 
 % Prefill array
-mod_coeff = zeros(num_modes, num_modes + 1 + (num_modes+1)*(num_modes+2)/2);
+mod_coeff = zeros(num_modes, num_modes + (num_modes)*(num_modes+1)/2);
 
 % copy linear terms
 mod_coeff(:,1:num_modes+1) = fcuh(:,1:num_modes + 1);
 
 % Create offset for quadratic terms
-idx = num_modes + 2;
-offset = idx;
+idx = num_modes + 1;
+offset = num_modes;
 
 % used by sub2ind
-mat_size = [num_modes+1 num_modes+1];
+mat_size = [num_modes num_modes];
 
 % Add terms to the mod_coeff array, sum terms mirrored across the diagonal
 for i = 1:num_modes;
@@ -26,7 +26,7 @@ for i = 1:num_modes;
         else
             mod_coeff(:,idx) = fcuh(:,offset + sub2ind(mat_size, j, i)) ...
                              + fcuh(:,offset + sub2ind(mat_size, i, j));
-        end
+         end
     end
 end
 end
