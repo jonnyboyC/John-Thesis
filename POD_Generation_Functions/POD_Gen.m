@@ -133,6 +133,9 @@ covariance = cal_covariance_mat2(flux_u, flux_v, vol_frac, bnd_idx);
 [pod_u, pod_v, lambda2, modal_amp_mean, modal_amp_flux, cutoff] =  ...
     calc_eig_modes2(covariance, flux_u, flux_v); 
 
+[groups, centers] = kmeans(modal_amp_flux(:,2:end), 10, 'Replicates', 5);
+cluster_plot(modal_amp_flux, groups, centers, [2,3,4], 10);
+
 pod_u = regroup(pod_u, dimensions);
 pod_v = regroup(pod_v, dimensions);
 
