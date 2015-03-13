@@ -92,8 +92,8 @@ dissapation     = problem.dissapation;
 use_chunks      = problem.use_chunks;
 
 % Check status of parrallel pool
-if ~isempty(gcp('nocreate'))
-    delete(gcp);
+if isempty(gcp('nocreate'));
+    parpool('local', 4);
 end
 
 fprintf('\nLoading POD variables\n\n');
@@ -204,7 +204,6 @@ num_models = 6;
 niu = cell(num_models,2,length(num_modesG));
 ni  = cell(num_models,2,length(num_modesG));
 l   = cell(num_models,2,length(num_modesG));
-li  = cell(num_models,2,length(num_modesG));
 q   = cell(num_models,2,length(num_modesG));
 t           = cell(num_models,2,length(num_modesG));
 Gal_coeff   = cell(num_models,2,length(num_modesG));
@@ -244,7 +243,7 @@ for i = 1:length(num_modesG)
 %% Modified coefficients 
 
     % Attempt to estimate the neglected viscoius dissapation function
-    fprintf('Calculating viscous disspation terms\n\n');
+    fprintf('Calculating viscous dissapation terms\n\n');
 
     niu(1,:,i) = {zeros(num_modes,1), 'Base Original'};
     niu(2,:,i) = {zeros(num_modes,1), 'Weak Original'};
@@ -269,14 +268,14 @@ for i = 1:length(num_modesG)
 
     % Final setup for time integration
     for j = 1:num_models
-        if ~isempty(niu{j,-6,i})
+        if ~isempty(niu{j,1,i})
             % Calculate Total Visocity
             ni{j,1,i} = niu{j,1,i} + 1/Re0;
             ni{j,2,i} = niu{j,2,i};
             
             % Setup up system coefficients
             Gal_coeff{j,1,i} = [l{j,1,i}, q{j,1,i}];
-            Gal_coeff{j,2,i} = l{j,2,i};
+            Gal_coeff{j,2,i} = ni{j,2,i};
 
             % rearrage into 1D form
             reduced_model_coeff_vis{j,1} = ode_coefficients(num_modes, Gal_coeff{j,1,i});
@@ -285,24 +284,30 @@ for i = 1:length(num_modesG)
     end
 
 %% Time integration
-    % Integrate Galerkin System of requested methods
-    for j = 1:size(ni,1)
+
+    ao = modal_amp_flux(init,1:num_modes)+modal_amp_mean(init, 1:num_modes);
+    t_temp = cell(size(t,1),1);
+    modal_amp_temp = cell(size(modal_amp,1),1);
+    
+    % Integrate Galerkin Systems of requested methods
+    parfor j = 1:size(ni,1)
         if ~isempty(Gal_coeff{j,1});
             fprintf('Performing ode113 on Galerkin system with %s\n', reduced_model_coeff_vis{j,2});
-            ao = modal_amp_flux(init,1:num_modes)+modal_amp_mean(init, 1:num_modes);
+            
             tic;
-            [t{j,1,i}, modal_amp{j,1,i}] = ode113(@(t,y) system_odes2(t, y, reduced_model_coeff_vis{j,1}, ni{j,1,i}, modal_TKE, false), ...
-                tspan, ao, options);
+            [t_temp{j}, modal_amp_temp{j}] = ode113(@(t,y) ...
+                system_odes2(t, y, reduced_model_coeff_vis{j,1}, ni{j,1,i}, modal_TKE, true), ...
+                tspan, ao, options);  %#ok<PFBNS>
             toc2 = toc;
-
+                   
             fprintf('Completed in %f6.4 seconds\n\n', toc2);
-            
-            modal_amp{j,1,i} = modal_amp{j,1,i}(:,2:end);
-            
-            t{j,2,i} = reduced_model_coeff_vis{j,2};
-            modal_amp{j,2,i}  = reduced_model_coeff_vis{j,2};
+            modal_amp_temp{j} = modal_amp_temp{j}(:,2:end);
         end
     end
+    
+    t(:,:,i) = [t_temp, reduced_model_coeff_vis(:,2)];
+    modal_amp(:,:,i)  = [modal_amp_temp, reduced_model_coeff_vis(:,2)];
+    
 %% Plotting functions
 
     % Prepare data

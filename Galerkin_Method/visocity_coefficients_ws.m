@@ -6,9 +6,10 @@ pod_u       = coef_problem.pod_u;
 pod_v       = coef_problem.pod_v;
 dimensions  = coef_problem.dimensions;
 vol_frac    = coef_problem.vol_frac;
+z           = coef_problem.z;
 run_num     = coef_problem.run_num;
-override_coef = coef_problem.override_coef;
 direct      = coef_problem.direct;
+override_coef = coef_problem.override_coef;
 uniform     = coef_problem.uniform;
 bnd_idx     = coef_problem.bnd_idx;
 bnd_x       = coef_problem.bnd_x;
@@ -38,13 +39,13 @@ if override_coef == false;
    end
 end
 
-if uniform == true
+if ~uniform
     % Use build in laplcian, and gradient functions
     [pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac] = ...
-        components_ws_fast(x, y, pod_u, pod_v, dimensions, num_modes, vol_frac, bnd_idx, num_elem);
+        components_ws_fast(x, y, pod_u, pod_v, dimensions, vol_frac, num_modes, bnd_idx, num_elem);
 else
     [pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac] = ...
-        components_ws(x, y, pod_u, pod_v, dimensions, num_modes, vol_frac, bnd_idx);
+        components_ws(x, y, pod_u, pod_v, dimensions, vol_frac, num_modes, bnd_idx, z);
 end
 
 % Calculated Weak Solution Gradient inner products

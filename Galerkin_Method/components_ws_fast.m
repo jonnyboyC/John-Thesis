@@ -1,5 +1,5 @@
 function [pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac] = ...
-        components_ws_fast(x, y, pod_u, pod_v, dimensions, num_modes, vol_frac, bnd_idx, num_elem)
+        components_ws_fast(x, y, pod_u, pod_v, dimensions, vol_frac, num_modes, bnd_idx, num_elem)
 % Calculate spacing
 hu = abs(mean(mean(x(1:end-1,:),2) - mean(x(2:end,:),2)));
 hv = abs(mean(mean(y(:,1:end-1),1) - mean(y(:,2:end),1)));

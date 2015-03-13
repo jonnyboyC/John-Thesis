@@ -2,17 +2,18 @@ function [l, q] = visocity_coefficients(coef_problem)
 % Unpack Variables
 x           = coef_problem.x;
 y           = coef_problem.y;
-use_chunks  = coef_problem.use_chunks;
 pod_u       = coef_problem.pod_u;
 pod_v       = coef_problem.pod_v;
 dimensions  = coef_problem.dimensions;
 vol_frac    = coef_problem.vol_frac;
-bnd_idx     = coef_problem.bnd_idx;
 z           = coef_problem.z;
 run_num     = coef_problem.run_num;
-override_coef = coef_problem.override_coef;
 direct      = coef_problem.direct;
+override_coef = coef_problem.override_coef;
 uniform     = coef_problem.uniform;
+use_chunks  = coef_problem.use_chunks;
+bnd_idx     = coef_problem.bnd_idx;
+
 
 clear coef_problem
 
@@ -37,7 +38,7 @@ if override_coef == false;
 end
 
 
-if uniform 
+if ~uniform 
     % Use build in laplcian, and gradient functions
     [pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac, l] = ...
         components_fast(x, y, pod_u, pod_v, dimensions, vol_frac, num_modes, num_elem, bnd_idx);
@@ -53,6 +54,10 @@ clear x y dimensions bnd_idx z mean_u mean_v
 % If Problem has over 400 modes need to break problem into chunks
 if use_chunks == false
     
+    if num_modes > 700
+       delete(gcp('nocreate')); 
+    end
+    
     % Quadractic terms preallocation
     q = zeros(num_modes, num_modes, num_modes);
 
@@ -65,11 +70,10 @@ if use_chunks == false
         q(:,:,k) = -inner_prod(pod_u_pod_u_x + pod_v_pod_u_y, pod_u, vol_frac) ...
                    -inner_prod(pod_u_pod_v_x + pod_v_pod_v_y, pod_v, vol_frac);
         fprintf('%d of %d coefficients computed\n', k, num_modes);
-        
-
     end
 else
     % Create one worker to save files to harddrive
+    delete(gcp);
     pool = parpool('local', 1);
     
     exists = dir([direct '\Viscous Coeff\cduv.mat']);
@@ -109,6 +113,9 @@ cutoff = num_modes;
 save([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_og_m' num2str(num_modes) '.mat'], ...
      'l', 'q', 'cutoff', 'run_num', '-v7.3'); 
 
+if isempty(gcp('nocreate'));
+    parpool('local', 4);
+end
 end
 
 % allow writing to disk asynchronously

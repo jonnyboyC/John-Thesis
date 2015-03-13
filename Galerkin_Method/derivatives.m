@@ -14,7 +14,7 @@ parfor i = 1:number2calc
     
     % TODO look into parrallelizing visder
     [dxic, detc] = visder2(reshape(var(:,i), size(z,1), size(z,2)),...
-         dimensions(1), dimensions(2), z, bnd_idx);
+         dimensions(1), dimensions(2), z, bnd_idx); %#ok<PFBNS>
      
     % Calculate approximation for first derivative
     [dx(:,:,i), dy(:,:,i)] = derivative_approx(dxic, detc, xxi, yxi, xet, yet, aj);

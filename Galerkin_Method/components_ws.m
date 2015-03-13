@@ -1,11 +1,5 @@
 function [pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac] = ...
-        components_ws(x, y, pod_u, pod_v, dimensions, num_modes, vol_frac, bnd_idx)
-
-if num_modes > 30
-    if isempty(gcp);
-        parpool('local', 3);
-    end
-end
+        components_ws(x, y, pod_u, pod_v, dimensions, vol_frac, num_modes, bnd_idx, z)
 
 % TODO figure out what is really being calculated here
 [xxi, yxi, xet, yet, aj] = metric2(x, y);
@@ -16,6 +10,12 @@ end
 [pod_vdx, ~, pod_vdy, ~] = derivatives(pod_v, dimensions, ...
     z, xxi, yxi, xet, yet, aj, bnd_idx);
 
+pod_udx = reshape(pod_udx, [], num_modes);
+pod_udy = reshape(pod_udy, [], num_modes);
+pod_vdx = reshape(pod_vdx, [], num_modes);
+pod_vdy = reshape(pod_vdy, [], num_modes);
+
 [pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac] = ...
     strip_boundaries(bnd_idx, pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac);
+
 end

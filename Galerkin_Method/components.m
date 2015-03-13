@@ -1,12 +1,6 @@
 function [pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac, l] = ...
     components(x, y, pod_u, pod_v, dimensions, vol_frac, num_modes, num_elem, bnd_idx, z)
 
-if num_modes > 30
-    if isempty(gcp);
-        parpool('local', 3);
-    end
-end
-
 % TODO figure out what is really being calculated here
 [xxi, yxi, xet, yet, aj] = metric2(x, y);
 
@@ -40,7 +34,4 @@ cbu = inner_prod(d2pod_u, pod_u, vol_frac);
 cbv = inner_prod(d2pod_v, pod_v, vol_frac);
 l = cbu + cbv;
 
-if ~isempty(gcp)
-    delete(gcp);
-end
 end

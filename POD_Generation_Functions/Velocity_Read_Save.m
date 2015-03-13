@@ -159,7 +159,7 @@ end
 
 % Save Data to processed folder
 num_processed = num_images;
-save([direct filesep 'Processed Data' filesep Processed.mat'], 'xi', 'yi', 'ui', 'vi', 'num_x', 'num_y', 'u_scale', 'num_processed', '-v7.3');
+save([direct filesep 'Processed Data' filesep 'Processed.mat'], 'xi', 'yi', 'ui', 'vi', 'num_x', 'num_y', 'u_scale', 'num_processed', '-v7.3');
 end
 
 %TODO currently stub 
