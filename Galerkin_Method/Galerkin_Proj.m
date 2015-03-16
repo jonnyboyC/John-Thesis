@@ -91,6 +91,8 @@ fft_window      = problem.fft_window;
 dissapation     = problem.dissapation;
 use_chunks      = problem.use_chunks;
 
+clear problem
+
 % Check status of parrallel pool
 if isempty(gcp('nocreate'));
     parpool('local', 4);

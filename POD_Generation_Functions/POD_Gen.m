@@ -79,6 +79,11 @@ new_mask    = problem.new_mask;
 
 clear problem
 
+% Check status of parrallel pool
+if isempty(gcp('nocreate'));
+    parpool('local', 4);
+end
+
 %% Load and organize data
 
 % Load simulation data from raw .vc7 or .mat, or from processed .mat
@@ -133,8 +138,19 @@ covariance = cal_covariance_mat2(flux_u, flux_v, vol_frac, bnd_idx);
 [pod_u, pod_v, lambda2, modal_amp_mean, modal_amp_flux, cutoff] =  ...
     calc_eig_modes2(covariance, flux_u, flux_v); 
 
-[groups, centers] = kmeans(modal_amp_flux(:,2:end), 10, 'Replicates', 5);
-cluster_plot(modal_amp_flux, groups, centers, [2,3,4], 10);
+% Prefil groups and centers
+groups  = cell(37,1);
+centers = cell(37,1);
+options = statset('UseParallel', 1);
+ax = 0;
+h = 0;
+
+% Calculate cluster centers
+for i = 4:40
+    [groups{i-3}, centers{i-3}] = kmeans(modal_amp_flux(:,2:i+1), 20, 'Replicates', 10, 'Options', options);
+    [h, ax] = cluster_plot(ax, h, modal_amp_flux, groups{i-3}, centers{i-3}, [2,3,4], 20);
+end
+
 
 pod_u = regroup(pod_u, dimensions);
 pod_v = regroup(pod_v, dimensions);
