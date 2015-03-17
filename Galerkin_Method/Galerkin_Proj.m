@@ -118,8 +118,6 @@ x           = vars.results.x;           % mesh coordinates in x direction
 y           = vars.results.y;           % mesh coordinates in y direction
 u_scale     = vars.results.u_scale;     % velocity scaling
 l_scale     = vars.results.l_scale;     % length scaling
-mean_u      = vars.results.mean_u;      % mean streamwise velocity
-mean_v      = vars.results.mean_v;      % mean spanwise velocity
 pod_u       = vars.results.pod_u;       % streamwise pod modes
 pod_v       = vars.results.pod_v;       % spanwise pod modes
 pod_vor     = vars.results.pod_vor;     % vorticity modes
@@ -155,10 +153,6 @@ else
 end
 
 %% Calculate Coefficients
-
-% Add mode 0
-pod_u = [mean_u, pod_u];
-pod_v = [mean_v, pod_v];
 
 % Ready Coef Problem Structure
 coef_problem.x              = x;
@@ -202,16 +196,15 @@ if ismember('Couplet', dissapation);
 end
 
 % determine number of models
-num_models = 6;
+linear_models = 6;
+total_models = linear_models*2-2;
 
 % Prefill cell
-niu = cell(num_models,2,length(num_modesG));
-ni  = cell(num_models,2,length(num_modesG));
-l   = cell(num_models,2,length(num_modesG));
-q   = cell(num_models,2,length(num_modesG));
-t           = cell(num_models,2,length(num_modesG));
-Gal_coeff   = cell(num_models,2,length(num_modesG));
-modal_amp   = cell(num_models,2,length(num_modesG));
+eddy= cell(linear_models,2,length(num_modesG));
+l   = cell(linear_models,2,length(num_modesG));
+q   = cell(linear_models,2,length(num_modesG));
+t           = cell(total_models,4,length(num_modesG));
+modal_amp   = cell(total_models,4,length(num_modesG));
 
 options = odeset('RelTol', 1e-7, 'AbsTol', 1e-9);
 
@@ -241,76 +234,39 @@ for i = 1:length(num_modesG)
     q{2,1,i} = q{1,1,i};
     q{2,2,i} = 'Weak Coeff';
     
-    l(:,:,i) = repmat(l(1:2,:,i), num_models/2, 1, 1);
-    q(:,:,i) = repmat(q(1:2,:,i), num_models/2, 1, 1);
+    l(:,:,i) = repmat(l(1:2,:,i), linear_models/2, 1, 1);
+    q(:,:,i) = repmat(q(1:2,:,i), linear_models/2, 1, 1);
     
 %% Modified coefficients 
 
     % Attempt to estimate the neglected viscoius dissapation function
     fprintf('Calculating viscous dissapation terms\n\n');
 
-    niu(1,:,i) = {zeros(num_modes,1), 'Base Original'};
-    niu(2,:,i) = {zeros(num_modes,1), 'Weak Original'};
+    eddy(1,:,i) = {zeros(num_modes,1), 'Base Original'};
+    eddy(2,:,i) = {zeros(num_modes,1), 'Weak Original'};
     
     % calculate coefficients detailed by Couplet
     if ismember('Couplet', dissapation);
-        niu{3,1,i} = viscious_dis_couplet(modal_amp_flux, modal_amp_mean, num_modes, lc{1,1}, qc{1,1}, Re0);
-        niu{3,2,i} = 'Base Couplet';
+        eddy{3,1,i} = viscious_dis_couplet(modal_amp_flux, modal_amp_mean, num_modes, lc{1,1}, qc{1,1}, Re0);
+        eddy{3,2,i} = 'Base Couplet';
 
-        niu{4,1,i} = viscious_dis_couplet(modal_amp_flux, modal_amp_mean, num_modes, lc{2,1}, qc{2,1}, Re0);
-        niu{4,2,i} = 'Weak Couplet';
+        eddy{4,1,i} = viscious_dis_couplet(modal_amp_flux, modal_amp_mean, num_modes, lc{2,1}, qc{2,1}, Re0);
+        eddy{4,2,i} = 'Weak Couplet';
     end
 
     % Calculate coefficeints detailed by Noack
-    niu{5,1,i} = viscious_dis(modal_amp_flux, modal_amp_mean, num_modes, l{1,1,i}, q{1,1,i}, Re0);
-    niu{5,2,i} = 'Base Noack';
+    eddy{5,1,i} = viscious_dis(modal_amp_flux, modal_amp_mean, num_modes, l{1,1,i}, q{1,1,i}, Re0);
+    eddy{5,2,i} = 'Base Noack';
 
-    niu{6,1,i} = viscious_dis(modal_amp_flux, modal_amp_mean, num_modes, l{2,1,i}, q{2,1,i}, Re0);
-    niu{6,2,i} = 'Weak Noack';
+    eddy{6,1,i} = viscious_dis(modal_amp_flux, modal_amp_mean, num_modes, l{2,1,i}, q{2,1,i}, Re0);
+    eddy{6,2,i} = 'Weak Noack';
     
-    reduced_model_coeff_vis = cell(num_models,2);
-
-    % Final setup for time integration
-    for j = 1:num_models
-        if ~isempty(niu{j,1,i})
-            % Calculate Total Visocity
-            ni{j,1,i} = niu{j,1,i} + 1/Re0;
-            ni{j,2,i} = niu{j,2,i};
-            
-            % Setup up system coefficients
-            Gal_coeff{j,1,i} = [l{j,1,i}, q{j,1,i}];
-            Gal_coeff{j,2,i} = ni{j,2,i};
-
-            % rearrage into 1D form
-            reduced_model_coeff_vis{j,1} = ode_coefficients(num_modes, Gal_coeff{j,1,i});
-            reduced_model_coeff_vis{j,2} = Gal_coeff{j,2,i};
-        end
-    end
+    % Perform final manipulation to prep integration
+    [reduced_model_coeff] = integration_setup(eddy, l, q, ni, i, linear_models, num_modes);
 
 %% Time integration
 
-    ao = modal_amp_flux(init,1:num_modes)+modal_amp_mean(init, 1:num_modes);
-    t_temp = cell(size(t,1),1);
-    modal_amp_temp = cell(size(modal_amp,1),1);
-    
-    % Integrate Galerkin Systems of requested methods
-    parfor j = 1:size(ni,1)
-        if ~isempty(Gal_coeff{j,1});
-            fprintf('Performing ode113 on Galerkin system with %s\n', reduced_model_coeff_vis{j,2});
-            
-            tic;
-            [t_temp{j}, modal_amp_temp{j}] = ode113(@(t,y) ...
-                system_odes2(t, y, reduced_model_coeff_vis{j,1}, ni{j,1,i}, modal_TKE, true), ...
-                tspan, ao, options);  %#ok<PFBNS>
-            toc2 = toc;
-                   
-            fprintf('Completed in %f6.4 seconds\n\n', toc2);
-            modal_amp_temp{j} = modal_amp_temp{j}(:,2:end);
-        end
-    end
-    
-    t(:,:,i) = [t_temp, reduced_model_coeff_vis(:,2)];
-    modal_amp(:,:,i)  = [modal_amp_temp, reduced_model_coeff_vis(:,2)];
+    [t, modal_amp] = time_integration(reduced_model_coeff, eddy, Re0, modal_TKE, i, t, modal_amp, options);
     
 %% Plotting functions
 
@@ -331,11 +287,11 @@ for i = 1:length(num_modesG)
     plot_data.bnd_idx       = bnd_idx;
 
     all_t = t(:,1,i)';
-    all_ids = niu(:,2,i)';
+    all_ids = eddy(:,2,i)';
     all_modal_amps =  modal_amp(:,1,i)';
 
     % Cycle through and plot all requested figures
-    for j = 1:num_models;
+    for j = 1:total_models;
         if ~isempty(all_ids{j})
             plot_data.t = all_t{j};
             plot_data.id = all_ids{j};
@@ -351,8 +307,7 @@ fprintf('Saving Galerkin Variables\n');
 results.num_run = run_num;
 results.l = l;
 results.q = q;
-results.ni = ni;
-results.niu = niu;
+results.niu = eddy;
 results.num_modesG = num_modesG;
 results.modal_amp = modal_amp;
 results.t = t;
