@@ -49,7 +49,7 @@ end
 
 % Default for u_scale_gen
 if isempty(problem.u_scale_gen) || (~isscalar(problem.u_scale_gen) && ~isa(problem.u_scale_gen, 'function_handle'))
-    fprintf('Using default values for u_scale_gen\nproblem.u_scale_gen_shear = 1\n\n');
+    fprintf('Using default values for u_scale_gen\nproblem.u_scale_gen = 1\n\n');
     problem.u_scale_gen = 1;  	% Length scale for problem
 end
 
@@ -63,6 +63,12 @@ end
 if isempty(problem.new_mask) || ~islogical(problem.new_mask)
     fprintf('Using default value for new_mask\nproblem.new_mask = false\n\n');
     problem.new_mask = false;        % save pod results
+end
+
+% Default for num_clusters
+if isempty(problem.num_clusters) || ~isscalar(problem.num_clusters)
+    fprintf('Using default values for num_clusters\nproblem.num_clusters = 10\n\n');
+    problem.num_clusters = 10;  	% Length scale for problem
 end
 
 end

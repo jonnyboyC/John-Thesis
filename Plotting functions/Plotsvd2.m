@@ -35,12 +35,13 @@ for i = 1:num_modes
         plot_img_num = 1;
         if any(ismember({'fig', 'jpg'}, save_figures))
             for j = 1:size(save_figures,2)
-                saveas(h, [direct '\Figures\POD\POD_' varname '_' num2str(i-4) '_' num2str(i-1)], save_figures{j});
+                saveas(h, [direct filesep 'Figures' filesep 'POD' filesep ...
+                    'Modes' filesep 'POD_' varname '_' num2str(i-4) '_' num2str(i-1)], save_figures{j});
             end
         end
         h.Name = ['  Variable: ' varname ',  (' num2str(sum(energy),4) '%)'];
     end
-    
+    figure(h);
     subplot(2,2,plot_img_num)
     % plot individual plots
     if i <= 4
@@ -62,7 +63,8 @@ for i = 1:num_modes
     if i == num_modes   
         if any(ismember({'fig', 'jpg'}, save_figures))
             for j = 1:size(save_figures,2)
-                saveas(h, [direct '\Figures\POD\POD_' varname '_' num2str(i-4) '_' num2str(i-1)], save_figures{j});
+                saveas(h, [direct filesep 'Figures' filesep 'POD' filesep ...
+                    'Modes' filesep 'POD_' varname '_' num2str(i-4) '_' num2str(i-1)], save_figures{j});            
             end
         end
     end
