@@ -39,7 +39,7 @@ if override_coef == false;
    end
 end
 
-if ~uniform
+if uniform
     % Use build in laplcian, and gradient functions
     [pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac] = ...
         components_ws_fast(x, y, pod_u, pod_v, dimensions, vol_frac, num_modes, bnd_idx, num_elem);

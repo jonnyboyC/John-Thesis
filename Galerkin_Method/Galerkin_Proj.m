@@ -124,8 +124,8 @@ pod_vor     = vars.results.pod_vor;     % vorticity modes
 lambda2     = vars.results.lambda2;     % eigenvalues of modes
 modal_amp_mean = vars.results.modal_amp_mean;   % modal amplitude mean from raw data
 modal_amp_flux = vars.results.modal_amp_flux;   % modal amplitude flucuations from raw data
-cluster_range  = vars.results.cluster_range;    % number of variables in cluster
-centers     = vars.results.centers;     % cluster centers
+% cluster_range  = vars.results.cluster_range;    % number of variables in cluster
+% centers     = vars.results.centers;     % cluster centers
 dimensions  = vars.results.dimensions;  % dimensions of mesh
 vol_frac    = vars.results.vol_frac;    % mesh area size
 bnd_idx     = vars.results.bnd_idx;     % location of boundaries
@@ -200,11 +200,11 @@ linear_models = 6;
 total_models = linear_models*2-2;
 
 % Prefill cell
-eddy= cell(linear_models,2,length(num_modesG));
-l   = cell(linear_models,2,length(num_modesG));
-q   = cell(linear_models,2,length(num_modesG));
-t           = cell(total_models,4,length(num_modesG));
-modal_amp   = cell(total_models,4,length(num_modesG));
+eddy= cell(total_models,2,length(num_modesG));
+l   = cell(total_models,2,length(num_modesG));
+q   = cell(total_models,2,length(num_modesG));
+t           = cell(total_models,2,length(num_modesG));
+modal_amp   = cell(total_models,2,length(num_modesG));
 
 options = odeset('RelTol', 1e-7, 'AbsTol', 1e-9);
 
@@ -234,8 +234,9 @@ for i = 1:length(num_modesG)
     q{2,1,i} = q{1,1,i};
     q{2,2,i} = 'Weak Coeff';
     
-    l(:,:,i) = repmat(l(1:2,:,i), linear_models/2, 1, 1);
-    q(:,:,i) = repmat(q(1:2,:,i), linear_models/2, 1, 1);
+    % duplicate
+    l(:,:,i) = repmat(l(1:2,:,i), total_models/2, 1, 1);
+    q(:,:,i) = repmat(q(1:2,:,i), total_models/2, 1, 1);
     
 %% Modified coefficients 
 
@@ -261,12 +262,16 @@ for i = 1:length(num_modesG)
     eddy{6,1,i} = viscious_dis(modal_amp_flux, modal_amp_mean, num_modes, l{2,1,i}, q{2,1,i}, Re0);
     eddy{6,2,i} = 'Weak Noack';
     
+    % duplicate
+    eddy(7:10,:,i) = eddy(3:6,:,i);
+    
     % Perform final manipulation to prep integration
-    [reduced_model_coeff] = integration_setup(eddy, l, q, ni, i, linear_models, num_modes);
+    [reduced_model_coeff] = integration_setup(eddy, Re0, l, q, i, total_models, linear_models, num_modes);
 
 %% Time integration
 
-    [t, modal_amp] = time_integration(reduced_model_coeff, eddy, Re0, modal_TKE, i, t, modal_amp, options);
+    ao = modal_amp_flux(init,1:num_modes)+modal_amp_mean(init, 1:num_modes);
+    [t, modal_amp] = time_integration(reduced_model_coeff, eddy, Re0, modal_TKE, i, t, modal_amp, ao, tspan, total_models, linear_models, options);
     
 %% Plotting functions
 
@@ -307,7 +312,7 @@ fprintf('Saving Galerkin Variables\n');
 results.num_run = run_num;
 results.l = l;
 results.q = q;
-results.niu = eddy;
+results.eddy = eddy;
 results.num_modesG = num_modesG;
 results.modal_amp = modal_amp;
 results.t = t;
