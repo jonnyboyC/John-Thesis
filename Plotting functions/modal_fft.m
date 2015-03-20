@@ -1,4 +1,4 @@
-function handle = modal_fft(modal_amp, num_plot, window_samples, sample_freq, xlim, direct, MOD)
+function handle = modal_fft(modal_amp, num_plot, window_samples, sample_freq, xlim, direct, id)
 % Calculate the modal frequency response using fft
 
 % Number of points per windows, set to the next power of 2
@@ -40,7 +40,7 @@ end
 plot(fspan, freq_response_dB(:, num_plot));
 ax.XLabel.String = 'frequency (Hz)';
 ax.YLabel.String = 'Modal Amplitude';
-ax.Title.String  = 'Modal Frequency Response';
+ax.Title.String  = ['Modal Frequency Response ' id];
 ax.XLim = xlim;
 
 leg_names = cell(size(num_plot,1),1);
@@ -51,7 +51,7 @@ legend(leg_names);
 
 file_name = [direct '\Figures\Galerkin\FFT_'];
 if nargin == 8
-    file_name = [file_name MOD '_'];
+    file_name = [file_name id '_'];
 end
 file_name = [file_name num2str(size(modal_amp,2)) '_' num2str(ceil(sample_freq)) 'Hz'];
 drawnow;

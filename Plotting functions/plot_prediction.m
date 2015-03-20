@@ -44,7 +44,7 @@ Hz = 1/(t(2) - t(1));
 
 % Intialize Video creator
 ext = '\Figures\Movies\POD_';
-if nargin == 10
+if nargin == 12
     ext = [ext id];
 end
 writer = VideoWriter([direct ext num2str(num_pods) '_' ...
@@ -104,6 +104,7 @@ for i = 1:size(plot_points,2)
         data_temp.cmax = cmax(j);
         subplot(2,2,j);
         if i == 1
+            figure(h);
             [h_sub(j), ax_sub(j)] = Plottec2(data_temp, 0, bnd_idx);
             ax_sub(j).Title = title(type{j}, 'fontname','times new roman','fontsize', 14);
             ax_sub(j).XLabel = xlabel('x/D', 'fontname','times new roman','fontsize',12);

@@ -38,7 +38,7 @@ if override_coef == false;
 end
 
 
-if uniform 
+if ~uniform 
     % Use build in laplcian, and gradient functions
     [pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac, l] = ...
         components_fast(x, y, pod_u, pod_v, dimensions, vol_frac, num_modes, num_elem, bnd_idx);
@@ -50,6 +50,7 @@ end
 
 % Free memory
 clear x y dimensions bnd_idx z mean_u mean_v
+h = waitbar(0, 'Calculating quadratic terms');
 
 % If Problem has over 400 modes need to break problem into chunks
 if use_chunks == false
@@ -63,13 +64,15 @@ if use_chunks == false
 
     % Calculate terms
     for k = 1:num_modes
-        pod_u_pod_u_x = (pod_u(:,k)*ones(1,num_modes)).*pod_udx;
-        pod_v_pod_u_y = (pod_v(:,k)*ones(1,num_modes)).*pod_udy;        
-        pod_u_pod_v_x = (pod_u(:,k)*ones(1,num_modes)).*pod_vdx;
-        pod_v_pod_v_y = (pod_v(:,k)*ones(1,num_modes)).*pod_vdy;
+        pod_u_pod_u_x = (repmat(pod_u(:,k),1,num_modes)).*pod_udx;
+        pod_v_pod_u_y = (repmat(pod_v(:,k),1,num_modes)).*pod_udy;        
+        pod_u_pod_v_x = (repmat(pod_u(:,k),1,num_modes)).*pod_vdx;
+        pod_v_pod_v_y = (repmat(pod_v(:,k),1,num_modes)).*pod_vdy;
         q(:,:,k) = -inner_prod(pod_u_pod_u_x + pod_v_pod_u_y, pod_u, vol_frac) ...
                    -inner_prod(pod_u_pod_v_x + pod_v_pod_v_y, pod_v, vol_frac);
-        fprintf('%d of %d coefficients computed\n', k, num_modes);
+               
+        % Update wait bar
+        waitbar(k/num_modes, h, sprintf('%d of %d coefficients computed\n', k, num_modes))
     end
 else
     % Create one worker to save files to harddrive
@@ -86,14 +89,18 @@ else
     data.q(num_modes,num_modes,num_modes) = 0;
     
     for k = 1:num_modes
-        pod_u_pod_u_x = (pod_u(:,k)*ones(1,num_modes)).*pod_udx;
-        pod_v_pod_u_y = (pod_v(:,k)*ones(1,num_modes)).*pod_udy;
-        pod_u_pod_v_x = (pod_u(:,k)*ones(1,num_modes)).*pod_vdx;
-        pod_v_pod_v_y = (pod_v(:,k)*ones(1,num_modes)).*pod_vdy;
+        pod_u_pod_u_x = (repmat(pod_u(:,k),1,num_modes)).*pod_udx;
+        pod_v_pod_u_y = (repmat(pod_v(:,k),1,num_modes)).*pod_udy;        
+        pod_u_pod_v_x = (repmat(pod_u(:,k),1,num_modes)).*pod_vdx;
+        pod_v_pod_v_y = (repmat(pod_v(:,k),1,num_modes)).*pod_vdy;
         q = -inner_prod(pod_u_pod_u_x + pod_v_pod_u_y, pod_u, vol_frac) ...
             -inner_prod(pod_v_pod_v_y + pod_u_pod_v_x, pod_v, vol_frac);
         f = parfeval(pool, @save_q, 0, data, q, k);
-        fprintf('%d of %d coefficients computed\n',  k, num_modes);
+        
+        % Update wait bar
+        waitbar(k/num_modes, h, sprintf('%d of %d coefficients computed\n', k, num_modes))
+        
+        % Allow writing to caught up
         if mod(k,20) == 0
             wait(f);
         end
@@ -102,6 +109,9 @@ else
     delete(pool)
     q = data.q;
 end
+
+% close waitbar
+close(h);
 
 % Free memory
 clear pod_u pod_v pod_udx pod_udy pod_vdx pod_vdy f

@@ -4,32 +4,58 @@ function [t, modal_amp] = time_integration(reduced_model_coeff, eddy, Re0, modal
 t_temp = cell(size(t,1),1);
 modal_amp_temp = cell(size(modal_amp,1),1);
 
-% Integrate Galerkin Systems of requested methods using linear eddy visocity
+% Integrate Galerkin System usign async parallel execution
+parfeval_futures = parallel.FevalOnAllFuture;
 for j = 1:total_models
-    if ~isempty(reduced_model_coeff{j,1});
+    parfeval_futures(j) = parfeval(@integration, 3, reduced_model_coeff{j,1}, ...
+        eddy{j,1,i}, Re0, modal_TKE, ao, tspan, j, linear_models, options);
+end
 
-        if j <= linear_models
-            fprintf(['Performing ode113 on Galerkin system with %s',...
-                'with linear eddy visocity\n'], reduced_model_coeff{j,2}); 
-            tic;
-            [t_temp{j}, modal_amp_temp{j}] = ode113(@(t,y) ...
-                system_odes(t, y, reduced_model_coeff{j,1}), ...
-                tspan, ao, options);  
-            toc2 = toc;
-        else
-            fprintf(['Performing ode113 on Galerkin system with %s',...
-                'with nonlinear eddy visocity\n'], reduced_model_coeff{j,2}); 
-            tic;
-            [t_temp{j}, modal_amp_temp{j}] = ode113(@(t,y) ...
-                system_odes_NL(t, y, reduced_model_coeff{j,1}, eddy{j,1,i}, Re0, modal_TKE), ...
-                tspan, ao, options);  
-            toc2 = toc;  
-        end
+% Generate waiting bar
+h = waitbar(0, 'Performing time integration on models in parrallel');
 
-        fprintf('Completed in %f6.4 seconds\n\n', toc2);
-        modal_amp_temp{j} = modal_amp_temp{j}(:,2:end);
+% Fetch results as they become available
+for j = 1:total_models
+    % fetch results if it take over half an hour discard results
+    [job_idx, t_job, modal_amp_job, time] = fetchNext(parfeval_futures, 3000);
+    
+    t_temp(job_idx) = {t_job};
+    modal_amp_temp(job_idx) = {modal_amp_job};
+    
+    % update wait bar
+    waitbar(j/total_models, h, sprintf('Galerkin system with %s finished in %6.1fs', reduced_model_coeff{j,2}, time));
+end
+
+% In case any don't finish fill with zeros
+for j = 1:total_models
+    if isempty(t_temp{j})
+       t_temp{j} = 0;
+       modal_amp_temp = zeros(size(ao));
     end
 end
 
+close(h);
 t(:,:,i) = [t_temp, reduced_model_coeff(:,2)];
 modal_amp(:,:,i)  = [modal_amp_temp, reduced_model_coeff(:,2)];
+
+end
+
+function [t_job, modal_amp_job, time] = integration(reduced_model_coeff, eddy, Re0, modal_TKE, ao, tspan, j, linear_models, options)
+if ~isempty(reduced_model_coeff);
+    if j <= linear_models
+
+        tic;
+        [t_job, modal_amp_job] = ode113(@(t,y) ...
+            system_odes(t, y, reduced_model_coeff), ...
+            tspan, ao, options);  
+        time = toc;
+    else
+        tic;
+        [t_job, modal_amp_job] = ode113(@(t,y) ...
+            system_odes_NL(t, y, reduced_model_coeff, eddy, Re0, modal_TKE), ...
+            tspan, ao, options);  
+        time = toc;  
+    end
+    modal_amp_job = modal_amp_job(:,2:end);
+end
+end

@@ -121,9 +121,7 @@ l_scale     = vars.results.l_scale;     % length scaling
 pod_u       = vars.results.pod_u;       % streamwise pod modes
 pod_v       = vars.results.pod_v;       % spanwise pod modes
 pod_vor     = vars.results.pod_vor;     % vorticity modes
-lambda2     = vars.results.lambda2;     % eigenvalues of modes
-modal_amp_mean = vars.results.modal_amp_mean;   % modal amplitude mean from raw data
-modal_amp_flux = vars.results.modal_amp_flux;   % modal amplitude flucuations from raw data
+lambda      = vars.results.lambda;      % eigenvalues of modes
 % cluster_range  = vars.results.cluster_range;    % number of variables in cluster
 % centers     = vars.results.centers;     % cluster centers
 dimensions  = vars.results.dimensions;  % dimensions of mesh
@@ -134,6 +132,8 @@ bnd_y       = vars.results.bnd_y;       % location of flow boundaries normal to 
 uniform     = vars.results.uniform;     % logical if mesh is uniform
 run_num     = vars.results.run_num;     % POD run numbers
 cutoff      = vars.results.cutoff;    % number of modes at cutoff
+modal_amp_mean = vars.results.modal_amp_mean;   % modal amplitude mean from raw data
+modal_amp_flux = vars.results.modal_amp_flux;   % modal amplitude flucuations from raw data
 
 clear vars
 
@@ -206,7 +206,7 @@ q   = cell(total_models,2,length(num_modesG));
 t           = cell(total_models,2,length(num_modesG));
 modal_amp   = cell(total_models,2,length(num_modesG));
 
-options = odeset('RelTol', 1e-7, 'AbsTol', 1e-9);
+options = odeset('RelTol', 1e-8, 'AbsTol', 1e-10);
 
 for i = 1:length(num_modesG)
     close all
@@ -255,15 +255,20 @@ for i = 1:length(num_modesG)
         eddy{4,2,i} = 'Weak Couplet';
     end
 
+    disp(eddy{3,1,i});
+    
     % Calculate coefficeints detailed by Noack
-    eddy{5,1,i} = viscious_dis(modal_amp_flux, modal_amp_mean, num_modes, l{1,1,i}, q{1,1,i}, Re0);
+    eddy{5,1,i} = viscious_dis(modal_amp_flux, modal_amp_mean, num_modes, lambda, l{1,1,i}, q{1,1,i}, Re0);
     eddy{5,2,i} = 'Base Noack';
 
-    eddy{6,1,i} = viscious_dis(modal_amp_flux, modal_amp_mean, num_modes, l{2,1,i}, q{2,1,i}, Re0);
+    eddy{6,1,i} = viscious_dis(modal_amp_flux, modal_amp_mean, num_modes, lambda, l{2,1,i}, q{2,1,i}, Re0);
     eddy{6,2,i} = 'Weak Noack';
     
     % duplicate
-    eddy(7:10,:,i) = eddy(3:6,:,i);
+    eddy(7:10,1,i) = eddy(3:6,1,i);
+    for j = 3:6
+        eddy{j+4,2,i} = ['NL ' eddy{j,2,i}];
+    end
     
     % Perform final manipulation to prep integration
     [reduced_model_coeff] = integration_setup(eddy, Re0, l, q, i, total_models, linear_models, num_modes);

@@ -32,7 +32,7 @@ function res = POD_Gen(varargin)
 % location
 % 
 % problem.l_scale = 1
-% Specify a scalar to be used as the lenght scale for the problem
+% Specify a scalar to be used as the length scale for the problem
 %
 % problem.u_scale_gen = 1
 % Specify a scalar for function handle to calculate u_scale
@@ -115,13 +115,9 @@ vol_frac = voln_piv2(x, y, bnd_idx);
 uniform = check_mesh(x, y);
 
 % Find fluxating velocity of flow
-flux_u = zeros(size(u));
-flux_v = zeros(size(v));
-
-for i = 1:num_images;
-    flux_u(:,:,i) = u(:,:,i) - mean_u;
-    flux_v(:,:,i) = v(:,:,i) - mean_v;
-end
+flux_u = u - repmat(mean_u,1,1,num_images);
+flux_v = v - repmat(mean_v,1,1,num_images);
+    
 clear u v
 
 % Create a stacked data matrix for u and v velocities
@@ -136,8 +132,8 @@ data.y = y;
 
 %% Perform Proper Orthogonal Decomposition
 covariance = cal_covariance_mat2(flux_u, flux_v, vol_frac, bnd_idx);
-[pod_u, pod_v, lambda2, modal_amp_mean, modal_amp_flux, cutoff] =  ...
-    calc_eig_modes2(covariance, flux_u, flux_v, mean_u, mean_v); 
+[pod_u, pod_v, lambda, modal_amp_mean, modal_amp_flux, cutoff] =  ...
+    calc_eig_modes2(covariance, flux_u, flux_v); 
 
 % Cluster dimensions of clusters
 cluster_range = 2:40;
@@ -193,13 +189,13 @@ else
 end
 
 % Plot pod modes
-Plotsvd2(data, pod_u(:,1:num_plot), dimensions, 'u', lambda2, bnd_idx, direct, save_figures);
-Plotsvd2(data, pod_v(:,1:num_plot), dimensions, 'v', lambda2, bnd_idx, direct, save_figures);
-Plotsvd2(data, pod_vor(:,1:num_plot), dimensions, 'vorticity', lambda2, bnd_idx, direct, save_figures);
+Plotsvd2(data, pod_u(:,1:num_plot), dimensions, 'u', lambda, bnd_idx, direct, save_figures);
+Plotsvd2(data, pod_v(:,1:num_plot), dimensions, 'v', lambda, bnd_idx, direct, save_figures);
+Plotsvd2(data, pod_vor(:,1:num_plot), dimensions, 'vorticity', lambda, bnd_idx, direct, save_figures);
 
 % Add mode zero
-[modal_amp_mean, modal_amp_flux, pod_u, pod_v] = ...
-    add_mode_zero(modal_amp_mean, modal_amp_flux, pod_u, pod_v, mean_u, mean_v);
+[modal_amp_mean, modal_amp_flux, lambda, pod_u, pod_v] = ...
+    add_mode_zero(modal_amp_mean, modal_amp_flux, lambda, pod_u, pod_v, mean_u, mean_v);
 
 %% Save / Return variables
 run_num = floor(100000*rand(1));
@@ -219,7 +215,7 @@ results.centers = centers;
 results.cluster_range = cluster_range;
 results.modal_amp_mean = modal_amp_mean;
 results.modal_amp_flux = modal_amp_flux;
-results.lambda2 = lambda2;
+results.lambda = lambda;
 results.l_scale = l_scale;
 results.u_scale = u_scale;
 results.vol_frac = vol_frac;

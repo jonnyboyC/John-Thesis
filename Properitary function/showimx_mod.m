@@ -54,7 +54,7 @@ lhs6 = double(0);
 lhs7 = double(0);
 if A.IType<=0, % grayvalue image format
     % Calculate frame range
-    if frame>0 & frame<A.Nf,
+    if frame>0 && frame<A.Nf,
         baseRangeY = baseRangeY + frame*ny;
     end
     lhs3 = double(A.Data(:,baseRangeY)');
@@ -69,7 +69,7 @@ elseif A.IType==2, % simple 2D vector format: (vx,vy)
         lhs4 = -lhs4;
     end
 	% quiver(lhs1,lhs2,lhs3,lhs4);
-elseif (A.IType==3 | A.IType==1) , % normal 2D vector format + peak: sel+4*(vx,vy) (+peak)
+elseif (A.IType==3 || A.IType==1) , % normal 2D vector format + peak: sel+4*(vx,vy) (+peak)
 	% Calculate vector position and components
     [lhs1,lhs2] = ndgrid(lhs1,lhs2);
     lhs3 = lhs1*0;
@@ -113,9 +113,7 @@ elseif A.IType==4,
 	lhs4 = lhs4*A.ScaleI(1)+A.ScaleI(2);
 	lhs5 = lhs5*A.ScaleI(1)+A.ScaleI(2);
 	lhs6 = lhs6*A.ScaleI(1)+A.ScaleI(2);
-    %Display vector field
-	% quiver3(lhs1,lhs2,lhs3, lhs4,lhs5,lhs6);
-elseif (A.IType==5 | A.IType==6),
+elseif (A.IType==5 || A.IType==6),
 	% Calculate vector position and components
     lhs3 = double((baseRangeZ-0.5)*A.Grid*A.ScaleZ(1)+A.ScaleZ(2));
     lhs4 = double(zeros([nx ny nz]));
@@ -158,20 +156,6 @@ elseif (A.IType==5 | A.IType==6),
 	lhs4 = lhs4*A.ScaleI(1)+A.ScaleI(2);
 	lhs5 = lhs5*A.ScaleI(1)+A.ScaleI(2);
 	lhs6 = lhs6*A.ScaleI(1)+A.ScaleI(2);
-    %Display vector field
-	% quiver3(lhs1,lhs2,lhs3, lhs4,lhs5,lhs6);
 end
-% Set label, axis and figure properties
-xlabel([A.LabelX ' ' A.UnitX]);
-ylabel([A.LabelY ' ' A.UnitY]);
-title ([A.LabelI ' ' A.UnitI]);
-set(gcf,'Name',A.Source);
-if A.IType>0,
-    set(gcf,'color','w');
 end
-set(gca,'color',[.9 .9 .9]);
-if A.ScaleY(1)>=0.0,
-    axis ij;
-else
-    axis xy;
-end
+

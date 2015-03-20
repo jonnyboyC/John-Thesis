@@ -4,9 +4,9 @@ function handle = plot_amp(modal_amp, t, direct, id)
 h = figure;
 ax = newplot;
 plot(ax, t, modal_amp);
-ax.XLabel.String = ('time (s)');
-ax.YLabel.String = ('Modal Amplitude');
-ax.Title.String = ('Predicted Modal Amplitudes');
+ax.XLabel.String = 'time (s)';
+ax.YLabel.String = 'Modal Amplitude';
+ax.Title.String = ['Predicted Modal Amplitudes ' id];
 
 % Add amplitude legend
 leg_names = cell(size(modal_amp, 2), 1);

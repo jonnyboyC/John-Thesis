@@ -20,9 +20,9 @@ if isempty(problem.save_pod) || ~islogical(problem.save_pod)
 end
 
 % Default for save_figures
-if isempty(problem.save_figures) || ~iscell(problem.save_figures)
-    fprintf('Using default value for save_figures\nproblem.save_pod = {}\n\n');
-    problem.save_figures = {'fig'};     % Save as figure
+if  ~iscell(problem.save_figures)
+    fprintf('Using default value for save_figures\nproblem.save_figures = {}\n\n');
+    problem.save_figures = {};     % Save as figure
 end
 
 % Check to make sure incorrect strings are not passed
@@ -55,7 +55,7 @@ end
 
 % Default for flip
 if isempty(problem.flip) || ~isequal(size(problem.flip), [1, 4]) || ~all(arrayfun(@islogical, problem.flip)) 
-    fprintf('Using default value for flip_x\nproblem.flip = [false, false, false, false]\n\n');
+    fprintf('Using default value for flip\nproblem.flip = [false, false, false, false]\n\n');
     problem.flip = [false, false, false, false];        % save pod results
 end
 

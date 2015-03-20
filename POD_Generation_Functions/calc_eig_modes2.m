@@ -1,14 +1,14 @@
-function [pod_u, pod_v, lambda2, modal_amp_mean, modal_amp_flux, cutoff] = ...
-    calc_eig_modes2(co_var, flux_u, flux_v, mean_u, mean_v)
+function [pod_u, pod_v, lambda, modal_amp_mean, modal_amp_flux, cutoff] = ...
+    calc_eig_modes2(co_var, flux_u, flux_v)
 %% Calculate pod modes, pod lambda values, and the left eigenvector
 num_images = size(co_var,1);
 
 % Perform single value decomposition to get empirial eigenfunctions for
 % first num_modes singular values
-[modal_amp, lambda2, ~] = svd(co_var);
+[modal_amp, lambda, ~] = svd(co_var);
 
 % Calculate singular value of data matrix
-sigma = sqrt(lambda2*num_images);
+sigma = sqrt(lambda*num_images);
 
 % Produce pod modes
 pod_u = (flux_u*modal_amp)/sigma';
@@ -28,10 +28,10 @@ for i = 1:num_images
 end
 
 % pull off diagonal
-lambda2 = diag(lambda2);
+lambda = diag(lambda);
 
 % Find the number of modes need to account for 99% of the energy
-sum_mode_energy = cumsum(lambda2)./sum(lambda2);
+sum_mode_energy = cumsum(lambda)./sum(lambda);
 cutoff = find((sum_mode_energy >= 0.99), 1);
 
 % Display cutoff energy content

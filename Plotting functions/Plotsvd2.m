@@ -1,11 +1,11 @@
-function Plotsvd2(data,pod,dimensions,varname,sigma, bnd_idx, direct, save_figures)
+function Plotsvd2(data,pod,dimensions,varname,lambda, bnd_idx, direct, save_figures)
 % Plot plot pod modes for u v and vorticity
 
 % Determine number of modes
 [~,num_modes] = size(pod);
 
 % Determine energy content of each mode
-energy = sigma(1:num_modes)./sum(sigma)*100;
+energy = lambda(1:num_modes)./sum(lambda)*100;
 
 plot_img_num = 1;
 cma=max(abs(pod));
