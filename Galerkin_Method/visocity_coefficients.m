@@ -124,7 +124,7 @@ save([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_og_m' num2str(num_modes)
      'l', 'q', 'cutoff', 'run_num', '-v7.3'); 
 
 if isempty(gcp('nocreate'));
-    parpool('local', 4);
+    parpool('local', 3);
 end
 end
 

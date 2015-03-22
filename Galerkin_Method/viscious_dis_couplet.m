@@ -28,6 +28,6 @@ sum_j = 2:num_modes;
 modal_eddy_vis = zeros(num_modes, 1);
 
 %modal_eddy_vis1 = mean((P_unres(:,sum_j).*D_res(:,sum_j)),1)'./mean((D_res(:,sum_j).^2),1)';
-modal_eddy_vis(2:end) = mean(((modal_amp_flux(:,sum_j)).^2.*P_unres(:,sum_j).*D_res(:,sum_j)),1)'./mean((modal_amp_flux(:,sum_j).*D_res(:,sum_j).^2),1)';
-%modal_eddy_vis2(2:end) = mean((modal_amp_flux(:,sum_j).*P_unres(:,sum_j)),1)'./mean((modal_amp_flux(:,sum_j).*D_res(:,sum_j)),1)';
+% modal_eddy_vis(2:end) = mean(((modal_amp_flux(:,sum_j)).^2.*P_unres(:,sum_j).*D_res(:,sum_j)),1)'./mean((modal_amp_flux(:,sum_j).*D_res(:,sum_j).^2),1)';
+modal_eddy_vis(2:end) = mean((modal_amp_flux(:,sum_j).*P_unres(:,sum_j)),1)'./mean((modal_amp_flux(:,sum_j).*D_res(:,sum_j)),1)';
 end

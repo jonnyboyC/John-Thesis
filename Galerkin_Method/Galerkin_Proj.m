@@ -95,7 +95,7 @@ clear problem
 
 % Check status of parrallel pool
 if isempty(gcp('nocreate'));
-    parpool('local', 4);
+    parpool('local', 3);
 end
 
 fprintf('\nLoading POD variables\n\n');
@@ -196,8 +196,9 @@ if ismember('Couplet', dissapation);
 end
 
 % determine number of models
-linear_models = 6;
-total_models = linear_models*2-2;
+base_models = 2;
+linear_models = 8;
+total_models = linear_models*2-base_models;
 
 % Prefill cell
 eddy= cell(total_models,2,length(num_modesG));
@@ -248,26 +249,32 @@ for i = 1:length(num_modesG)
     
     % calculate coefficients detailed by Couplet
     if ismember('Couplet', dissapation);
-        eddy{3,1,i} = viscious_dis_couplet(modal_amp_flux, modal_amp_mean, num_modes, lc{1,1}, qc{1,1}, Re0);
-        eddy{3,2,i} = 'Base Couplet';
+        eddy{3,1,i} = viscious_dis_couplet(modal_amp_flux, modal_amp_mean,...
+            num_modes, lc{1,1}, qc{1,1}, Re0);
+        eddy{3,2,i} = 'Modal Base Couplet';
 
-        eddy{4,1,i} = viscious_dis_couplet(modal_amp_flux, modal_amp_mean, num_modes, lc{2,1}, qc{2,1}, Re0);
-        eddy{4,2,i} = 'Weak Couplet';
+        eddy{4,1,i} = viscious_dis_couplet(modal_amp_flux, modal_amp_mean,...
+            num_modes, lc{2,1}, qc{2,1}, Re0);
+        eddy{4,2,i} = 'Modal Weak Couplet';
     end
 
     disp(eddy{3,1,i});
     
     % Calculate coefficeints detailed by Noack
-    eddy{5,1,i} = viscious_dis(modal_amp_flux, modal_amp_mean, num_modes, lambda, l{1,1,i}, q{1,1,i}, Re0);
-    eddy{5,2,i} = 'Base Noack';
+    [eddy{5,1,i}, eddy{6,1,i}] = viscious_dis(modal_amp_flux, modal_amp_mean, ...
+        num_modes, lambda, l{1,1,i}, q{1,1,i}, Re0);
+    eddy{5,2,i} = 'Modal Base Noack';
+    eddy{6,2,i} = 'Global Base Noack';
 
-    eddy{6,1,i} = viscious_dis(modal_amp_flux, modal_amp_mean, num_modes, lambda, l{2,1,i}, q{2,1,i}, Re0);
-    eddy{6,2,i} = 'Weak Noack';
+    [eddy{7,1,i}, eddy{8,1,i}] = viscious_dis(modal_amp_flux, modal_amp_mean, ...
+        num_modes, lambda, l{2,1,i}, q{2,1,i}, Re0);
+    eddy{7,2,i} = 'Modal Weak Noack';
+    eddy{8,2,i} = 'Global Weak Noack';
     
-    % duplicate
-    eddy(7:10,1,i) = eddy(3:6,1,i);
-    for j = 3:6
-        eddy{j+4,2,i} = ['NL ' eddy{j,2,i}];
+    % duplicate TODO name this better
+    eddy(linear_models+1:total_models,1,i) = eddy(base_models+1:linear_models,1,i);
+    for j = base_models+1:linear_models
+        eddy{j+linear_models-base_models,2,i} = ['NL ' eddy{j,2,i}];
     end
     
     % Perform final manipulation to prep integration
@@ -276,7 +283,8 @@ for i = 1:length(num_modesG)
 %% Time integration
 
     ao = modal_amp_flux(init,1:num_modes)+modal_amp_mean(init, 1:num_modes);
-    [t, modal_amp] = time_integration(reduced_model_coeff, eddy, Re0, modal_TKE, i, t, modal_amp, ao, tspan, total_models, linear_models, options);
+    [t, modal_amp] = time_integration(reduced_model_coeff, eddy, Re0, modal_TKE, ...
+        i, t, modal_amp, ao, tspan, total_models, linear_models, options);
     
 %% Plotting functions
 

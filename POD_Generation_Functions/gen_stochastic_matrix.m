@@ -1,5 +1,7 @@
-function stoc_matrix = gen_stochastic_matrix(groups)
+function [stoc_matrix] = gen_stochastic_matrix(h, groups)
 % Generate the approximate stochastic matrix from the group data
+
+figure(h);
 
 num_cluster = max(groups);
 stoc_matrix = zeros(num_cluster);

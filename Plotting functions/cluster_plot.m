@@ -1,8 +1,8 @@
-function cluster_plot(modal_amp, cl_idx, cl_center, modes, k, direct, save_figures)
+function cluster_plot(h, modal_amp, cl_idx, cl_center, modes, k, direct, save_figures)
 % Create 2D representation of clusters centers
 
 % Create new figure and axis handles
-h = figure;
+figure(h);
 ax = newplot;
 
 % Loop through and plot each cluster

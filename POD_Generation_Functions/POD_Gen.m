@@ -144,17 +144,21 @@ centers = cell(length(cluster_range),1);
 stoc_matrix = cell(length(cluster_range),1);
 options = statset('UseParallel', 1);
 
+% ready figures
+h_clust = figure;
+h_stoch = figure;
+
 % Calculate cluster centers and stochastic matrices
 for i = 1:length(cluster_range);
     [groups, centers{i}] = kmeans(modal_amp_flux(:,1:cluster_range(i)), ...
         num_clusters, 'Replicates', 10, 'Options', options);
     
     if i == 1
-        cluster_plot(modal_amp_flux, groups, centers{i}, cluster_modes, num_clusters, ...
+        cluster_plot(h_clust, modal_amp_flux, groups, centers{i}, cluster_modes, num_clusters, ...
             direct, save_figures);
     end
     
-    stoc_matrix{i} = gen_stochastic_matrix(groups);
+    stoc_matrix{i} = gen_stochastic_matrix(h_stoch, groups);
 end
 
 pod_u = regroup(pod_u, dimensions);

@@ -41,15 +41,16 @@ modal_amp(:,:,i)  = [modal_amp_temp, reduced_model_coeff(:,2)];
 end
 
 function [t_job, modal_amp_job, time] = integration(reduced_model_coeff, eddy, Re0, modal_TKE, ao, tspan, j, linear_models, options)
-if ~isempty(reduced_model_coeff);
+if ~isempty(reduced_model_coeff); 
     if j <= linear_models
-
+        % Time integration with linear eddy visocity
         tic;
         [t_job, modal_amp_job] = ode113(@(t,y) ...
             system_odes(t, y, reduced_model_coeff), ...
             tspan, ao, options);  
         time = toc;
     else
+        % Time inetgration with nonlinear eddy visocity
         tic;
         [t_job, modal_amp_job] = ode113(@(t,y) ...
             system_odes_NL(t, y, reduced_model_coeff, eddy, Re0, modal_TKE), ...
