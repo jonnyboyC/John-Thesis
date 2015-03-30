@@ -14,16 +14,6 @@ end
 % Set up the folders properly
 update_folders(direct);
 
-% Check the now set up folders for data
-img_files = dir([direct filesep 'Raw Data' filesep '*']);
-
-% Remove any directories from results
-img_files = img_files([img_files.isdir]==0);
-num_files = length(img_files);
-
-% Get raw data file extension
-[~, ~, file_type] = fileparts(img_files(1).name);
-
 % Check to see if a saved file exists
 if exist([direct filesep 'Processed Data' filesep 'Processed.mat'], 'file') == 2
     data = load([direct filesep 'Processed Data' filesep 'Processed.mat'], 'num_processed');
@@ -33,6 +23,16 @@ if exist([direct filesep 'Processed Data' filesep 'Processed.mat'], 'file') == 2
         return;
     end
 end
+
+% Check the now set up folders for data
+img_files = dir([direct filesep 'Raw Data' filesep '*']);
+
+% Remove any directories from results
+img_files = img_files([img_files.isdir]==0);
+num_files = length(img_files);
+
+% Get raw data file extension
+[~, ~, file_type] = fileparts(img_files(1).name);
 
 if num_images < num_files
     num_files = num_images;

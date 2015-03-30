@@ -82,7 +82,7 @@ clear problem
 
 % Check status of parrallel pool
 if isempty(gcp('nocreate'));
-    parpool('local', 4);
+    parpool('local');
 end
 
 %% Load and organize data

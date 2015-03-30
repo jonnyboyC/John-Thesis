@@ -95,7 +95,7 @@ clear problem
 
 % Check status of parrallel pool
 if isempty(gcp('nocreate'));
-    parpool('local', 3);
+    parpool('local');
 end
 
 fprintf('\nLoading POD variables\n\n');
