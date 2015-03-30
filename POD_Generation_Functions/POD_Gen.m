@@ -37,12 +37,10 @@ function res = POD_Gen(varargin)
 % problem.u_scale_gen = 1
 % Specify a scalar for function handle to calculate u_scale
 %
-% problem.flip_x = false
-% If true reflect image about y axis
+% problem.flip = [false, false, false, false]
+% Specify which directions and velocities are inverted
+% [x, y, u, v]
 %
-% problem.flip_y = false
-% If true reflect image about x axis
-% 
 % problem.new_mask = false;
 % If true launch gui to create a new mask to identify flow boundaries
 
@@ -147,6 +145,7 @@ options = statset('UseParallel', 1);
 % ready figures
 h_clust = figure;
 h_stoch = figure;
+
 
 % Calculate cluster centers and stochastic matrices
 for i = 1:length(cluster_range);
