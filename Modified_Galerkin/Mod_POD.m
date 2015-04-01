@@ -26,7 +26,7 @@ init        = problem.init;
 line_range  = problem.line_range;
 direct      = problem.direct;
 run_num     = problem.run_num;
-type        = problem.type;
+models        = problem.type;
 fft_window  = problem.fft_window;
 
 % Check that parallel pool is ready
@@ -52,22 +52,27 @@ update_folders(direct);
 vars = load(direct_POD, 'results');
 
 % Create more readable names
-pod_u   = vars.results.pod_u;           % streamwise pod modes
-pod_v   = vars.results.pod_v;           % spanwise pod modes
+pod_u       = vars.results.pod_u;           % streamwise pod modes
+pod_v       = vars.results.pod_v;           % spanwise pod modes
 u_scale     = vars.results.u_scale;     % velocity scaling
 l_scale     = vars.results.l_scale;     % length scaling
-lambda2     = vars.results.lambda2;     % eigenvalues of modes
-modal_amp_raw = vars.results.modal_amp_raw;   % modal amplitude of each image in pod basis
+lambda      = vars.results.lambda;     % eigenvalues of modes
+modal_amp   = vars.results.modal_amp;   % modal amplitude of each image in pod basis
 dimensions  = vars.results.dimensions;  % dimensions of mesh
 run_num     = vars.results.run_num;     % POD run numbers
 
 clear vars
 
-% Main Loop
-for i = 1:size(type, 2)
+vars = load(direct_Gal, 'results');
 
-    % TODO get load_data working 
-    vars = load_data(type{i}, direct_Gal);
+q_total     = vars.results.q;
+l_total     = vars.results.l;
+t_total     = vars.results.t;
+modal_amp_sim_total = vars.resutls.modal_amp_sim;
+linear_models = vars.results.linear_models;
+
+% Main Loop
+for i = 1:size(models, 2)
     
     % load variables for type
     
@@ -75,15 +80,15 @@ for i = 1:size(type, 2)
     c = vars.c;
     l = vars.l;
     t = vars.t;
-    OG_nm = vars.OG_nm;
-    modal_amp = vars.modal_amp;
+    OG_nm = vars.num_modesG;
+    modal_amp_sim = vars.modal_amp_sim;
 
     clear vars
 
     % Truncate POD
     pod_ut = pod_u(:,1:OG_nm);
     pod_vt = pod_v(:,1:OG_nm);
-    modal_amp_rawt = modal_amp_raw(:, 1:OG_nm);
+    modal_amp_rawt = modal_amp(:, 1:OG_nm);
     
 
     line_problem.c = c;
@@ -93,8 +98,8 @@ for i = 1:size(type, 2)
     line_problem.init = init;
     line_problem.OG_nm = OG_nm;
     line_problem.RD_nm = RD_nm;
-    line_problem.lambda2 = lambda2;
-    line_problem.modal_amp = modal_amp;
+    line_problem.lambda2 = lambda;
+    line_problem.modal_amp = modal_amp_sim;
     line_problem.line_range = line_range;
 
     [epsilon, transfer, flip_idx] = line_search(line_problem);
@@ -105,7 +110,7 @@ for i = 1:size(type, 2)
         'FunValCheck', 'on');
 
         [epsilon_final, ~, ~, OUTPUT] = fzero(@(epsilon) optimal_rotation...
-            (epsilon, c, l, q, OG_nm, RD_nm, lambda2, modal_amp, t, init, 18000), epsilon_range, options);
+            (epsilon, c, l, q, OG_nm, RD_nm, lambda, modal_amp_sim, t, init, 18000), epsilon_range, options);
         close all;
         disp(OUTPUT);
     else
@@ -115,14 +120,14 @@ for i = 1:size(type, 2)
         'FunValCheck', 'on');
 
         [epsilon_final, ~, ~, OUTPUT] = fminbnd(@(epsilon) abs(optimal_rotation...
-            (epsilon, c, l, q, OG_nm, RD_nm, lambda2, modal_amp, t, init, 18000)), epsilon(idx-1), epsilon(idx+1), options);
+            (epsilon, c, l, q, OG_nm, RD_nm, lambda, modal_amp_sim, t, init, 18000)), epsilon(idx-1), epsilon(idx+1), options);
         disp(OUTPUT);
     end
 
     % Final calculation of transformation matrix and new constant linear and
     % quadratic terms
     [~, X, C_til, L_til, Q_til] = ...
-        optimal_rotation(epsilon_final, c, l, q, OG_nm, RD_nm, lambda2, modal_amp, t, init, 18000);
+        optimal_rotation(epsilon_final, c, l, q, OG_nm, RD_nm, lambda, modal_amp_sim, t, init, 18000);
 
     [pod_u_til, pod_v_til, modal_amp_raw_til] = ...
         basis_transform(pod_ut, pod_vt, modal_amp_rawt, RD_nm, X);
@@ -135,7 +140,7 @@ for i = 1:size(type, 2)
 
     tic1 = tic;
     [t, modal_amp_til] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff_vis), t, ...
-        modal_amp(init,1:RD_nm), options);
+        modal_amp_sim(init,1:RD_nm), options);
     toc(tic1);
     %% Temp
     
@@ -159,7 +164,7 @@ for i = 1:size(type, 2)
     plot_data.l_scale       = l_scale;
     plot_data.plot_type     = plot_type;
     plot_data.sample_freq   = sample_freq;
-    plot_data.id            = type;
+    plot_data.id            = models;
     plot_data.modal_amp     = modal_amp_til;
     plot_data.t             = t;
 
@@ -177,7 +182,7 @@ for i = 1:size(type, 2)
     
     % Save important coefficients
     if save_mod == true
-        save([direct '\Mod Galerkin Coeff\Coeff_' num2str(run_num) '_m' num2str(RD_nm) '_' type{i} '.mat'], ...
+        save([direct '\Mod Galerkin Coeff\Coeff_' num2str(run_num) '_m' num2str(RD_nm) '_' models{i} '.mat'], ...
             'results');
     end
 end

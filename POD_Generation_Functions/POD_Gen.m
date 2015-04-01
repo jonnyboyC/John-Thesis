@@ -130,7 +130,7 @@ data.y = y;
 
 %% Perform Proper Orthogonal Decomposition
 covariance = cal_covariance_mat2(flux_u, flux_v, vol_frac, bnd_idx);
-[pod_u, pod_v, lambda, modal_amp_mean, modal_amp_flux, cutoff] =  ...
+[pod_u, pod_v, lambda, modal_amp, cutoff] =  ...
     calc_eig_modes2(covariance, flux_u, flux_v); 
 
 % Cluster dimensions of clusters
@@ -149,11 +149,11 @@ h_stoch = figure;
 
 % Calculate cluster centers and stochastic matrices
 for i = 1:length(cluster_range);
-    [groups, centers{i}] = kmeans(modal_amp_flux(:,1:cluster_range(i)), ...
+    [groups, centers{i}] = kmeans(modal_amp(:,1:cluster_range(i)), ...
         num_clusters, 'Replicates', 10, 'Options', options);
     
     if i == 1
-        cluster_plot(h_clust, modal_amp_flux, groups, centers{i}, cluster_modes, num_clusters, ...
+        cluster_plot(h_clust, modal_amp, groups, centers{i}, cluster_modes, num_clusters, ...
             direct, save_figures);
     end
     
@@ -197,8 +197,8 @@ Plotsvd2(data, pod_v(:,1:num_plot), dimensions, 'v', lambda, bnd_idx, direct, sa
 Plotsvd2(data, pod_vor(:,1:num_plot), dimensions, 'vorticity', lambda, bnd_idx, direct, save_figures);
 
 % Add mode zero
-[modal_amp_mean, modal_amp_flux, lambda, pod_u, pod_v] = ...
-    add_mode_zero(modal_amp_mean, modal_amp_flux, lambda, pod_u, pod_v, mean_u, mean_v);
+[modal_amp, lambda, pod_u, pod_v] = ...
+    add_mode_zero(modal_amp, lambda, pod_u, pod_v, mean_u, mean_v);
 
 %% Save / Return variables
 run_num = floor(100000*rand(1));
@@ -216,8 +216,7 @@ results.pod_v = pod_v;
 results.groups = groups;
 results.centers = centers;
 results.cluster_range = cluster_range;
-results.modal_amp_mean = modal_amp_mean;
-results.modal_amp_flux = modal_amp_flux;
+results.modal_amp = modal_amp;
 results.lambda = lambda;
 results.l_scale = l_scale;
 results.u_scale = u_scale;

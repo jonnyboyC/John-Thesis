@@ -1,4 +1,4 @@
-function [modal_eddy_vis, global_eddy_vis] = viscious_dis(modal_amp_flux, modal_amp_mean, num_modes, lambda2, l, q, Re0)
+function [modal_eddy_vis, global_eddy_vis] = viscious_dis(modal_amp, num_modes, lambda2, l, q, Re0)
 % Current Naive implementation of viscious disappation term, may want to
 % explore other proposed viscous dissapation methods
 
@@ -10,12 +10,7 @@ for i = 2:num_modes
     q_temp = reshape(q(i,:), num_modes, num_modes);
     for j = 1:num_modes;
         for k = 1:num_modes;
-            q_sum(j,k) = q_temp(j, k)* mean(modal_amp_flux(:,j).*modal_amp_flux(:,k).*modal_amp_flux(:,i));
-            if modal_amp_mean(j) ~= 0 && k == i
-                q_sum(j,k) = q_sum(j,k) + q_temp(j, k)*mean(modal_amp_mean(j)*lambda2(i));
-            elseif modal_amp_mean(k) ~= 0 && j == i
-                q_sum(j,k) = q_sum(j,k) + q_temp(j, k)*mean(modal_amp_mean(k)*lambda2(i));
-            end
+            q_sum(j,k) = q_temp(j, k)* mean(modal_amp(:,j).*modal_amp(:,k).*modal_amp(:,i));
         end
     end
     l_sum = l(i,i)*lambda2(i);

@@ -1,4 +1,4 @@
-function [pod_u, pod_v, lambda, modal_amp_mean, modal_amp_flux, cutoff] = ...
+function [pod_u, pod_v, lambda, modal_amp, cutoff] = ...
     calc_eig_modes2(co_var, flux_u, flux_v)
 %% Calculate pod modes, pod lambda values, and the left eigenvector
 num_images = size(co_var,1);
@@ -16,16 +16,6 @@ pod_v = (flux_v*modal_amp)/sigma';
 
 % Normalize
 modal_amp = modal_amp*sigma;
-
-% Remove numerical errors
-modal_amp_mean = mean(modal_amp, 1);
-modal_amp_mean(modal_amp_mean < 1e-15) = 0;
-
-% Decompose into mean and flucuating amplitudes
-modal_amp_flux = zeros(size(modal_amp));
-for i = 1:num_images
-   modal_amp_flux(:,i) = modal_amp(:,i) - modal_amp_mean(i); 
-end
 
 % pull off diagonal
 lambda = diag(lambda);

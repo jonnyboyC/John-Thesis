@@ -132,8 +132,8 @@ bnd_y       = vars.results.bnd_y;       % location of flow boundaries normal to 
 uniform     = vars.results.uniform;     % logical if mesh is uniform
 run_num     = vars.results.run_num;     % POD run numbers
 cutoff      = vars.results.cutoff;    % number of modes at cutoff
-modal_amp_mean = vars.results.modal_amp_mean;   % modal amplitude mean from raw data
-modal_amp_flux = vars.results.modal_amp_flux;   % modal amplitude flucuations from raw data
+modal_amp = vars.results.modal_amp;   % modal amplitude  from raw data
+
 
 clear vars
 
@@ -205,7 +205,7 @@ eddy= cell(total_models,2,length(num_modesG));
 l   = cell(total_models,2,length(num_modesG));
 q   = cell(total_models,2,length(num_modesG));
 t           = cell(total_models,2,length(num_modesG));
-modal_amp   = cell(total_models,2,length(num_modesG));
+modal_amp_sim   = cell(total_models,2,length(num_modesG));
 
 options = odeset('RelTol', 1e-8, 'AbsTol', 1e-10);
 
@@ -214,7 +214,7 @@ for i = 1:length(num_modesG)
     
     % Pull current number of modes to be investigated
     num_modes = num_modesG(i);
-    modal_TKE = sum(1/2*mean(modal_amp_flux(:,2:num_modes).^2,1));
+    modal_TKE = sum(1/2*mean(modal_amp(:,2:num_modes).^2,1));
     
     % Created truncated pod basis
     pod_ut  = pod_u(:,1:num_modes);
@@ -249,25 +249,21 @@ for i = 1:length(num_modesG)
     
     % calculate coefficients detailed by Couplet
     if ismember('Couplet', dissapation);
-        eddy{3,1,i} = viscious_dis_couplet(modal_amp_flux, modal_amp_mean,...
-            num_modes, lc{1,1}, qc{1,1}, Re0);
+        eddy{3,1,i} = viscious_dis_couplet(modal_amp, num_modes, lc{1,1}, qc{1,1}, Re0);
         eddy{3,2,i} = 'Modal Base Couplet';
 
-        eddy{4,1,i} = viscious_dis_couplet(modal_amp_flux, modal_amp_mean,...
-            num_modes, lc{2,1}, qc{2,1}, Re0);
+        eddy{4,1,i} = viscious_dis_couplet(modal_amp, num_modes, lc{2,1}, qc{2,1}, Re0);
         eddy{4,2,i} = 'Modal Weak Couplet';
     end
 
     disp(eddy{3,1,i});
     
     % Calculate coefficeints detailed by Noack
-    [eddy{5,1,i}, eddy{6,1,i}] = viscious_dis(modal_amp_flux, modal_amp_mean, ...
-        num_modes, lambda, l{1,1,i}, q{1,1,i}, Re0);
+    [eddy{5,1,i}, eddy{6,1,i}] = viscious_dis(modal_amp, num_modes, lambda, l{1,1,i}, q{1,1,i}, Re0);
     eddy{5,2,i} = 'Modal Base Noack';
     eddy{6,2,i} = 'Global Base Noack';
 
-    [eddy{7,1,i}, eddy{8,1,i}] = viscious_dis(modal_amp_flux, modal_amp_mean, ...
-        num_modes, lambda, l{2,1,i}, q{2,1,i}, Re0);
+    [eddy{7,1,i}, eddy{8,1,i}] = viscious_dis(modal_amp, num_modes, lambda, l{2,1,i}, q{2,1,i}, Re0);
     eddy{7,2,i} = 'Modal Weak Noack';
     eddy{8,2,i} = 'Global Weak Noack';
     
@@ -282,9 +278,9 @@ for i = 1:length(num_modesG)
 
 %% Time integration
 
-    ao = modal_amp_flux(init,1:num_modes)+modal_amp_mean(init, 1:num_modes);
-    [t, modal_amp] = time_integration(reduced_model_coeff, eddy, Re0, modal_TKE, ...
-        i, t, modal_amp, ao, tspan, total_models, linear_models, options);
+    ao = modal_amp(init,1:num_modes)+modal_amp_mean(init, 1:num_modes);
+    [t, modal_amp_sim] = time_integration(reduced_model_coeff, eddy, Re0, modal_TKE, ...
+        i, t, modal_amp_sim, ao, tspan, total_models, linear_models, options);
     
 %% Plotting functions
 
@@ -306,7 +302,7 @@ for i = 1:length(num_modesG)
 
     all_t = t(:,1,i)';
     all_ids = eddy(:,2,i)';
-    all_modal_amps =  modal_amp(:,1,i)';
+    all_modal_amps =  modal_amp_sim(:,1,i)';
 
     % Cycle through and plot all requested figures
     for j = 1:total_models;
@@ -327,9 +323,11 @@ results.l = l;
 results.q = q;
 results.eddy = eddy;
 results.num_modesG = num_modesG;
-results.modal_amp = modal_amp;
+results.modal_amp_sim = modal_amp_sim;
 results.t = t;
 results.sample_freq = sample_freq;
+results.linear_models = linear_models;
+results.total_models = total_models;
 
 % Save relavent coefficients
 if save_coef == true
