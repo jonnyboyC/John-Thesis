@@ -1,10 +1,5 @@
-function [X] = constrained_POD(a,L,N,n,epsilon,evals)
+function X = constrained_POD(lambda, L, N, n, epsilon, evals)
 % Function to determine the optimal rotation of the system
-
-lambda = zeros(N, 1);
-for i=1:N;
-    lambda(i) = mean(a(i,:).*a(i,:));
-end
 
 x0 = eye(n,n);
 if N > n
@@ -18,10 +13,13 @@ problem.x0 = x0;
 problem.solver = 'fmincon';
 
 options = optimoptions('fmincon');
-%options.UseParallel = true;
 options.MaxFunEvals = evals;
-%options.Algorithm = 'active-set';
 problem.options = options;
+
+% Other options to consider changing
+%options.UseParallel = true;
+%options.Algorithm = 'active-set';
+
 
 [x,~,~,OUTPUT,~] = fmincon(problem);
 OUTPUT.message

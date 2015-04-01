@@ -87,10 +87,10 @@ if ischar(run_num)
                     wildcard = files(i).name;
                     return;
                 else
-                    if i == matches_idx(1)
-                        wildcard = files(i).name;
-                        return;
-                    end
+                if i == matches_idx(1)
+                    wildcard = files(i).name;
+                    return;
+                end
                 end
             end
         end

@@ -278,7 +278,7 @@ for i = 1:length(num_modesG)
 
 %% Time integration
 
-    ao = modal_amp(init,1:num_modes)+modal_amp_mean(init, 1:num_modes);
+    ao = modal_amp(init,1:num_modes);
     [t, modal_amp_sim] = time_integration(reduced_model_coeff, eddy, Re0, modal_TKE, ...
         i, t, modal_amp_sim, ao, tspan, total_models, linear_models, options);
     

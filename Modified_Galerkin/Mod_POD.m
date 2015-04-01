@@ -8,7 +8,7 @@ clc;
 %List of fields that will be checked
 fields = {  'RD_nm',        'plot_type',    'save_mod', ...
             'init',         'line_range',   'direct' ,...
-            'run_num',      'type',         'fft_window'};
+            'run_num',      'models',       'fft_window'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -26,15 +26,13 @@ init        = problem.init;
 line_range  = problem.line_range;
 direct      = problem.direct;
 run_num     = problem.run_num;
-models        = problem.type;
+models      = problem.models;
 fft_window  = problem.fft_window;
 
-% Check that parallel pool is ready
-if isempty(gcp)
-    parpool;
+% Check status of parrallel pool
+if isempty(gcp('nocreate'));
+    parpool('local');
 end
-
-gcp();
 
 % Handle File IO
 if strcmp(direct, '');
@@ -65,41 +63,44 @@ clear vars
 
 vars = load(direct_Gal, 'results');
 
+% Get results from Galerkin Projection
 q_total     = vars.results.q;
 l_total     = vars.results.l;
 t_total     = vars.results.t;
-modal_amp_sim_total = vars.resutls.modal_amp_sim;
+modal_amp_sim_total = vars.results.modal_amp_sim;
 linear_models = vars.results.linear_models;
+OG_nm = vars.results.num_modesG;
+
+clear vars
+
+% Remove any passed models that are greater than the linear models
+models(models > linear_models) = [];
 
 % Main Loop
 for i = 1:size(models, 2)
     
-    % load variables for type
+    % Set variables for model
+    q = q_total{models(i),1};
+    l = l_total{models(i),1};
+    t = t_total{models(i),1};
+    modal_amp_sim = modal_amp_sim_total{models(i),1};
     
-    q = vars.q;
-    c = vars.c;
-    l = vars.l;
-    t = vars.t;
-    OG_nm = vars.num_modesG;
-    modal_amp_sim = vars.modal_amp_sim;
-
-    clear vars
+    %C = l
 
     % Truncate POD
     pod_ut = pod_u(:,1:OG_nm);
     pod_vt = pod_v(:,1:OG_nm);
-    modal_amp_rawt = modal_amp(:, 1:OG_nm);
+    modal_ampt = modal_amp(:, 1:OG_nm);
     
 
-    line_problem.c = c;
     line_problem.l = l;
     line_problem.q = q;
     line_problem.t = t;
     line_problem.init = init;
     line_problem.OG_nm = OG_nm;
     line_problem.RD_nm = RD_nm;
-    line_problem.lambda2 = lambda;
-    line_problem.modal_amp = modal_amp_sim;
+    line_problem.lambda = lambda;
+    line_problem.modal_amp = modal_ampt;
     line_problem.line_range = line_range;
 
     [epsilon, transfer, flip_idx] = line_search(line_problem);
@@ -130,7 +131,7 @@ for i = 1:size(models, 2)
         optimal_rotation(epsilon_final, c, l, q, OG_nm, RD_nm, lambda, modal_amp_sim, t, init, 18000);
 
     [pod_u_til, pod_v_til, modal_amp_raw_til] = ...
-        basis_transform(pod_ut, pod_vt, modal_amp_rawt, RD_nm, X);
+        basis_transform(pod_ut, pod_vt, modal_ampt, RD_nm, X);
 
     %% Temp
     Gal_coeff_til = [C_til L_til Q_til];

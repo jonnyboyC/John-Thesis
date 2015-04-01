@@ -22,10 +22,11 @@ bnd_idx     = plot_data.bnd_idx;
 t_scale = u_scale/l_scale;
 sample_freq = sample_freq*t_scale;
 t = t/t_scale;
+modal_amp = modal_amp(:,2:end);
 
 % Plot modal amplitude of the response
 if any(strcmp(plot_type, 'amp'))
-    plot_amp(modal_amp(:, 1:num_modes), t, direct, id);
+    plot_amp(modal_amp, t, direct, id);
 end
 
 % TODO significant overhaul to this function

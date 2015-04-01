@@ -70,19 +70,9 @@ if ischar(problem.run_num)
 end
 
 % Default for previous galerkin type
-if isempty(problem.type) || ~iscell(problem.type);
-    fprintf('Using default value for type\nproblem.type = "vis1"\n\n');
-    problem.type = {'vis1'};      % previous galerkin type
+if isempty(problem.models) || ~isvector(problem.models);
+    fprintf('Using default value for models\nproblem.models = [3, 4]\n\n');
+    problem.models = [3, 4];      % previous galerkin type
 end
-
-% Check to make sure incorrect strings are not passed
-correct = {'og', 'vis1', 'vis2'};
-correct_members = ismember(problem.type, correct);
-for i = 1:size(correct_members,2)
-    if ~correct_members(i)
-        fprintf('%s is not a correct input for problem.type\n', problem.type{i});
-    end
-end
-problem.type = problem.type(correct_members);
 
 end
