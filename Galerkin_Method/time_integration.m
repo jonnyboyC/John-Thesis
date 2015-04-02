@@ -7,7 +7,7 @@ modal_amp_temp = cell(size(modal_amp,1),1);
 % Integrate Galerkin System usign async parallel execution
 parfeval_futures = parallel.FevalOnAllFuture;
 for j = 1:total_models
-    integration(reduced_model_coeff{j,1}, eddy{j,1,i}, Re0, modal_TKE, ao, tspan, j, linear_models, options)
+%    integration(reduced_model_coeff{j,1}, eddy{j,1,i}, Re0, modal_TKE, ao, tspan, j, linear_models, options)
     parfeval_futures(j) = parfeval(@integration, 3, reduced_model_coeff{j,1}, ...
         eddy{j,1,i}, Re0, modal_TKE, ao, tspan, j, linear_models, options);
 end

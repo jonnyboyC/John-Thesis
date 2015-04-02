@@ -17,14 +17,14 @@ range = 2:num_modes;
 idx = 1;
 
 for j = 1:num_modes
-    idx = idx + 1;
     da(range) = da(range) + model_coef(range, idx).*repmat(a(j),length(range),1).*vis(range);
+    idx = idx + 1;
 end
 
 % index upper half of matrix
 for j = 1:num_modes
     for k = j:num_modes
-        idx = idx + 1;
         da(range) = da(range) + model_coef(range,idx).*repmat(a(j)*a(k),length(range),1);
+        idx = idx + 1;
     end
 end
