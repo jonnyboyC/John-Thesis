@@ -1,8 +1,13 @@
-function [f] = objective(x, lambda)
+function goal = objective(x, lambda)
+% Generate a new matrix from the pseudo inverse to garentee that X'X = I
 X = x*(x'*x)^(-1/2);
-sum_lambda = sum(lambda);
-lambda_tilde = diag(X'*diag(lambda)*X);
-sum_lambda_tilde = sum(lambda_tilde);
 
-f = (sum_lambda - sum_lambda_tilde)/sum_lambda;
+% Take the sum of lambdas original ie original energy
+sum_lambda = sum(lambda);
+
+% Take the new energy sum from the transformed lambdas
+sum_lambda_tilde = sum(diag(X'*diag(lambda)*X));
+
+% Minimize energy differnce
+goal = (sum_lambda - sum_lambda_tilde)/sum_lambda;
 end

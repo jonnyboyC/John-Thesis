@@ -50,14 +50,18 @@ update_folders(direct);
 vars = load(direct_POD, 'results');
 
 % Create more readable names
-pod_u       = vars.results.pod_u;           % streamwise pod modes
-pod_v       = vars.results.pod_v;           % spanwise pod modes
+pod_u       = vars.results.pod_u;       % streamwise pod modes
+pod_v       = vars.results.pod_v;       % spanwise pod modes
+pod_vor     = vars.results.pod_vor;     % vorticity pod modes
 u_scale     = vars.results.u_scale;     % velocity scaling
 l_scale     = vars.results.l_scale;     % length scaling
-lambda      = vars.results.lambda;     % eigenvalues of modes
+lambda_OG   = vars.results.lambda;      % eigenvalues of modes
 modal_amp   = vars.results.modal_amp;   % modal amplitude of each image in pod basis
 dimensions  = vars.results.dimensions;  % dimensions of mesh
 run_num     = vars.results.run_num;     % POD run numbers
+x           = vars.results.x;
+y           = vars.results.y;
+bnd_idx     = vars.results.bnd_idx;
 
 clear vars
 
@@ -67,9 +71,11 @@ vars = load(direct_Gal, 'results');
 q_total     = vars.results.q;
 l_total     = vars.results.l;
 t_total     = vars.results.t;
+eddy_total  = vars.results.eddy;
+vis         = vars.results.vis;
 modal_amp_sim_total = vars.results.modal_amp_sim;
 linear_models = vars.results.linear_models;
-OG_nm = vars.results.num_modesG;
+num_modesG = vars.results.num_modesG;
 
 clear vars
 
@@ -79,22 +85,26 @@ models(models > linear_models) = [];
 % Main Loop
 for i = 1:size(models, 2)
     
+    % Calculate total visocity
+    total_vis = vis + eddy_total{models(i),1};
+    
     % Set variables for model
-    q = q_total{models(i),1};
-    l = l_total{models(i),1};
+    [C, L, Q, lambda, OG_nm] = term2order(l_total{models(i),1}, q_total{models(i),1}, ...
+                                   total_vis, lambda_OG, num_modesG);
     t = t_total{models(i),1};
     modal_amp_sim = modal_amp_sim_total{models(i),1};
     
-    %C = l
 
     % Truncate POD
     pod_ut = pod_u(:,1:OG_nm);
     pod_vt = pod_v(:,1:OG_nm);
+    pod_vort = pod_vor(:,1:OG_nm);
     modal_ampt = modal_amp(:, 1:OG_nm);
     
 
-    line_problem.l = l;
-    line_problem.q = q;
+    line_problem.C = C;
+    line_problem.L = L;
+    line_problem.Q = Q;
     line_problem.t = t;
     line_problem.init = init;
     line_problem.OG_nm = OG_nm;
@@ -111,8 +121,7 @@ for i = 1:size(models, 2)
         'FunValCheck', 'on');
 
         [epsilon_final, ~, ~, OUTPUT] = fzero(@(epsilon) optimal_rotation...
-            (epsilon, c, l, q, OG_nm, RD_nm, lambda, modal_amp_sim, t, init, 18000), epsilon_range, options);
-        close all;
+            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_amp_sim, t, init, 18000), epsilon_range, options);
         disp(OUTPUT);
     else
         disp('no sign flip detected');
@@ -121,26 +130,28 @@ for i = 1:size(models, 2)
         'FunValCheck', 'on');
 
         [epsilon_final, ~, ~, OUTPUT] = fminbnd(@(epsilon) abs(optimal_rotation...
-            (epsilon, c, l, q, OG_nm, RD_nm, lambda, modal_amp_sim, t, init, 18000)), epsilon(idx-1), epsilon(idx+1), options);
+            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_amp_sim, t, init, 18000)), epsilon(idx-1), epsilon(idx+1), options);
         disp(OUTPUT);
     end
+    close all;
 
     % Final calculation of transformation matrix and new constant linear and
     % quadratic terms
     [~, X, C_til, L_til, Q_til] = ...
-        optimal_rotation(epsilon_final, c, l, q, OG_nm, RD_nm, lambda, modal_amp_sim, t, init, 18000);
+        optimal_rotation(epsilon_final, C, L, Q, OG_nm, RD_nm, lambda, modal_amp_sim, t, init, 18000);
 
-    [pod_u_til, pod_v_til, modal_amp_raw_til] = ...
-        basis_transform(pod_ut, pod_vt, modal_ampt, RD_nm, X);
+    [pod_u_til, pod_v_til, pod_vor_til, modal_amp_raw_til] = ...
+        basis_transform(pod_ut, pod_vt, pod_vort, modal_ampt, RD_nm, X);
 
     %% Temp
     Gal_coeff_til = [C_til L_til Q_til];
+    Mod = true;
 
-    reduced_model_coeff_vis = -ode_coefficients(RD_nm, RD_nm, Gal_coeff_til);
+    Gal_coeff_til = ode_coefficients(RD_nm, Gal_coeff_til, Mod);
     options = odeset('RelTol', 1e-7, 'AbsTol', 1e-9);
 
     tic1 = tic;
-    [t, modal_amp_til] = ode113(@(t,y) system_odes(t,y,reduced_model_coeff_vis), t, ...
+    [t, modal_amp_til] = ode113(@(t,y) system_odes_mod(t,y,Gal_coeff_til), t, ...
         modal_amp_sim(init,1:RD_nm), options);
     toc(tic1);
     %% Temp
@@ -159,6 +170,7 @@ for i = 1:size(models, 2)
     plot_data.init          = init;
     plot_data.pod_ut        = pod_u_til;
     plot_data.pod_vt        = pod_v_til;
+    plot_data.pod_vort      = pod_vor_til;
     plot_data.dimensions    = dimensions;
     plot_data.fft_window    = fft_window;
     plot_data.u_scale       = u_scale;
@@ -168,6 +180,9 @@ for i = 1:size(models, 2)
     plot_data.id            = models;
     plot_data.modal_amp     = modal_amp_til;
     plot_data.t             = t;
+    plot_data.x             = x;
+    plot_data.y             = y;
+    plot_data.bnd_idx       = bnd_idx;
 
     % Generate plots
     produce_plots(plot_data);

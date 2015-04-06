@@ -1,18 +1,23 @@
-function mod_coeff = ode_coefficients(num_modes, Gal_coeff)
+function mod_coeff = ode_coefficients(num_modes, Gal_coeff, MOD)
 % Creating linear row of coefficients for eachs modes linear and quadratic
 % terms
 % ODE_COEFFICENTS(NUM_MODES, FCUH) created a row vector of coefficients for
 % every mode in FCUH for NUM_MODES modes.
 
-% Prefill array
-mod_coeff = zeros(num_modes, num_modes + (num_modes)*(num_modes+1)/2);
 
-% copy linear terms
-mod_coeff(:,1:num_modes) = Gal_coeff(:,1:num_modes);
-
-% Create offset for quadratic terms
-idx = num_modes + 1;
-offset = num_modes;
+if MOD
+    % Prefill array, copy linear terms, create offsets for quadratic terms
+    mod_coeff = zeros(num_modes, num_modes+1 + (num_modes)*(num_modes+1)/2);
+    mod_coeff(:,1:num_modes+1) = Gal_coeff(:,1:num_modes+1);
+    idx = num_modes + 2;
+    offset = num_modes + 1;
+else
+    % Prefill array, copy linear terms, create offsets for quadratic terms
+    mod_coeff = zeros(num_modes, num_modes + (num_modes)*(num_modes+1)/2);
+    mod_coeff(:,1:num_modes) = Gal_coeff(:,1:num_modes);
+    idx = num_modes + 1;
+    offset = num_modes;
+end
 
 % used by sub2ind
 mat_size = [num_modes num_modes];

@@ -2,6 +2,7 @@ function [reduced_model_coeff] = integration_setup(eddy, Re0, l, q, idx, total_m
 
 reduced_model_coeff = cell(total_models,2);
 Gal_coeff   = cell(total_models,2);
+Mod = false;
 
 % Final setup for time integration
 for j = 1:total_models
@@ -17,8 +18,8 @@ for j = 1:total_models
             Gal_coeff{j,2,idx} = eddy{j,2,idx};
         end
 
-        % rearrage into 1D form
-        reduced_model_coeff{j,1} = ode_coefficients(num_modes, Gal_coeff{j,1,idx});
+        % Galerkin 1D coefficients using 
+        reduced_model_coeff{j,1} = ode_coefficients(num_modes, Gal_coeff{j,1,idx}, Mod);
         reduced_model_coeff{j,2} = Gal_coeff{j,2,idx};
     end
 end

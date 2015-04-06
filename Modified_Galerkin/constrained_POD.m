@@ -1,10 +1,10 @@
 function X = constrained_POD(lambda, L, N, n, epsilon, evals)
-% Function to determine the optimal rotation of the system
+% Optimization problem to create an optimal rotation that minimizing the
+% energy difference between the original system and the new system.
 
-x0 = eye(n,n);
-if N > n
-    x0(N,:) = 0;
-end
+% Initial guess for transformation matrix
+x0 = zeros(N,n);
+x0(1:n,1:n) = eye(n,n);
 
 % set up problem
 problem.objective = @(x) objective(x, lambda);
@@ -19,7 +19,6 @@ problem.options = options;
 % Other options to consider changing
 %options.UseParallel = true;
 %options.Algorithm = 'active-set';
-
 
 [x,~,~,OUTPUT,~] = fmincon(problem);
 OUTPUT.message
