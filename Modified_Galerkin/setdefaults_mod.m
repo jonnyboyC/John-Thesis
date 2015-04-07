@@ -3,7 +3,7 @@ function problem = setdefaults_mod(problem)
 % Default for Reduced num_modes 
 if isempty(problem.RD_nm) || ~isscalar(problem.RD_nm)
     fprintf('Using default value for RD_nm\nproblem.RD_nm = 8\n\n');
-    problem.RD_nm = 8;        % use 10 modes
+    problem.RD_nm = 10;        % use 10 modes
 end
 
 % Default for type
