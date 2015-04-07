@@ -313,34 +313,47 @@ for i = 1:length(num_modesG)
             produce_plots(plot_data);
         end
     end
+    
+    fprintf('Saving Galerkin Variables\n');
+
+    % Prepare data
+    results.run_num = run_num;
+    results.l = squeeze(l(:,:,i));
+    results.q = squeeze(q(:,:,i));
+    results.eddy = squeeze(eddy(:,:,i));
+    results.vis = 1/Re0;
+    results.num_modesG = num_modes;
+    results.modal_amp_sim = squeeze(modal_amp_sim(:,:,i));
+    results.t = squeeze(t(:,:,i));
+    results.sample_freq = sample_freq;
+    results.linear_models = linear_models;
+    results.total_models = total_models;
+    
+    % Save relavent coefficients
+    if save_coef == true
+        if i ~= 1
+            wait(futures)
+        end
+        pool = gcp;
+        futures = parfeval(pool, @save_results, 0, results, direct);
+    end
 end
 
-fprintf('Saving Galerkin Variables\n');
-
-% Prepare data
-results.num_run = run_num;
-results.l = l;
-results.q = q;
-results.eddy = eddy;
-results.vis = 1/Re0;
-results.num_modesG = num_modesG;
-results.modal_amp_sim = modal_amp_sim;
-results.t = t;
-results.sample_freq = sample_freq;
-results.linear_models = linear_models;
-results.total_models = total_models;
-
-% Save relavent coefficients
-if save_coef == true
-    save([direct '\Galerkin Coeff\Coeff_m' num2str(num_modesG) '_i' num2str(init) '_r'...
-        num2str(run_num) '.mat'], 'results', '-v7.3');
-end
-
+% Return values if requested
 if nargout == 1
     res = results;
 end
 
 % return format
 format short g
+end
+
+% Save each mode
+function save_results(results, direct)
+    if ~exist([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(results.num_modesG-1)], 'dir') 
+        mkdir([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(results.num_modesG-1)]);
+    end
+    save([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(results.num_modesG-1) filesep 'Coefficients_run_'...
+    num2str(results.run_num) '.mat'], 'results', '-v7.3');
 end
 

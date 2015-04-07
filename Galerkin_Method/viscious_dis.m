@@ -18,6 +18,6 @@ for i = 2:num_modes
     q_globe = q_globe + sum(sum(q_sum));
     l_globe = l_globe + sum(l_sum);
 end
-global_eddy_vis = repmat(-1/Re0 + q_globe/l_globe, num_modes,1);
+global_eddy_vis = repmat(-(1/Re0 + q_globe/l_globe), num_modes,1);
 global_eddy_vis(1) = 0;
 end

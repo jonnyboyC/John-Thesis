@@ -1,13 +1,7 @@
 function plot_prediction(pod_u, pod_v, pod_vor, x, y, bnd_idx, modal_amp, t, num_pods, dimensions, direct, id)
 % Create a movie of the time response of the predicted Galerkin sytem
-
-% Check to match sure requested image isn't too large
-% if size(modal_amp,1) > 5000
-%     step_size = ceil(size(modal_amp,1)/5000);
-%     plot_points = 1:step_size:size(modal_amp,1);
-% else
-    plot_points = 1:size(modal_amp,1);
-% end
+plot_points = 1:size(modal_amp,1);
+modes = size(modal_amp,2);
 
 % Fill all plots with blank images to set renderer to opengl
 dummie = zeros(2,2);
@@ -43,12 +37,15 @@ else
 Hz = 1/(t(2) - t(1));
 
 % Intialize Video creator
-ext = '\Figures\Movies\POD_';
-if nargin == 12
-    ext = [ext id];
+if ~exist([direct filesep 'Figures' filesep 'Movies' filesep 'modes_' num2str(modes)], 'dir') 
+    mkdir([direct filesep 'Figures' filesep 'Movies' filesep 'modes_' num2str(modes)]);
 end
-writer = VideoWriter([direct ext num2str(num_pods) '_' ...
-   num2str(t(1)) '_' num2str(t(end)) 's_' num2str(ceil(Hz)) 'Hz_Galerkin.avi']);
+
+file_name = [direct filesep 'Figures' filesep 'Movies' filesep 'modes_' num2str(modes) filesep 'Flow_prediction_'];
+if nargin == 12
+    file_name = [file_name id];
+end
+writer = VideoWriter([file_name '_' num2str(t(1)) '_' num2str(t(end)) 's_' num2str(ceil(Hz)) 'Hz.avi']);
 writer.Quality = 100;
 writer.FrameRate = 60;
 open(writer);

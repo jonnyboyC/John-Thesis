@@ -49,11 +49,15 @@ for i = 1:size(num_plot,2)
 end
 legend(leg_names);
 
-file_name = [direct '\Figures\Galerkin\FFT_'];
-if nargin == 8
+if ~exist([direct filesep 'Figures' filesep 'Galerkin' filesep 'modes_' num2str(num_modes)], 'dir') 
+    mkdir([direct filesep 'Figures' filesep 'Galerkin' filesep 'modes_' num2str(num_modes)]);
+end
+
+file_name = [direct filesep 'Figures' filesep 'Galerkin' filesep 'modes_' num2str(num_modes) filesep 'FFT_'];
+if nargin == 7
     file_name = [file_name id '_'];
 end
-file_name = [file_name num2str(size(modal_amp,2)) '_' num2str(ceil(sample_freq)) 'Hz'];
+file_name = [file_name '_' num2str(ceil(sample_freq)) 'Hz'];
 drawnow;
 
 saveas(h, file_name, 'fig');

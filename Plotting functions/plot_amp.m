@@ -3,6 +3,9 @@ function handle = plot_amp(modal_amp, t, direct, id)
 % Create figure handle and axis handle
 h = figure;
 ax = newplot;
+
+modes = size(modal_amp,2);
+
 plot(ax, t, modal_amp);
 ax.XLabel.String = 'time (s)';
 ax.YLabel.String = 'Modal Amplitude';
@@ -23,12 +26,14 @@ if numel(t) < 2
 end
 Hz = 1/(t(2) - t(1));
 
-file_name = [direct '\Figures\Galerkin\Galerkin_'];
+if ~exist([direct filesep 'Figures' filesep 'Galerkin' filesep 'modes_' num2str(modes)], 'dir') 
+    mkdir([direct filesep 'Figures' filesep 'Galerkin' filesep 'modes_' num2str(modes)]);
+end
+file_name = [direct filesep 'Figures' filesep 'Galerkin' filesep 'modes_' num2str(modes) filesep 'Amplitude_'];
 if nargin == 4 
     file_name = [file_name id '_'];
 end
-file_name = [file_name num2str(size(modal_amp,2)) '_t' num2str(ceil(t(1))) ...
-    '_' num2str(ceil(t(end))) 's_' num2str(ceil(Hz)) 'Hz'];
+file_name = [file_name '_t' num2str(ceil(t(1))) '_' num2str(ceil(t(end))) 's_' num2str(ceil(Hz)) 'Hz'];
 drawnow;
 
 % Save figure in Figure\Galerkin folder
