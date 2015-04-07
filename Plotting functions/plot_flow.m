@@ -1,4 +1,4 @@
-function ax = plot_flow(x, y, u, v, bnd_idx, image)
+function h = plot_flow(x, y, u, v, bnd_idx, image)
 
 if size(size(u)', 1) == 2 && size(size(v)',1) == 2
     magnitude = sqrt(u.^2 + v.^2);

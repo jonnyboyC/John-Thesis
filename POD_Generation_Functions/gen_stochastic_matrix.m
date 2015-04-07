@@ -15,4 +15,7 @@ for i = 1:num_cluster
    stoc_matrix(i,:) = stoc_matrix(i,:)/sum(stoc_matrix(i,:));
 end
 pcolor(stoc_matrix);
+colorbar;
+xlabel('Next State');
+ylabel('Current State');
 drawnow;
