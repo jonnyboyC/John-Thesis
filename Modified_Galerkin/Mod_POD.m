@@ -1,5 +1,48 @@
 function Mod_POD(varargin)
-% TODO fill out help 
+% MOD_POD modifies an existing Galerkin system by creating a new POD basis
+% that is transformed such that it minimizing the energy decrease compared
+% to the original system. will show results of new system via graphing
+%
+% MOD_POD() prompt user for analysis folder for a given test run, will use
+% all defaultes detailed below
+% 
+% MOD_POD(problem) Using fields provided in the structure PROBLEM sets up
+% analysis specified by PROBLEM. all unfilled fields go to defaults
+%
+% problem.RD_nm = 10
+% Specify the number of modes that will be calculated the basis
+% transformation
+%
+% problem.plot_type = {'amp', 'fft'}
+% Specify which outout graphes are desired, current options are modal
+% amplitude 'amp', fourier fast transform 'fft', and 'video which produces
+% a video of the simulated flow
+%
+% problem.save_mod = true
+% Save relvant values to a .mat file
+%
+% problem.init = 1
+% Specify which image will constitute the initial conditions
+%
+% problem.line_range = 100
+% Specify a relatively range of epsilon values to search to be course
+% searched in order to generate a transformation matrix which produces an
+% energy balanced system
+%
+% problem.direct = ''
+% Specify directory that will be searched for POD data, default is to
+% prompt user
+%
+% problem.run_num = 'first'
+% Specify which run this Galerkn Projection should be based from, default
+% is to use the most recent
+%
+% problem.models = [2, 3]
+% Specify which Galerkin Models from GALKERKIN_PROJ are corrected with a
+% basis transform. 
+%
+% problem.fft_window = [0 2000]
+% Specify the hertz range that the fft plot should capture
 
 format long g
 close all

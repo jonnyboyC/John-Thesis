@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 problem_base1.num_images = 2000;
 problem_base1.load_raw = false;
 problem_base1.save_pod = true;
@@ -33,6 +34,15 @@ problem_force2.direct = 'D:\shear layer\PIVData\shear layer\Forced1';
 problem_force2.u_scale_gen = @u_scale_gen_shear;
 problem_force2.save_figures = {'jpg'};
 problem_force2.flip = [true, false, true, false];
+=======
+problem_mixing.num_images = 2000;
+problem_mixing.load_raw = false;
+problem_mixing.save_pod = true;
+problem_mixing.l_scale = 0.3048;
+problem_mixing.u_scale_gen = @u_scale_gen_shear;
+problem_mixing.save_figures = {'fig', 'jpg'};
+problem_mixing.flip = [true, false, true, false];
+>>>>>>> 44cbc81ab4ddc96068b237a3a6ff6ef5b68a4056
 
 problem_airfoil.num_images = 2000;
 problem_airfoil.load_raw = false;

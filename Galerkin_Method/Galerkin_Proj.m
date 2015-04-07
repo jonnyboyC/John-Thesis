@@ -1,6 +1,6 @@
 function res = Galerkin_Proj(varargin)
 % GALERKIN_PROJ perform Galerkin projection of the POD system onto Navier
-% Stokes. This requires POD_GEN to be run, Can produce save output graphs
+% Stokes. This requires POD_GEN to be run, can produce and save graphs
 % see below return results into RES if output is requested
 %
 % GALERKIN_PROJ() prompt user for analysis folders for a given test run,
@@ -27,8 +27,8 @@ function res = Galerkin_Proj(varargin)
 % problem.tspan = 0:0.01:100
 % Specify time span for time integration
 % 
-% problem.init
-% Speicify which image will constitute the initial conditions
+% problem.init = 1
+% Specify which image will constitute the initial conditions
 %
 % problem.direct = ''
 % Specify directory that will be searched for POD data, default is to
