@@ -22,10 +22,10 @@ for i = 2:num_modes
             + modal_amp(:,k_sum).*repmat(modal_amp(:,j),1,num_cutoff)*q_temp(j,k_sum)';
     end
 end
-sum_j = 2:num_modes;
+sum_i = 2:num_modes;
 modal_eddy_vis = zeros(num_modes, 1);
 
-%modal_eddy_vis1 = mean((P_unres(:,sum_j).*D_res(:,sum_j)),1)'./mean((D_res(:,sum_j).^2),1)';
-% modal_eddy_vis(2:end) = mean(((modal_amp(:,sum_j)).^2.*P_unres(:,sum_j).*D_res(:,sum_j)),1)'./mean((modal_amp(:,sum_j).*D_res(:,sum_j).^2),1)';
-modal_eddy_vis(2:end) = mean((modal_amp(:,sum_j).*P_unres(:,sum_j)),1)'./mean((modal_amp(:,sum_j).*D_res(:,sum_j)),1)';
+modal_eddy_vis1 = mean((P_unres(:,sum_j).*D_res(:,sum_j)),1)'./mean((D_res(:,sum_j).^2),1)';
+modal_eddy_vis(2:end) = mean(((modal_amp(:,sum_j)).^2.*P_unres(:,sum_j).*D_res(:,sum_j)),1)'./mean((modal_amp(:,sum_j).*D_res(:,sum_j).^2),1)';
+modal_eddy_vis(2:end) = mean((modal_amp(:,sum_i).*P_unres(:,sum_i)),1)'./mean((modal_amp(:,sum_i).*D_res(:,sum_i)),1)';
 end
