@@ -249,21 +249,21 @@ for i = 1:length(num_modesG)
     
     % calculate coefficients detailed by Couplet
     if ismember('Couplet', dissapation);
-        eddy{3,1,i} = viscious_dis_couplet(modal_amp, num_modes, lc{1,1}, qc{1,1}, Re0);
+        eddy{3,1,i} = viscous_dis_couplet(modal_amp, num_modes, lc{1,1}, qc{1,1}, Re0);
         eddy{3,2,i} = 'Modal Base Couplet';
 
-        eddy{4,1,i} = viscious_dis_couplet(modal_amp, num_modes, lc{2,1}, qc{2,1}, Re0);
+        eddy{4,1,i} = viscous_dis_couplet(modal_amp, num_modes, lc{2,1}, qc{2,1}, Re0);
         eddy{4,2,i} = 'Modal Weak Couplet';
     end
 
     disp(eddy{3,1,i});
     
     % Calculate coefficeints detailed by Noack
-    [eddy{5,1,i}, eddy{6,1,i}] = viscious_dis(modal_amp, num_modes, lambda, l{1,1,i}, q{1,1,i}, Re0);
+    [eddy{5,1,i}, eddy{6,1,i}] = viscous_dis(modal_amp, num_modes, lambda, l{1,1,i}, q{1,1,i}, Re0);
     eddy{5,2,i} = 'Modal Base Noack';
     eddy{6,2,i} = 'Global Base Noack';
 
-    [eddy{7,1,i}, eddy{8,1,i}] = viscious_dis(modal_amp, num_modes, lambda, l{2,1,i}, q{2,1,i}, Re0);
+    [eddy{7,1,i}, eddy{8,1,i}] = viscous_dis(modal_amp, num_modes, lambda, l{2,1,i}, q{2,1,i}, Re0);
     eddy{7,2,i} = 'Modal Weak Noack';
     eddy{8,2,i} = 'Global Weak Noack';
     
