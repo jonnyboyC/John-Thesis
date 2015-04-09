@@ -70,7 +70,7 @@ htext2.Units = 'normalized';
 bnd_x_temp = bnd_x;
 bnd_y_temp = bnd_y;
 % Generate the data to plot.
-[~, haxes] = Plottec2(data, haxes, bnd_idx, bnd_x, bnd_y);
+[~, haxes] = Plottec2(data, haxes);
 
 % Assign the GUI a name to appear in the window title.
 f.Name = 'Open Flow Boundary Refinement';
@@ -143,14 +143,16 @@ uiwait(f);
             htable.Data(1:size(filters,1),:) = ...
                 cellfun(@num2str, num2cell((filters)), 'UniformOutput', false);
         end
-        [~, haxes] = Plottec2(data, haxes, bnd_idx, bnd_x_temp, bnd_y_temp);
+        data.bnd_x = bnd_x_temp;
+        data.bnd_y = bnd_y_temp;
+        [~, haxes] = Plottec2(data, haxes);
     end
 
     function hclear_Callback(~, ~)
         htable.Data = cell(8, 4);
-        bnd_x_temp = bnd_x;
-        bnd_y_temp = bnd_y;
-        [~, haxes] = Plottec2(data, haxes, bnd_idx, bnd_x_temp, bnd_y_temp);
+        data.bnd_x = bnd_x;
+        data.bnd_y = bnd_y;
+        [~, haxes] = Plottec2(data, haxes);
     end
 
 end

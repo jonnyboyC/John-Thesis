@@ -125,9 +125,6 @@ mean_u      = reshape(mean_u, data_points, 1);
 mean_v      = reshape(mean_v, data_points, 1);
 vol_frac    = reshape(vol_frac, data_points, 1);
 
-data.x = x;
-data.y = y;
-
 %% Perform Proper Orthogonal Decomposition
 covariance = cal_covariance_mat2(flux_u, flux_v, vol_frac, bnd_idx);
 [pod_u, pod_v, lambda, modal_amp, cutoff] =  ...
@@ -192,9 +189,9 @@ else
 end
 
 % Plot pod modes
-Plotsvd2(data, pod_u(:,1:num_plot), dimensions, 'u', lambda, bnd_idx, direct, save_figures);
-Plotsvd2(data, pod_v(:,1:num_plot), dimensions, 'v', lambda, bnd_idx, direct, save_figures);
-Plotsvd2(data, pod_vor(:,1:num_plot), dimensions, 'vorticity', lambda, bnd_idx, direct, save_figures);
+Plotsvd2(x, y, pod_u(:,1:num_plot), dimensions, 'u', lambda, bnd_idx, direct, save_figures);
+Plotsvd2(x, y, pod_v(:,1:num_plot), dimensions, 'v', lambda, bnd_idx, direct, save_figures);
+Plotsvd2(x, y, pod_vor(:,1:num_plot), dimensions, 'vorticity', lambda, bnd_idx, direct, save_figures);
 
 % Add mode zero
 [modal_amp, lambda, pod_u, pod_v] = ...
