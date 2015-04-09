@@ -120,7 +120,6 @@ u_scale     = vars.results.u_scale;     % velocity scaling
 l_scale     = vars.results.l_scale;     % length scaling
 pod_u       = vars.results.pod_u;       % streamwise pod modes
 pod_v       = vars.results.pod_v;       % spanwise pod modes
-pod_vor     = vars.results.pod_vor;     % vorticity modes
 lambda      = vars.results.lambda;      % eigenvalues of modes
 % cluster_range  = vars.results.cluster_range;    % number of variables in cluster
 % centers     = vars.results.centers;     % cluster centers
@@ -219,7 +218,6 @@ for i = 1:length(num_modesG)
     % Created truncated pod basis
     pod_ut  = pod_u(:,1:num_modes);
     pod_vt  = pod_v(:,1:num_modes);
-    pod_vort= pod_vor(:,1:num_modes);
 
     coef_problem.pod_u = pod_ut;
     coef_problem.pod_v = pod_vt;
@@ -289,7 +287,6 @@ for i = 1:length(num_modesG)
     plot_data.direct        = direct;
     plot_data.pod_ut        = pod_ut;
     plot_data.pod_vt        = pod_vt;
-    plot_data.pod_vort      = pod_vort;
     plot_data.dimensions    = dimensions;
     plot_data.fft_window    = fft_window;
     plot_data.u_scale       = u_scale;

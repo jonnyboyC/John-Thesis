@@ -1,35 +1,13 @@
-function plot_prediction(pod_u, pod_v, pod_vor, x, y, bnd_idx, modal_amp, t, dimensions, direct, id)
+function plot_prediction(pod_u, pod_v, x, y, bnd_idx, modal_amp, t, dimensions, direct, id)
 % Create a movie of the time response of the predicted Galerkin sytem
 plot_points = 1:size(modal_amp,1);
 modes = size(modal_amp,2);
 
 % Fill all plots with blank images to set renderer to opengl
-dummie = zeros(2,2);
-h = figure('Name', ['Time Prediction for ' id], ...
+h_parent = figure('Name', ['Time Prediction for ' id], ...
            'Position', [500, 500, 500, 400]);
-subplot(2,1,1)
-pcolor(dummie);
-axis tight
-set(gca, 'nextplot', 'replacechildren');
-set(h, 'Renderer', 'opengl');
 
-subplot(2,1,2)
-pcolor(dummie);
-axis tight
-set(gca, 'nextplot', 'replacechildren');
-set(h, 'Renderer', 'opengl');
-
-% subplot(2,2,3)
-% pcolor(dummie);
-% axis tight
-% set(gca, 'nextplot', 'replacechildren');
-% set(h, 'Renderer', 'opengl');
-% 
-% subplot(2,2,4)
-% pcolor(dummie);
-% axis tight
-% set(gca, 'nextplot', 'replacechildren');
-% set(h, 'Renderer', 'opengl');
+set(h_parent, 'Renderer', 'opengl');
 
 if length(t) < 2 
     return;
@@ -58,7 +36,6 @@ data_temp.pod = zeros(dimensions(1), dimensions(2));
 data_u = zeros(dimensions(1), dimensions(2), size(plot_points,2));
 data_v = zeros(dimensions(1), dimensions(2), size(plot_points,2));
 data_m = zeros(dimensions(1), dimensions(2), size(plot_points,2));
-data_vor = zeros(dimensions(1), dimensions(2), size(plot_points,2));
 
 % calculate predicted images
 idx = 1;
@@ -68,51 +45,41 @@ for i = plot_points;
         + reshape(pod_u(:,sum_j)*modal_amp(i,sum_j)',dimensions(1), dimensions(2));
     data_v(:,:,idx) =  data_v(:,:,idx)...
         + reshape(pod_v(:,sum_j)*modal_amp(i,sum_j)',dimensions(1), dimensions(2));
-    data_vor(:,:,idx) =  data_vor(:,:,idx)...
-        + reshape(pod_vor(:,sum_j)*modal_amp(i,sum_j)',dimensions(1), dimensions(2));
     data_m(:,:,idx) = sqrt(data_u(:,:,idx).^2+data_v(:,:,idx).^2);
     idx = idx + 1;
 end
 
-data = {data_u, data_v, data_m, data_vor};
-type = {'Flow Visualization', 'Vorticity'};
+type = {'Flow Visualization'};
 
 % Determine max values for u v and magnitude
-cmax = zeros(size(data,2),1);
-cmin = zeros(size(data,2),1);
-for i = 1:length(data)
-    [~, idx] = sort(abs(data{i}(:)));
-    cmax(i) = abs(data{i}(idx(0.95*floor(length(idx)))));
-    cmin(i) = -cmax(i);
-end
-
-% Preallocated figure handles and axes handles
-h_sub = gobjects(2,1);
-ax_sub = gobjects(2,1);
-% May need to change back to 4
+% Leave a bit left off so useful plots can be produced even with blow up
+[~, idx] = sort(abs(data_m(:)));
+cmax = abs(data_m(idx(0.95*floor(length(idx)))));
+cmin = -cmax;
 
 data_temp.x = x;
 data_temp.y = y;
+data_temp.bnd_idx = bnd_idx;
 
 % Plot results, print current image number, and save images to .avi video
 for i = 1:size(plot_points,2)  
     fprintf('image %d of %d\n', i, size(plot_points,2));
     for j = 1:length(type);
-        data_temp.pod = squeeze(data{j}(:,:,i));
-        data_temp.cmax = cmax(j);
-        subplot(2,2,j);
+        data_temp.pod = squeeze(data_m(:,:,i));
+        data_temp.u = squeeze(data_u(:,:,i));
+        data_temp.v = squeeze(data_v(:,:,i));
         if i == 1
-            figure(h);
-            [h_sub(j), ax_sub(j)] = Plottec2(data_temp, 0, bnd_idx);
-            ax_sub(j).Title = title(type{j}, 'fontname','times new roman','fontsize', 14);
-            ax_sub(j).XLabel = xlabel('x/D', 'fontname','times new roman','fontsize',12);
-            ax_sub(j).YLabel = ylabel('y/D', 'fontname','times new roman','fontsize',12);
+            figure(h_parent);
+            [h_child, ax] = Plottec2(data_temp);
+            ax.Title = title(type{j}, 'fontname','times new roman','fontsize', 14);
+            ax.XLabel = xlabel('x/D', 'fontname','times new roman','fontsize',12);
+            ax.YLabel = ylabel('y/D', 'fontname','times new roman','fontsize',12);
+            ax.ZLim = [cmin, cmax];
+            ax.CLim = [cmin, cmax];
             colorbar;
         else
-            h_sub(j) = Plottec2(data_temp, h_sub(j));
+            h_child = Plottec2(data_temp, h_child);
         end
-        ax_sub(j).ZLim = [cmin(j), cmax(j)];
-        ax_sub(j).CLim = [cmin(j), cmax(j)];
     end
     frame = getframe(gcf);
     writeVideo(writer, frame)

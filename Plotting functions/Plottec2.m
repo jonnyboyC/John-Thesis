@@ -1,13 +1,6 @@
 function [handle, cax] = Plottec2(data, h)
 % Create pseudo color plot, for flow visualization with included boundaries
 
-% Determine boundaries of image
-minx = min(min(data.x));
-maxx = max(max(data.x));
-miny = min(min(data.y));
-maxy = max(max(data.y));
-
-
 if nargin == 1 || all(isfield(data, {'bnd_x', 'bnd_y'}))
     ax = newplot;
     h = surf(ax, data.x, data.y, zeros(size(data.x)), data.pod);
@@ -51,20 +44,28 @@ if nargin == 1 || all(isfield(data, {'bnd_x', 'bnd_y'}))
         h3.AlphaData = flow_boundary;
         h3.FaceAlpha = 'flat';
     end
+    
+    % Determine boundaries of image
+    minx = min(min(data.x));
+    maxx = max(max(data.x));
+    miny = min(min(data.y));
+    maxy = max(max(data.y));
+    
     % Modify viewing
-    set(ax, 'View', [0 90]);
-    set(ax, 'Box', 'on');
-    axis([minx maxx miny maxy]);
+    ax.View = [0 90];
+    ax.Box = 'on';
+    ax.NextPlot = 'replacechildren';
     colormap(ax, 'jet');
+    axis(ax, [minx maxx miny maxy]);
     axis(ax, 'equal')
     axis(ax, 'tight');
 else
     % If plot already present update values
     h.CData = data.pod;
 end
-% Update
 drawnow;
 
+% Return handles
 if nargout == 1
     handle = h;
 end
