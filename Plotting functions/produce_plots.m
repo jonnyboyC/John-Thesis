@@ -31,7 +31,7 @@ end
 
 % TODO significant overhaul to this function
 if any(strcmp(plot_type, 'video'))
-    plot_prediction(pod_ut, pod_vt, pod_vort, x, y, bnd_idx, modal_amp, t, num_modes, dimensions, direct, id)
+    plot_prediction(pod_ut, pod_vt, pod_vort, x, y, bnd_idx, modal_amp, t, dimensions, direct, id)
 end
 
 % Plot modal fft

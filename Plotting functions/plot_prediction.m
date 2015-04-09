@@ -1,4 +1,4 @@
-function plot_prediction(pod_u, pod_v, pod_vor, x, y, bnd_idx, modal_amp, t, num_pods, dimensions, direct, id)
+function plot_prediction(pod_u, pod_v, pod_vor, x, y, bnd_idx, modal_amp, t, dimensions, direct, id)
 % Create a movie of the time response of the predicted Galerkin sytem
 plot_points = 1:size(modal_amp,1);
 modes = size(modal_amp,2);
@@ -6,34 +6,34 @@ modes = size(modal_amp,2);
 % Fill all plots with blank images to set renderer to opengl
 dummie = zeros(2,2);
 h = figure('Name', ['Time Prediction for ' id], ...
-           'Position', [500, 500, 800, 400]);
-subplot(2,2,1)
+           'Position', [500, 500, 500, 400]);
+subplot(2,1,1)
 pcolor(dummie);
 axis tight
 set(gca, 'nextplot', 'replacechildren');
 set(h, 'Renderer', 'opengl');
 
-subplot(2,2,2)
+subplot(2,1,2)
 pcolor(dummie);
 axis tight
 set(gca, 'nextplot', 'replacechildren');
 set(h, 'Renderer', 'opengl');
 
-subplot(2,2,3)
-pcolor(dummie);
-axis tight
-set(gca, 'nextplot', 'replacechildren');
-set(h, 'Renderer', 'opengl');
-
-subplot(2,2,4)
-pcolor(dummie);
-axis tight
-set(gca, 'nextplot', 'replacechildren');
-set(h, 'Renderer', 'opengl');
+% subplot(2,2,3)
+% pcolor(dummie);
+% axis tight
+% set(gca, 'nextplot', 'replacechildren');
+% set(h, 'Renderer', 'opengl');
+% 
+% subplot(2,2,4)
+% pcolor(dummie);
+% axis tight
+% set(gca, 'nextplot', 'replacechildren');
+% set(h, 'Renderer', 'opengl');
 
 if length(t) < 2 
     return;
-else
+end
 Hz = 1/(t(2) - t(1));
 
 % Intialize Video creator
@@ -62,33 +62,34 @@ data_vor = zeros(dimensions(1), dimensions(2), size(plot_points,2));
 
 % calculate predicted images
 idx = 1;
+sum_j = 1:modes;
 for i = plot_points;
-    for j = 1:num_pods
-        data_u(:,:,idx) =  data_u(:,:,idx)...
-            + reshape(pod_u(:,j)*modal_amp(i,j),dimensions(1), dimensions(2));
-        data_v(:,:,idx) =  data_v(:,:,idx)...
-            + reshape(pod_v(:,j)*modal_amp(i,j),dimensions(1), dimensions(2));
-        data_vor(:,:,idx) =  data_vor(:,:,idx)...
-            + reshape(pod_vor(:,j)*modal_amp(i,j),dimensions(1), dimensions(2));
-    end
+    data_u(:,:,idx) =  data_u(:,:,idx)...
+        + reshape(pod_u(:,sum_j)*modal_amp(i,sum_j)',dimensions(1), dimensions(2));
+    data_v(:,:,idx) =  data_v(:,:,idx)...
+        + reshape(pod_v(:,sum_j)*modal_amp(i,sum_j)',dimensions(1), dimensions(2));
+    data_vor(:,:,idx) =  data_vor(:,:,idx)...
+        + reshape(pod_vor(:,sum_j)*modal_amp(i,sum_j)',dimensions(1), dimensions(2));
     data_m(:,:,idx) = sqrt(data_u(:,:,idx).^2+data_v(:,:,idx).^2);
     idx = idx + 1;
 end
 
 data = {data_u, data_v, data_m, data_vor};
-type = {'Streamwise Velocity', 'Spanwise Velocity', 'Velocity Magnitude', 'Vorticity'};
+type = {'Flow Visualization', 'Vorticity'};
 
 % Determine max values for u v and magnitude
 cmax = zeros(size(data,2),1);
 cmin = zeros(size(data,2),1);
 for i = 1:length(data)
-    cmax(i) = max(abs(data{i}(:)));
+    [~, idx] = sort(abs(data{i}(:)));
+    cmax(i) = abs(data{i}(idx(0.95*floor(length(idx)))));
     cmin(i) = -cmax(i);
 end
 
 % Preallocated figure handles and axes handles
-h_sub = gobjects(4,1);
-ax_sub = gobjects(4,1);
+h_sub = gobjects(2,1);
+ax_sub = gobjects(2,1);
+% May need to change back to 4
 
 data_temp.x = x;
 data_temp.y = y;
@@ -96,7 +97,7 @@ data_temp.y = y;
 % Plot results, print current image number, and save images to .avi video
 for i = 1:size(plot_points,2)  
     fprintf('image %d of %d\n', i, size(plot_points,2));
-    for j = 1:length(data);
+    for j = 1:length(type);
         data_temp.pod = squeeze(data{j}(:,:,i));
         data_temp.cmax = cmax(j);
         subplot(2,2,j);
