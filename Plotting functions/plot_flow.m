@@ -22,7 +22,7 @@ short_u = data.u(1:spacing_x:end, 1:spacing_y:end, image);
 short_v = data.v(1:spacing_x:end, 1:spacing_y:end, image);
 
 hold(ax, 'on')
-quiver(short_x, short_y, short_u, short_v, 'color', [0 0 0]);
+quiver(ax, short_x, short_y, short_u, short_v, 'color', [0 0 0]);
 hold(ax, 'off')
 
 if nargin == 3 && format == true

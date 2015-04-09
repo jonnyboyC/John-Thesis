@@ -20,19 +20,15 @@ if ~exist([direct filesep 'Figures' filesep 'Movies' filesep 'modes_' num2str(mo
 end
 
 file_name = [direct filesep 'Figures' filesep 'Movies' filesep 'modes_' num2str(modes) filesep 'Flow_prediction_'];
-if nargin == 12
-    file_name = [file_name id];
-end
+file_name = [file_name id];
+
+
 writer = VideoWriter([file_name '_' num2str(t(1)) '_' num2str(t(end)) 's_' num2str(ceil(Hz)) 'Hz.avi']);
 writer.Quality = 100;
 writer.FrameRate = 60;
 open(writer);
 
-%% TODO May need to relook at this to make it more memory efficient
-data_temp.xg = x;
-data_temp.yg = y;
-data_temp.pod = zeros(dimensions(1), dimensions(2));
-
+% TODO May need to relook at this to make it more memory efficient
 data_u = zeros(dimensions(1), dimensions(2), size(plot_points,2));
 data_v = zeros(dimensions(1), dimensions(2), size(plot_points,2));
 data_m = zeros(dimensions(1), dimensions(2), size(plot_points,2));
