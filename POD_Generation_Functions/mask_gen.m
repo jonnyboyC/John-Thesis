@@ -1,4 +1,4 @@
-function [bnd_x, bnd_y] = mask_gen(data, bnd_idx, bnd_x, bnd_y)
+function [bnd_x, bnd_y] = mask_gen(data, bnd_x, bnd_y)
 % SIMPLE_GUI2 Select a data set from the pop-up menu, then
 % click one of the plot-type push buttons. Clicking the button
 % plots the selected data in the axes.
@@ -71,6 +71,7 @@ bnd_x_temp = bnd_x;
 bnd_y_temp = bnd_y;
 % Generate the data to plot.
 [~, haxes] = Plottec2(data, haxes);
+colorbar;
 
 % Assign the GUI a name to appear in the window title.
 f.Name = 'Open Flow Boundary Refinement';

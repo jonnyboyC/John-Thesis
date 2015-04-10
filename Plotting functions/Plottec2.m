@@ -59,6 +59,7 @@ if nargin == 1 || all(isfield(data, {'bnd_x', 'bnd_y'}))
     axis(ax, [minx maxx miny maxy]);
     axis(ax, 'equal')
     axis(ax, 'tight');
+    axis(ax, 'manual');
 else
     % If plot already present update values
     h.CData = data.pod;

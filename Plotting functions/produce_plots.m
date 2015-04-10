@@ -21,6 +21,12 @@ bnd_idx     = plot_data.bnd_idx;
 t_scale = u_scale/l_scale;
 sample_freq = sample_freq*t_scale;
 t = t/t_scale;
+
+% TODO significant overhaul to this function
+if any(strcmp(plot_type, 'video'))
+    plot_prediction(pod_ut, pod_vt, x, y, bnd_idx, modal_amp, t, dimensions, direct, id)
+end
+
 modal_amp = modal_amp(:,2:end);
 
 % Plot modal amplitude of the response
@@ -28,10 +34,6 @@ if any(strcmp(plot_type, 'amp'))
     plot_amp(modal_amp, t, direct, id);
 end
 
-% TODO significant overhaul to this function
-if any(strcmp(plot_type, 'video'))
-    plot_prediction(pod_ut, pod_vt, x, y, bnd_idx, modal_amp, t, dimensions, direct, id)
-end
 
 % Plot modal fft
 if any(strcmp(plot_type, 'fft'))

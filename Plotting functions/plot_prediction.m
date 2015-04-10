@@ -10,7 +10,7 @@ modes = size(modal_amp,2);
 
 % Fill all plots with blank images to set renderer to opengl
 h_parent = figure('Name', ['Time Prediction for ' id], ...
-           'Position', [500, 500, 500, 400]);
+           'Position', [500, 400, 700, 500]);
 
 set(h_parent, 'Renderer', 'opengl');
 
@@ -30,15 +30,16 @@ file_name = [direct filesep 'Figures' filesep 'Movies' filesep 'modes_' ...
 % TODO May need to relook at this to make it more memory efficient
 data_u = zeros(dimensions(1), dimensions(2), size(plot_points,2));
 data_v = zeros(dimensions(1), dimensions(2), size(plot_points,2));
-data_m = zeros(dimensions(1), dimensions(2), size(plot_points,2));
 
 % calculate predicted images
 sum_j = 1:modes;
 for i = plot_points;
     data_u(:,:,i) = reshape(pod_u(:,sum_j)*modal_amp(i,sum_j)',dimensions(1), dimensions(2));
     data_v(:,:,i) = reshape(pod_v(:,sum_j)*modal_amp(i,sum_j)',dimensions(1), dimensions(2));
-    data_m(:,:,i) = sqrt(data_u(:,:,i).^2+data_v(:,:,i).^2);
 end
+
+data_m = sqrt(data_u.^2 + data_v.^2);
+
 
 type = {'Flow Visualization'};
 
