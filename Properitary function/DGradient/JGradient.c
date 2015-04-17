@@ -1,6 +1,6 @@
 // JGradient.c
 // Gradient along a dimension
-// Y = JGradient(X, Dim, Spacing, Method)
+// Y = JGradient(X, Dim, Spacing, Method, bnd_idx)
 // INPUT:
 //   X:   Real DOUBLE array.
 //   Spacing: Scalar or vector of the length SIZE(X, Dim).
@@ -15,6 +15,7 @@
 //        '2ndOrder', 2nd order accurate centered differences.
 //        On the edges forward and backward difference are used.
 //        Optional, default: '1stOrder'.
+//   Bnd_idx: Matrix of values indicating where boundaries exist in the flow
 //
 // OUTPUT:
 //   Y:   Gradient of X, same size as X.
@@ -114,42 +115,26 @@ mxArray *mxCreateSharedDataCopy(const mxArray *mx);
 #define ERR_HEAD "*** JGradient[mex]: "
 #define ERR_ID   "JChabot:JGradient:"
 
-// Prototypes: -----------------------------------------------------------------
-void CoreDim1Space1(double *X, const mwSize M, const mwSize nDX, double Space,
-            double *Y);
-void CoreDimNSpace1(double *X, const mwSize step, const mwSize nX,
-            const mwSize nDX, double Space, double *Y);
-
+// Prototypes: ---------Added By John Chabot-----------------------------------
 void WrapSpaceN(double *X, const mwSize Step, const mwSize nX,
-            const mwSize nDX, double *Factor, double *Y);
-void GetFactor(double *Space, mwSize nDX, double *Factor);
-void CoreDim1SpaceN(double *X, const mwSize M, const mwSize nDX,
-            double *Space, double *Y);
-// void CoreDimNSpaceN(double *X, const mwSize step, const mwSize nX,
-//            const mwSize nDX, double *Space, double *Y);
-void CoreDim1FactorN(double *X, const mwSize M, const mwSize nDX,
-            double *Factor, double *Y);
-void CoreDimNFactorN(double *X, const mwSize Step, const mwSize nX,
-            const mwSize nDX, double *Factor, double *Y);
-// --------------------Added By John Chabot--------------------------------
-void CoreDim1SpaceNOrder4(double *X, const mwSize Step, const mwSize nX,
-            const mwSize nDX, double *Space, int8_t *Bnd_idx, double *Y);
-void WrapSpaceNOrder4(double *X, const mwSize Step, const mwSize nX,
-            const mwSize nDX, double *Space, int8_t *Bnd_idx, double *Y);
+    const mwSize nDX, double *Space, int8_T *Bnd_idx, double *Y);
+void CoreDim1Space1(double *X, const mwSize Step, const mwSize nX,
+	const mwSize nDX, double *Space, int8_T *Bnd_idx, double *Y);
+void CoreDimNSpace1(double *X, const mwSize Step, const mwSize nX,
+	const mwSize nDX, double *Space, int8_T *Bnd_idx, double *Y);
+void CoreDim1SpaceN(double *X, const mwSize Step, const mwSize nX,
+	const mwSize nDX, double *Space, int8_T *Bnd_idx, double *Y);
+void CoreDimNSpaceN(double *X, const mwSize Step, const mwSize nX,
+	const mwSize nDX, double *Space, int8_T *Bnd_idx, double *Y);
+void GetFactor(double *Space, mwSize nDX, int8_T *Bnd_idx, double *A, double *B,
+	double *C, double *D, double *E);
+void GetFactor2(double *Space, mwSize nDX, int8_T *Bnd_idx, double *A, double *B,
+	double *C, double *D, double *E);
+void GetFactor3(double *Space, mwSize nDX, int8_T *Bnd_idx, double *A, double *B,
+	double *C, double *D, double *E);
+void GetFactor4(double *Space, mwSize nDX, int8_T *Bnd_idx, double *A, double *B,
+	double *C, double *D, double *E);
 // ------------------------------------------------------------------------
-void WrapSpaceNOrder2(double *X, const mwSize Step, const mwSize nX,
-            const mwSize nDX, double *Space, int8_t *Bnd_idx, double *Y);
-void GetFactorOrder2(double *Space, const mwSize nDX,
-            double *A, double *B, double *C);
-void CoreDim1SpaceNOrder2(double *X, const mwSize nX, const mwSize nDX,
-            double *Space, int8_t *Bnd_idx, double *Y);
-void CoreDimNSpaceNOrder2(double *X, const mwSize Step, const mwSize nX,
-            const mwSize nDX, double *Space, int8_t *Bnd_idx, double *Y);
-void CoreDim1FactorNOrder2(double *X, const mwSize nX, const mwSize nDX,
-            double *A, double *B, double *C, int8_t *Bnd_idx, double *Y);
-void CoreDimNFactorNOrder2(double *X, const mwSize Step, const mwSize nX,
-            const mwSize nDX, double *A, double *B, double *C, int8_t *Bnd_idx,
-            double *Y);
 
 mwSize FirstNonSingeltonDim(const mwSize Xndim, const mwSize *Xdim);
 mwSize GetStep(const mwSize *Xdim, const mwSize N);
@@ -158,15 +143,15 @@ mwSize GetStep(const mwSize *Xdim, const mwSize N);
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     double *X, *Y, Nd, *Space, UnitSpace = 1.0;
-    int8_t *Bnd_idx;
-    mwSize nX, ndimX, N, nDX, Step, nSpace nBnd_idx;
+    int8_T *Bnd_idx;
+    mwSize nX, ndimX, N, nDX, Step, nSpace, nBnd_idx;
     const mwSize *dimX;
     int Order2, Order4;
   
     // Check number and type of inputs and outputs: ------------------------------
-    if (nrhs == 0 || nrhs > 5) {
+    if (nrhs == 0 || nrhs > 4) {
         mexErrMsgIdAndTxt(ERR_ID   "BadNInput",
-                        ERR_HEAD "1 or 5 inputs required.");
+                        ERR_HEAD "1 or 4 inputs required.");
     }
     if (nlhs > 1) {
         mexErrMsgIdAndTxt(ERR_ID   "BadNOutput",
@@ -258,27 +243,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
   
     // Check 4th input: ----------------------------------------------------------
-    if (nrhs < 4) {
-        Order2 = 0;
-        Order4 = 0;
-      
-    } else {
-        // "2ndOrder", but accept everything starting with "2":
-        // "4thOrder", but accept everything startign with "4":
-        if (mxIsChar(prhs[3]) && !mxIsEmpty(prhs[3])) {
-            Order4 = (*(mxChar *) mxGetData(prhs[3]) == L'4');
-            Order2 = (*(mxChar *) mxGetData(prhs[3]) == L'2');
-        } else {
-            mexErrMsgIdAndTxt(ERR_ID   "BadTypeInput4",
-                  ERR_HEAD "4th input must be a string.");
-        }
-    }
-  
-    // Check 5th input: ----------------------------------------------------------
     // -----------------------------TODO-----------------------------------------
-    if (nrhs < 5) {
+    if (nrhs < 4) {
         Bnd_idx = &nX;
-        Bnd_idx = (int8_t *) mxMalloc(nX, sizeof(int8_t));
+        Bnd_idx = (int8_T *) mxMalloc(nX, sizeof(int8_T));
         for(int i = 0; i < nX; ++i) {
             *(Bnd_idx + 1) = 1;
         }
@@ -288,10 +256,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             mexErrMsgIdAndTxt(ERR_ID   "BadTypeInput5",
                   ERR_HEAD "5th input [Boundary Index] must be a DOUBLE.");
         }
-        Bnd_idx = mxGetPr(prhs[4]);
-        nBnd_idx = mxGetNumberOfElements(prhs[4]);
+        Bnd_idx = mxGetPr(prhs[3]);
+        nBnd_idx = mxGetNumberOfElements(prhs[3]);
         if (nBnd_idx != nX) {
-            Bnd_idx = (int8_t *) mxMalloc(nX, sizeof(int8_t));
+            Bnd_idx = (int8_T *) mxMalloc(nX, sizeof(int8_T));
             for(int i = 0; i < nX; ++i) {
                 *(Bnd_idx + i) = 1;
             }
@@ -311,32 +279,17 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     // Calculate the gradient: ---------------------------------------------------
     if (nSpace == 1) {         // Scalar spacing
         if (Step == 1) {        // Operate on 1st dimension
-            CoreDim1Space1(X, nX, nDX, *Space, Y);
+			CoreDim1Space1(X, nX, nDX, *Space, Bnd_idx, Y);
         } else {                // Step >= 1, operate on any dimension
             CoreDimNSpace1(X, Step, nX, nDX, *Space, Y);
         }
         
     //--------------------------- TODO -------------------------------------------
-    } else if (Order4) {       // Spacing defined as vector, 4th order method:
-        if (nX == nDX) {        // Single vector only - dynamic spacing factors:
-            CoreDim1SpaceNOrder4(X, nX, nDX, Space, Bnd_idx, Y);
-        } else {
-            WrapSpaceNOrder4(X, Step, nX, nDX, Space, Bnd_idx, Y);
-        }
-    //--------------------------- TODO -------------------------------------------
-        
-    } else if (Order2) {       // Spacing defined as vector, 2nd order method:
-        if (nX == nDX) {        // Single vector only - dynamic spacing factors:
-            CoreDim1SpaceNOrder2(X, nX, nDX, Space, Bnd_idx, Y);
-        } else {
-            WrapSpaceNOrder2(X, Step, nX, nDX, Space, Bnd_idx, Y);
-        }
-     
     } else {                   // Spacing defined as vector, 1st order method:
         if (nX == nDX) {        // Single vector only - dynamic spacing factors:
-            CoreDim1SpaceN(X, nX, nDX, Space, Y);
+			CoreDim1SpaceN(X, nX, nDX, Space, Bnd_idx, Y);
         } else {
-            WrapSpaceN(X, Step, nX, nDX, Space, Y);
+			WrapSpaceN(X, Step, nX, nDX, Space, Bnd_idx, Y);
         }
     }
     
@@ -377,40 +330,55 @@ mwSize GetStep(const mwSize *Xdim, const mwSize N)
 
 // =============================================================================
 void CoreDim1Space1(double *X, const mwSize nX, const mwSize nDX, double Space,
-                    double *Y)
+                    int8_T *Bnd_idx, double *Y)
 {
     // Operate on first dimension, scalar spacing, 1st order method.
     
     double x0, x1, x2, *Xf, *Xc, fac1, fac2;
     
-    // Multiplication is faster than division:
-    fac1 = 1.0 / Space;
-    fac2 = 1.0 / (2.0 * Space);
+	// Will pass in factors array
     
     Xf = X + nX;                 // End of input array
     while (X < Xf) {
-        Xc   = X + nDX;
-        
-        x0   = *X++;              // Forward difference:
-        x1   = *X++;
-        *Y++ = (x1 - x0) * fac1;
-        
-        while (X < Xc) {          // Central differences:
-            x2   = *X++;
-            *Y++ = (x2 - x0) * fac2;
-            x0   = x1;
-            x1   = x2;
-        }
-        
-        *Y++ = (x1 - x0) * fac1;  // Backward difference
+		switch (method) {
+			case 1:
+			case 2:
+			case 3:
+			case 4:
+			//... will pass in method pointer
+		}
     }
-    
     return;
 }
 
 // =============================================================================
+void CoreDim1SpaceN(double *X, const mwSize nX, const mwSize nDX,
+	double *Space, int8_T *Bnd_idx double *Y)
+{
+	// Operate on the first dimension, spacing is a vector, order 1 method.
+	// The spacing factors are calculated dynamically. This is efficient for
+	// a single vector, but slower for matrices. No temporary vector is needed.
+
+	double x0, x1, x2, *Xf, *Xg, *Sp, s0, s1, s2;
+
+	// Will pass in factors array
+
+	Xf = X + nX;
+	while (X < Xf) {
+		switch (method) {
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+			//... will pass in method pointer
+		}
+	}
+	return;
+}
+
+// =============================================================================
 void CoreDimNSpace1(double *X, const mwSize Step, const mwSize nX,
-                    const mwSize nDX, double Space, double *Y)
+                    const mwSize nDX, double Space, int8_T *Bnd_idx, double *Y)
 {
     // Operate on any dimension, scalar spacing, 1st order method.
     // Column oriented approach: Process contiguous memory blocks of input and
@@ -419,516 +387,160 @@ void CoreDimNSpace1(double *X, const mwSize Step, const mwSize nX,
     double *Xf, *X1, *X2, *Xc, fac1, fac2;
     mwSize nDXStep;
     
-    // Multiplication is faster than division:
-    fac1 = 1.0 / Space;
-    fac2 = 1.0 / (2.0 * Space);
+	// Will pass in factors array
     
     // Distance between first and last element of X in specified dim:
     nDXStep = nDX * Step;
     
-    Xf = X + nX;          // End of the input array
-    while (X < Xf) {
-        X1 = X;            // Forward differences:
-        X2 = X1 + Step;
-        Xc = X2;
-        while (X1 < Xc) {
-            *Y++ = (*X2++ - *X1++) * fac1;
-        }
-        
-        X1 = X;            // Central differences:
-        Xc = X + nDXStep;
-        while (X2 < Xc) {
-            *Y++ = (*X2++ - *X1++) * fac2;
-        }
-        
-        X2 = X1 + Step;    // Backward differences:
-        while (X2 < Xc) {
-            *Y++ = (*X2++ - *X1++) * fac1;
-        }
-        
-        X = Xc;            // Move input pointer to the next chunk
-    }
-    
+	Xf = X + nX;                 // End of input array
+	while (X < Xf) {
+		switch (method) {
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+			//... will pass in method pointer
+		}
+	}    
     return;
 }
 
 // =============================================================================
-void WrapSpaceN(double *X, const mwSize Step, const mwSize nX, const mwSize nDX,
-                double *Space, double *Y)
+void CoreDimNSpaceN(double *X, const mwSize Step, const mwSize nX,
+					const mwSize nDX, double *Space, int8_T *Bnd_idx, double *Y)
 {
-    // Call different methods depending of the dimensions ofthe input.
-    // X has more than 1 vector. Therefore precalculating the spacing factors is
-    // cheaper.
-    
-    double *Factor;
-    
-    // Precalculate spacing factors:
-    if ((Factor = (double *) mxMalloc(nDX * sizeof(double))) == NULL) {
-        mexErrMsgIdAndTxt(ERR_ID   "NoMemory",
-                ERR_HEAD "No memory for Factor vector.");
-    }
-    GetFactor(Space, nDX, Factor);
-    
-    if (Step == 1) {   // Operate on 1st dimension:
-        CoreDim1FactorN(X, nX, nDX, Factor, Y);
-    } else {           // Operate on any dimension:
-        CoreDimNFactorN(X, Step, nX, nDX, Factor, Y);
-    }
-    
-    mxFree(Factor);
-    
-    return;
+	// Operate on any dimension, scalar spacing, 1st order method.
+	// Column oriented approach: Process contiguous memory blocks of input and
+	// output.
+
+	double *Xf, *X1, *X2, *Xc, fac1, fac2;
+	mwSize nDXStep;
+
+	// Will pass in factors array
+
+	// Distance between first and last element of X in specified dim:
+	nDXStep = nDX * Step;
+
+	Xf = X + nX;                 // End of input array
+	while (X < Xf) {
+		switch (Method) {
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+			//... will pass in method pointer
+		}
+	}
+	return;
 }
 
 // =============================================================================
-void CoreDim1SpaceN(double *X, const mwSize nX, const mwSize nDX,
-                    double *Space, double *Y)
+void WrapSpace1(double *X, const mwSize Step, const mwSize nX,
+	const mwSize nDX, double Space, int8_T *Bnd_idx, double *Y)
 {
-    // Operate on the first dimension, spacing is a vector, order 1 method.
-    // The spacing factors are calculated dynamically. This is efficient for
-    // a single vector, but slower for matrices. No temporary vector is needed.
-    
-    double x0, x1, x2, *Xf, *Xg, *Sp, s0, s1, s2;
-    
-    Xf = X + nX;
-    while (X < Xf) {
-        Xg   = X + nDX;    // Forward difference
-        x0   = *X++;
-        x1   = *X++;
-        Sp   = Space;
-        s0   = *Sp++;
-        s1   = *Sp++;
-        *Y++ = (x1 - x0) / (s1 - s0);
-        
-        while (X < Xg) {   // Central differences
-            x2   = *X++;
-            s2   = *Sp++;
-            *Y++ = (x2 - x0) / (s2 - s0);
-            x0   = x1;
-            x1   = x2;
-            s0   = s1;
-            s1   = s2;
-        }
-        
-        *Y++ = (x1 - x0) / (s1 - s0);  // Backward difference
-    }
-    
-    return;
+	// Call different methods depending of the dimensions ofthe input.
+	// X has more than one vector. Therefore it is cheaper to calculate the
+	// spacing factors once only.
+
+	double *A, *B, *C, *D, *E;
+	int8_T *Method;
+
+	// Predetermine Method
+	Method = (int8_T *)mxMalloc(nX *sizeof(int8_T));
+
+	if (A == NULL || B == NULL || C == NULL) {
+		mexErrMsgIdAndTxt(ERR_ID   "NoMemory",
+			ERR_HEAD "No memory for Factor vectors.");
+	}
+
+	GetFactor(Space, nDX, nX, A, B, C, D, E, Bnd_idx, Method);
+	GetMethod(nDX, nX, Bnd_idx);
+
+	if (Step == 1) {        // Operate on first dimension:
+		//CoreDim1FactorNOrder2(X, nX, nDX, A, B, C, Y);
+		CoreDim1SpaceNOrder2(X, nX, nDX, Space, Bnd_idx, Y);
+	}
+	else {                // Operate on any dimension:
+		//CoreDimNFactorNOrder2(X, Step, nX, nDX, A, B, C, Y);
+		CoreDimNSpaceNOrder2(X, Step, nX, nDX, Space, Bnd_idx, Y);
+	}
+
+	mxFree(Method);
+
+	return;
 }
 
 // =============================================================================
-void GetFactor(double *Space, mwSize nDX, double *F)
+void WrapSpaceN(double *X, const mwSize Step, const mwSize nX,
+				const mwSize nDX, double *Space, int8_T *Bnd_idx, double *Y)
 {
-    // If more than one vector is processed, it is cheaper to calculate the spacing
-    // factors once. This needs the memory for a temporary vector.
-    // INPUT:
-    //   Space: Pointer to DOUBLE vector from the inputs.
-    //   nDX:   Length of the Space vector.
-    // OUTPUT:
-    //   F:     Factors, pointer to DOUBLE vector:
-    //          [ 1/(S[1]-S[0]), 1/(S[i+1]-S[i-1]), 1/(S[nDX-1]-S[nDX-2]) ]
-    
-    double s0, s1, s2, *Ff;
-    
-    Ff   = F + nDX - 1;
-    s0   = *Space++;
-    s1   = *Space++;
-    *F++ = 1.0 / (s1 - s0);
-    
-    while (F < Ff) {
-        s2   = *Space++;
-        *F++ = 1.0 / (s2 - s0);
-        s0   = s1;
-        s1   = s2;
-    }
-    
-    *F = 1.0 / (s1 - s0);
-    
-    return;
+	// Call different methods depending of the dimensions ofthe input.
+	// X has more than one vector. Therefore it is cheaper to calculate the
+	// spacing factors once only.
+
+	double *A, *B, *C, *D, *E;
+	int8_T *Method;
+
+	// Precalculate spacing factors & methods:
+	A = (double *)mxMalloc(nDX * sizeof(double));
+	B = (double *)mxMalloc(nDX * sizeof(double));
+	C = (double *)mxMalloc(nDX * sizeof(double));
+	D = (double *)mxMalloc(nDX * sizeof(double));
+	E = (double *)mxMalloc(nDX * sizeof(double));
+	Method = (int8_T *)mxMalloc(nX *sizeof(int8_T));
+
+	if (A == NULL || B == NULL || C == NULL) {
+		mexErrMsgIdAndTxt(ERR_ID   "NoMemory",
+			ERR_HEAD "No memory for Factor vectors.");
+	}
+
+	GetFactor(Space, nDX, nX, A, B, C, D, E, Bnd_idx, Method);
+	GetMethod(nDX, nX, Bnd_idx);
+
+	if (Step == 1) {        // Operate on first dimension:
+		//CoreDim1FactorNOrder2(X, nX, nDX, A, B, C, Y);
+		CoreDim1SpaceNOrder2(X, nX, nDX, Space, Bnd_idx, Y);
+	}
+	else {                // Operate on any dimension:
+		//CoreDimNFactorNOrder2(X, Step, nX, nDX, A, B, C, Y);
+		CoreDimNSpaceNOrder2(X, Step, nX, nDX, Space, Bnd_idx, Y);
+	}
+
+	mxFree(A);
+	mxFree(B);
+	mxFree(C);
+	mxFree(D);
+	mxFree(E);
+	mxFree(Method);
+
+	return;
 }
 
 // =============================================================================
-void CoreDim1FactorN(double *X, const mwSize nX, const mwSize nDX,
-                     double *Factor, double *Y)
+void GetFactor(double *Space, mwSize nDX, int8_T *Bnd_idx, double *A, double *B,
+	double *C, double *D, double *E);
 {
-    // Operate on first dimension, spacing is a vector, 1st order method.
-    // The spacing factors are calculated before. This needs a temporary vector
-    // of nDX elements. It is faster than the dynamically calculated spacing
-    // factors.
-    
-    double x0, x1, x2, *Xf, *Xc, *Fp;
-    
-    Xf = X + nX;
-    while (X < Xf) {
-        Xc   = X + nDX;    // End of column
-        x0   = *X++;       // Forward difference
-        x1   = *X++;
-        Fp   = Factor;
-        *Y++ = (x1 - x0) * *Fp++;
-        
-        while (X < Xc) {   // Central differences
-            x2   = *X++;
-            *Y++ = (x2 - x0) * *Fp++;
-            x0   = x1;
-            x1   = x2;
-        }
-        
-        *Y++ = (x1 - x0) * *Fp;  // Backward difference
-    }
-    
-    return;
+
 }
 
 // =============================================================================
-void CoreDimNFactorN(double *X, const mwSize Step, const mwSize nX,
-                     const mwSize nDX, double *Factor, double *Y)
+void GetFactor2(double *Space, mwSize nDX, int8_T *Bnd_idx, double *A, double *B,
+				double *C, double *D, double *E);
 {
-    // Operate on any dimension, spacing is a vector, 1st order method.
-    // The spacing factors are calculated before. This needs a temporary vector
-    // of nDX elements. This is faster than the dynamically calculated spacing
-    // factors, if more than one vector is processed.
-    
-    double *Xf, *X1, *X2, *Xc, *Fp, *Ff;
-    
-    Ff = Factor + nDX - 1;  // Zero-based indexing!
-    
-    Xf = X + nX;            // End of the array
-    while (X < Xf) {
-        X1 = X;              // Forward differences:
-        X2 = X1 + Step;      // Element of second column
-        Xc = X2;             // End of first column
-        Fp = Factor;
-        while (X1 < Xc) {
-            *Y++ = (*X2++ - *X1++) * *Fp;
-        }
-        
-        X1  = X;             // Central differences:
-        Xc += Step;
-        while (++Fp < Ff) {
-            Xc += Step;
-            while (X2 < Xc) {
-                *Y++ = (*X2++ - *X1++) * *Fp;
-            }
-        }
-        
-        X2 = X1 + Step;      // Backward differences:
-        while (X2 < Xc) {
-            *Y++ = (*X2++ - *X1++) * *Fp;
-        }
-        
-        X = Xc;              // Move input pointer to the next chunk
-    }
-    
-    return;
+
 }
 
 // =============================================================================
-void WrapSpaceNOrder2(double *X, const mwSize Step, const mwSize nX,
-                      const mwSize nDX, double *Space, int8_t *Bnd_idx, double *Y)
+void GetFactor3(double *Space, mwSize nDX, int8_T *Bnd_idx, double double *A, double *B,
+	double *C, double *D, double *E);
 {
-    // Call different methods depending of the dimensions ofthe input.
-    // X has more than one vector. Therefore it is cheaper to calculate the
-    // spacing factors once only.
-    
-    double *A, *B, *C;
-    
-    // Precalculate spacing factors:
-    A = (double *) mxMalloc(nDX * sizeof(double));
-    B = (double *) mxMalloc(nDX * sizeof(double));
-    C = (double *) mxMalloc(nDX * sizeof(double));
-    
-    if (A == NULL || B == NULL || C == NULL) {
-        mexErrMsgIdAndTxt(ERR_ID   "NoMemory",
-                ERR_HEAD "No memory for Factor vectors.");
-    }
-    
-    GetFactorOrder2(Space, nDX, A, B, C);
-    
-    if (Step == 1) {        // Operate on first dimension:
-        //CoreDim1FactorNOrder2(X, nX, nDX, A, B, C, Y);
-        CoreDim1SpaceNOrder2(X, nX, nDX, Space, Bnd_idx, Y);
-    } else {                // Operate on any dimension:
-        //CoreDimNFactorNOrder2(X, Step, nX, nDX, A, B, C, Y);
-        CoreDimNSpaceNOrder2(X, Step, nX, nDX, Space, Bnd_idx, Y);
-    }
-    
-    mxFree(A);
-    mxFree(B);
-    mxFree(C);
-    
-    return;
+
 }
 
 // =============================================================================
-void GetFactorOrder2(double *Space, const mwSize nDX,
-                     double *A, double *B, double *C)
+void GetFactor4(double *Space, mwSize nDX, int8_T *Bnd_idx, double *A, double *B,
+	double *C, double *D, double *E);
 {
-    // Calculate spacing factors for 2nd order method.
-    
-    double s0, s1, s2, s10, s21, *Sf;
-    
-    Sf = Space + nDX;
-    
-    s0   = *Space++;
-    s1   = *Space++;
-    s10  = s1 - s0;
-    *A++ = 1.0 / s10;
-    B++;
-    C++;
-    
-    while (Space < Sf) {
-        s2   = *Space++;
-        s21  = s2 - s1;
-        *A++ = s10 / (s21 * (s2 - s0));
-        *B++ = 1.0 / s10 - 1.0 / s21;
-        *C++ = s21 / (s10 * (s2 - s0));
-        s0   = s1;
-        s1   = s2;
-        s10  = s21;
-    }
-    
-    *A = 1.0 / s10;
-    
-    return;
+
 }
 
-// =============================================================================
-void CoreDim1SpaceNOrder2(double *X, const mwSize nX, const mwSize nDX,
-                          double *Space, double *Bnd_idx, double *Y)
-{
-    // Operate on first dimension, spacing is a vector, 2nd order method.
-    // For unevenly spaced data this algorithm is 2nd order accurate.
-    // This is fast for a single vector, while for arrays with more dimensions
-    // is is cheaper to calculate the spacing factors once externally.
-    
-    double x0, x1, x2, *Xf, *Xc, *Xg *Sp, s0, s1, s2, s10, s21, gap;
-    
-    Xf = X + nX;
-    Xc = X + nDX;
-    
-    while (X < Xf) {
-        // If within boundary move pointer set gradient to zero
-        if (X == Xc) {
-            Xc = X + nDX;
-        }
-        if (*Bnd_idx++ == -1){
-            X++;
-            *Y++ = 0;
-            continue;
-        }
-        gap = 0.0;
-        while (*Bnd_idx++ != -1){
-            gap++;
-        }
-        if (gap == 1.0) {
-            X++;
-            *Y++ = 0;
-            continue;
-        }
-        Xg   = X + gap; // Forward difference (same as for evenly spaced X)
-        x0   = *X++;
-        x1   = *X++;
-        Sp   = Space;
-        s0   = *Sp++;
-        s1   = *Sp++;
-        s10  = s1 - s0;
-        *Y++ = (x1 - x0) / s10;
-        
-        while (X < Xg && X < Xc) {    // Central differences, 2nd order method
-            x2   = *X++;
-            s2   = *Sp++;
-            s21  = s2 - s1;
-            *Y++ = ((x2 * s10 / s21) - (x0 * s21 / s10)) / (s2 - s0) +
-                    x1 * (1.0 / s10 - 1.0 / s21);
-            x0  = x1;
-            x1  = x2;
-            s0  = s1;
-            s1  = s2;
-            s10 = s21;
-        }
-        
-        *Y++ = (x1 - x0) / s10;  // Backward difference
-    }
-    
-    return;
-}
-
-// =============================================================================
-void CoreDimNSpaceNOrder2(double *X, const mwSize Step, const mwSize nX,
-                          const mwSize nDX, double *Space, double *Y)
-{
-    // Operate on any dimension, spacing is a vector, 2nd order method.
-    // The spacing factors are calculated dynamically. This is about 50% slower
-    // than calculating the spacing factors at first. I assume the number of
-    // registers are exhausted. Therefore this method is useful only, if the
-    // memory is nearly full.
-    
-    double *Xf, *X0, *X1, *X2, *Xc, *Sp, *Sb;
-    register double a, b, c;
-    double s0, s1, s2;
-    
-    Sb = Space + nDX;
-    
-    Xf = X + nX;            // End of the array
-    while (X < Xf) {
-        X0  = X;             // Forward differences for first column:
-        X1  = X;
-        X2  = X0 + Step;     // Element of second column
-        Xc  = X2;            // End of first column
-        Sp  = Space;
-        s0  = *Sp++;
-        s1  = *Sp++;
-        c   = 1.0 / (s1 - s0);
-        while (X1 < Xc) {
-            *Y++ = (*X2++ - *X1++) * c;
-        }
-        
-        Xc += Step;                 // Central differences:
-        while (Sp < Sb) {
-            s2  = *Sp++;
-            a   = (s1 - s0) / ((s2 - s1) * (s2 - s0));
-            b   = 1.0 / (s1 - s0) - 1.0 / (s2 - s1);
-            c   = (s2 - s1) / ((s1 - s0) * (s2 - s0));
-            Xc += Step;
-            while (X2 < Xc) {
-                *Y++ = *X2++ * a + *X1++ * b - *X0++ * c;
-            }
-            s0  = s1;
-            s1  = s2;
-        }
-        
-        c = 1.0 / (s1 - s0);       // Backward differences:
-        while (X1 < Xc) {
-            *Y++ = (*X1++ - *X0++) * c;
-        }
-        
-        X = Xc;                    // Move input pointer to the next chunk
-    }
-    
-    return;
-}
-
-// =============================================================================
-void CoreDim1FactorNOrder2(double *X, const mwSize nX, const mwSize nDX,
-                           double *A, double *B, double *C, double *Y)
-{
-    // Operate on first dimension, spacing is a vector, 2nd order method.
-    // For unevenly spaced data this algorithm is 2nd order accurate.
-    // This is fast for a single vector, while for arrays with more dimensions
-    // is is cheaper to calculate the spacing factors once externally.
-    
-    double x0, x1, x2, *Xf, *Xc, *a, *b, *c;
-    
-    Xf = X + nX;
-    while (X < Xf) {
-        Xc = X + nDX;    // Forward difference (same as for evenly spaced X)
-        x0 = *X++;
-        x1 = *X++;
-        a  = A;
-        b  = B + 1;
-        c  = C + 1;
-        *Y++ = (x1 - x0) * *a++;
-        
-        while (X < Xc) {    // Central differences, 2nd order method
-            x2   = *X++;
-            *Y++ = x2 * *a++ + x1 * *b++ - x0 * *c++;
-            x0   = x1;
-            x1   = x2;
-        }
-        
-        *Y++ = (x1 - x0) * *a;  // Backward difference
-    }
-    
-    return;
-}
-
-// =============================================================================
-void CoreDimNFactorNOrder2(double *X, const mwSize Step, const mwSize nX,
-                          const mwSize nDX, double *A, double *B, double *C,
-                          double *Y)
-{
-    // Operate on any dimension, spacing is a vector, 2nd order method.
-    // The spacing factors are calculated externally once only.
-    
-    double *Xf, *X0, *X1, *X2, *Xc, *Af, *a, *b, *c;
-    register double a_, b_, c_;
-    
-    Af = A + nDX - 1;
-    
-    Xf = X + nX;            // End of the array
-    while (X < Xf) {
-        X0  = X;             // Forward differences for first column:
-        X1  = X;
-        X2  = X0 + Step;     // Element of second column
-        Xc  = X2;            // End of first column
-        a   = A;
-        b   = B + 1;
-        c   = C + 1;
-        a_  = *a;
-        while (X1 < Xc) {
-            *Y++ = (*X2++ - *X1++) * a_;
-        }
-        
-        Xc += Step;          // Central differences:
-        a++;
-        while (a < Af) {
-            Xc += Step;
-            a_  = *a++;
-            b_  = *b++;
-            c_  = *c++;
-            while (X2 < Xc) {
-                *Y++ = *X2++ * a_ + *X1++ * b_ - *X0++ * c_;
-            }
-        }
-        
-        a_ = *a;            // Backward differences:
-        while (X1 < Xc) {
-            *Y++ = (*X1++ - *X0++) * a_;
-        }
-        
-        X = Xc;              // Move input pointer to the next chunk
-    }
-    
-    return;
-}
-
-// =========================ADDED BY JOHN CHABOT=============================
-void CoreDim1SpaceNOrder4(double *X, const mwSize nX, const mwSize nDX,
-                          double *Space, double *Bnd_Idx, double *Y)
-{
-    // Operate on first dimension, spacing is a vector, 2nd order method.
-    // For unevenly spaced data this algorithm is 2nd order accurate.
-    // This is fast for a single vector, while for arrays with more dimensions
-    // is is cheaper to calculate the spacing factors once externally.
-    
-    double x0, x1, x2, *Xf, *Xc, *Sp, s0, s1, s2, s10, s21;
-    
-    Xf = X + nX;
-    while (X < Xf) {
-        Xc   = X + nDX;    // Forward difference (same as for evenly spaced X)
-        x0   = *X++;
-        x1   = *X++;
-        Sp   = Space;
-        s0   = *Sp++;
-        s1   = *Sp++;
-        s10  = s1 - s0;
-        *Y++ = (x1 - x0) / s10;
-        
-        while (X < Xc) {    // Central differences, 2nd order method
-            x2   = *X++;
-            s2   = *Sp++;
-            s21  = s2 - s1;
-            *Y++ = ((x2 * s10 / s21) - (x0 * s21 / s10)) / (s2 - s0) +
-                    x1 * (1.0 / s10 - 1.0 / s21);
-            x0  = x1;
-            x1  = x2;
-            s0  = s1;
-            s1  = s2;
-            s10 = s21;
-        }
-        
-        *Y++ = (x1 - x0) / s10;  // Backward difference
-    }
-    
-    return;
-}
