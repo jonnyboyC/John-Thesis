@@ -20,12 +20,12 @@ end
 Hz = 1/(t(2) - t(1));
 
 % Intialize Video creator
-if ~exist([direct filesep 'Figures' filesep 'Movies' filesep 'modes_' num2str(modes)], 'dir') 
-    mkdir([direct filesep 'Figures' filesep 'Movies' filesep 'modes_' num2str(modes)]);
+if ~exist([direct filesep 'Figures' filesep 'Movies' filesep 'modes_' num2str(modes-1)], 'dir') 
+    mkdir([direct filesep 'Figures' filesep 'Movies' filesep 'modes_' num2str(modes-1)]);
 end
 
 file_name = [direct filesep 'Figures' filesep 'Movies' filesep 'modes_' ...
-             num2str(modes) filesep 'Flow_prediction_' id];
+             num2str(modes-1) filesep 'Flow_prediction_' id];
 
 % TODO May need to relook at this to make it more memory efficient
 data_u = zeros(dimensions(1), dimensions(2), size(plot_points,2));

@@ -10,6 +10,6 @@ data.pod = mean_u/cmax;
 if exist([direct filesep 'Processed Data' filesep 'Mask' filesep 'Mask.mat'], 'file') && ~new_mask
     load([direct filesep 'Processed Data' filesep 'Mask' filesep 'Mask.mat'], 'bnd_x', 'bnd_y');
 else
-    [bnd_x, bnd_y] = mask_gen(data, bnd_idx, bnd_x, bnd_y);
+    [bnd_x, bnd_y] = mask_gen(data, bnd_x, bnd_y);
     save([direct filesep 'Processed Data' filesep 'Mask' filesep 'Mask.mat'], 'bnd_x', 'bnd_y', '-v7.3');
 end

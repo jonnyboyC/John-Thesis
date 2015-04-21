@@ -15,41 +15,58 @@ methodsY = methodsY';
 [sY(:,:,1), sY(:,:,2), sY(:,:,3), sY(:,:,4), sY(:,:,5), sY(:,:,6), sY(:,:,7), sY(:,:,8), sY(:,:,9)] = ...
     arrayfun(@stencil, y(1:end-8,:), y(2:end-7,:), y(3:end-6,:), y(4:end-5,:), ...
     y(5:end-4,:), y(6:end-3,:), y(7:end-2,:), y(8:end-1,:), y(9:end,:), methodsY);
-sY = permute(sY, [2,1,3]);
+sY = -permute(sY, [2,1,3]);
+sX = -sX;
 end
 
 function [s1, s2, s3, s4, s5, s6, s7, s8, s9] = stencil(x1, x2, x3, x4, x5, x6, x7, x8, x9, method)
 switch method
+    % In boundary
     case 0
         s1 = 0; s2 = 0; s3 = 0; s4 = 0; s5 = 0; s6 = 0; s7 = 0; s8 = 0; s9 = 0;
-    case 1
+    % Forward 1st order
+    case 1 
         [s1, s2, s3, s4, s5, s6, s7, s8, s9] = firstOrder(x5, x6, 1);
-    case 2
+    % Forward 2nd order
+    case 2 
         [s1, s2, s3, s4, s5, s6, s7, s8, s9] = secondOrder(x5, x6, x7, 1);
+    % Forward 3rd order
     case 3
         [s1, s2, s3, s4, s5, s6, s7, s8, s9] = thirdOrder(x5, x6, x7, x8, 1);
+    % Forward 4th order
     case 4
         [s1, s2, s3, s4, s5, s6, s7, s8, s9] = fourthOrder(x5, x6, x7, x8, x9, 1);
+    % Forward biased 3rd order
     case 5
         [s1, s2, s3, s4, s5, s6, s7, s8, s9] = thirdOrder(x4, x5, x6, x7, 2);
+    % Forward biased 4th order
     case 6
         [s1, s2, s3, s4, s5, s6, s7, s8, s9] = fourthOrder(x4, x5, x6, x7, x8, 2);
+    % 1 point stencil
     case 7
         s1 = 0; s2 = 0; s3 = 0; s4 = 0; s5 = 0; s6 = 0; s7 = 0; s8 = 0; s9 = 0;
+    % Central 2nd order
     case 8
         [s1, s2, s3, s4, s5, s6, s7, s8, s9] = secondOrder(x4, x5, x6, 2);
+    % Central 4th order
     case 9
         [s1, s2, s3, s4, s5, s6, s7, s8, s9] = fourthOrder(x3, x4, x5, x6, x7, 3);
+    % Backwards biased 3rd order
     case 10
         [s1, s2, s3, s4, s5, s6, s7, s8, s9] = thirdOrder(x3, x4, x5, x6, 3);
+    % Backwards biased 4th order
     case 11
         [s1, s2, s3, s4, s5, s6, s7, s8, s9] = fourthOrder(x2, x3, x4, x5, x6, 4);
+    % Backwards 1st order
     case 12
         [s1, s2, s3, s4, s5, s6, s7, s8, s9] = firstOrder(x4, x5, 2);
+    % Backwards 2nd order
     case 13
-        [s1, s2, s3, s4, s5, s6, s7, s8, s9] = secondOrder(x3, x3, x5, 3);
+        [s1, s2, s3, s4, s5, s6, s7, s8, s9] = secondOrder(x3, x4, x5, 3);
+    % Backwards 3rd order
     case 14
         [s1, s2, s3, s4, s5, s6, s7, s8, s9] = thirdOrder(x2, x3, x4, x5, 4);
+    % Backwards 4th order
     case 15
         [s1, s2, s3, s4, s5, s6, s7, s8, s9] = fourthOrder(x1, x2, x3, x4, x5, 5);
 end

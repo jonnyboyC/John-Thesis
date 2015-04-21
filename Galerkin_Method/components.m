@@ -1,30 +1,23 @@
 function [pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac, l] = ...
-    components(x, y, pod_u, pod_v, dimensions, vol_frac, num_modes, num_elem, bnd_idx, z)
+    components(x, y, pod_u, pod_v, dimensions, vol_frac, num_modes, num_elem, bnd_idx, bnd_x, bnd_y)
 
-% TODO figure out what is really being calculated here
-[xxi, yxi, xet, yet, aj] = metric2(x, y);    
-
-
-
-
-
-
+% Old Methods will remove soon
+% [xxi, yxi, xet, yet, aj] = metric2(x, y);    
 
 % [pod_udx, pod_ud2x, pod_udy, pod_ud2y] = derivatives2(pod_u, x, y, dimensions);
 % [pod_vdx, pod_vd2x, pod_vdy, pod_vd2y] = derivatives2(pod_v, x, y, dimensions);
 
+% [a, b, c, d] = derivatives(pod_u, dimensions, ...
+%     x, y, z, xxi, yxi, xet, yet, aj, bnd_idx);
+% [e, f, g, h] = derivatives(pod_v, dimensions, ...
+%     x, y, z, xxi, yxi, xet, yet, aj, bnd_idx);
+
 % Calculate coefficients for for pod_u's & pod_v's derivatives
 
-[pod_udx, pod_ud2x, pod_udy, pod_ud2y] = derivatives3(pod_u, bnd_idx, x, y, dimensions);
-[pod_vdx, pod_vd2x, pod_vdy, pod_vd2y] = derivatives3(pod_v, bnd_idx, x, y, dimensions);
-
-
-[pod_udx, pod_ud2x, pod_udy, pod_ud2y] = derivatives(pod_u, dimensions, ...
-    x, y, z, xxi, yxi, xet, yet, aj, bnd_idx);
-[pod_vdx, pod_vd2x, pod_vdy, pod_vd2y] = derivatives(pod_v, dimensions, ...
-    x, y, z, xxi, yxi, xet, yet, aj, bnd_idx);
-
-
+[pod_udx, pod_ud2x, pod_udy, pod_ud2y] = derivatives3(pod_u, bnd_idx, bnd_x, ...
+                                            bnd_y, x, y, dimensions);
+[pod_vdx, pod_vd2x, pod_vdy, pod_vd2y] = derivatives3(pod_v, bnd_idx, bnd_x, ...
+                                            bnd_y, x, y, dimensions);
 
 % Convert all matrix quantities to vectors
 pod_udx     = reshape(pod_udx, num_elem, num_modes);

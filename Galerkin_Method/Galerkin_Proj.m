@@ -78,7 +78,7 @@ else
 end
 
 % Create more readable names
-num_modesG      = problem.num_modesG;
+num_modesG      = problem.num_modesG+1; % Add mean flow
 run_num         = problem.run_num;
 plot_type       = problem.plot_type;
 save_coef       = problem.save_coef;
@@ -128,10 +128,9 @@ vol_frac    = vars.results.vol_frac;    % mesh area size
 bnd_idx     = vars.results.bnd_idx;     % location of boundaries
 bnd_x       = vars.results.bnd_x;       % location of flow boundaries normal to x
 bnd_y       = vars.results.bnd_y;       % location of flow boundaries normal to y
-uniform     = vars.results.uniform;     % logical if mesh is uniform
 run_num     = vars.results.run_num;     % POD run numbers
 cutoff      = vars.results.cutoff;    % number of modes at cutoff
-modal_amp = vars.results.modal_amp;   % modal amplitude  from raw data
+modal_amp   = vars.results.modal_amp;   % modal amplitude  from raw data
 
 
 clear vars
@@ -139,9 +138,8 @@ clear vars
 % Get Reynolds number 
 Re0 = Re0_gen(direct, u_scale, l_scale);      
 
-z = ones(size(x));          % Depth of velocity field
 t_scale = u_scale/l_scale;  % time scale
-tspan = tspan*t_scale;      % non dimensionalized timescale
+tspan = tspan*t_scale;      % non-dimensionalized timescale
 
 % Determine sampling frequency from provided tspan
 if length(tspan) > 2
@@ -164,11 +162,9 @@ coef_problem.vol_frac       = vol_frac;
 coef_problem.bnd_idx        = bnd_idx;
 coef_problem.bnd_x          = bnd_x;
 coef_problem.bnd_y          = bnd_y;
-coef_problem.z              = z;
 coef_problem.run_num        = run_num;
 coef_problem.override_coef  = override_coef;
 coef_problem.direct         = direct;
-coef_problem.uniform        = uniform; 
 
 % Free memory 
 clear mean_u mean_v vol_frac bnd_x bnd_y 
@@ -319,7 +315,7 @@ for i = 1:length(num_modesG)
     results.q = squeeze(q(:,:,i));
     results.eddy = squeeze(eddy(:,:,i));
     results.vis = 1/Re0;
-    results.num_modesG = num_modes;
+    results.num_modesG = num_modes-1;
     results.modal_amp_sim = squeeze(modal_amp_sim(:,:,i));
     results.t = squeeze(t(:,:,i));
     results.sample_freq = sample_freq;
@@ -347,8 +343,8 @@ end
 
 % Save each mode
 function save_results(results, direct)
-    if ~exist([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(results.num_modesG-1)], 'dir') 
-        mkdir([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(results.num_modesG-1)]);
+    if ~exist([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(results.num_modesG)], 'dir') 
+        mkdir([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(results.num_modesG)]);
     end
     save([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(results.num_modesG-1) filesep 'Coefficients_run_'...
     num2str(results.run_num) '.mat'], 'results', '-v7.3');
