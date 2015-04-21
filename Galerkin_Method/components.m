@@ -14,10 +14,15 @@ function [pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac, l] = ...
 % [pod_vdx, pod_vd2x, pod_vdy, pod_vd2y] = derivatives2(pod_v, x, y, dimensions);
 
 % Calculate coefficients for for pod_u's & pod_v's derivatives
+
+[pod_udx, pod_ud2x, pod_udy, pod_ud2y] = derivatives3(pod_u, bnd_idx, x, y, dimensions);
+[pod_vdx, pod_vd2x, pod_vdy, pod_vd2y] = derivatives3(pod_v, bnd_idx, x, y, dimensions);
+
+
 [pod_udx, pod_ud2x, pod_udy, pod_ud2y] = derivatives(pod_u, dimensions, ...
-    z, xxi, yxi, xet, yet, aj, bnd_idx);
+    x, y, z, xxi, yxi, xet, yet, aj, bnd_idx);
 [pod_vdx, pod_vd2x, pod_vdy, pod_vd2y] = derivatives(pod_v, dimensions, ...
-    z, xxi, yxi, xet, yet, aj, bnd_idx);
+    x, y, z, xxi, yxi, xet, yet, aj, bnd_idx);
 
 
 
