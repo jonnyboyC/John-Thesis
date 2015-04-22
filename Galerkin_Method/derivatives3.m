@@ -15,7 +15,7 @@ x = reshape(x, dimensions);
 y = reshape(y, dimensions);
 
 % Select finite elemente method to be used at each grid point
-[methodsX, methodsY] = select_method(bnd_idx, dimensions);
+[methodsX, methodsY] = select_method(bnd_idx, bnd_x, bnd_y, dimensions, true);
 
 % Precalculate stencil for each point
 [stencilX, stencilY] = generate_stencil(x, y, methodsX, methodsY, dimensions);

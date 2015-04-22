@@ -31,7 +31,7 @@ plot_img_num = 1;
 
 % Generate plot handles
 h = figure('Name',['  Variable: ' varname ',  (' num2str(sum(energy),4) '%)'],'color','w');
-h.Position = [500, 500, 800, 400];
+h.Position = [500, 500, 800, 500];
 
 for i = 1:num_modes
     % Update pod data
@@ -55,16 +55,16 @@ for i = 1:num_modes
     % plot individual plots
     if i <= 4
         [h_sub(i), ax_sub(i)] = Plottec2(data);
+        ax_sub(plot_img_num).XLabel = xlabel('x/D', 'fontname','times new roman','fontsize',12);
+        ax_sub(plot_img_num).YLabel = ylabel('y/D', 'fontname','times new roman','fontsize',12);
+        ax_sub(plot_img_num).CLim = [cmin cmax];
         colorbar;
     else
         h_sub(plot_img_num) = Plottec2(data, h_sub(plot_img_num));
     end
     
-    % update plot quantities
+    % update plot title
     ax_sub(plot_img_num).Title = title([varname ': mode ' num2str(i) ' (' num2str((energy(i)),3) ' %)'], 'fontname','times new roman','fontsize', 14);
-    ax_sub(plot_img_num).XLabel = xlabel('x/D', 'fontname','times new roman','fontsize',12);
-    ax_sub(plot_img_num).YLabel = ylabel('y/D', 'fontname','times new roman','fontsize',12);
-    ax_sub(plot_img_num).CLim = [cmin cmax];
 
     % update plot position
     plot_img_num=plot_img_num+1;

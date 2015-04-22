@@ -133,7 +133,5 @@ while j <= dimensions(2)
 end
 
 if closed_bnd
-    
-    ed
 end
 end

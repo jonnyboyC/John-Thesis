@@ -59,10 +59,10 @@ if isempty(problem.flip) || ~isequal(size(problem.flip), [1, 4]) || ~all(arrayfu
     problem.flip = [false, false, false, false];        % save pod results
 end
 
-% Default for new_mask
-if isempty(problem.new_mask) || ~islogical(problem.new_mask)
-    fprintf('Using default value for new_mask\nproblem.new_mask = false\n\n');
-    problem.new_mask = false;        % save pod results
+% Default for update_bnds
+if isempty(problem.update_bnds) || ~islogical(problem.update_bnds)
+    fprintf('Using default value for new_mask\nproblem.update_bnds = false\n\n');
+    problem.update_bnds = false;        % save pod results
 end
 
 % Default for num_clusters

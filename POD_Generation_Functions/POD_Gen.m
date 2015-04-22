@@ -41,8 +41,11 @@ function res = POD_Gen(varargin)
 % Specify which directions and velocities are inverted
 % [x, y, u, v]
 %
-% problem.new_mask = false;
-% If true launch gui to create a new mask to identify flow boundaries
+% problem.update_bnds = false;
+% If true launch gui modify boundaries
+%
+% problem.num_clusters = 10;
+% set the number of clusters that should be determined
 
 format long g
 close all
@@ -52,7 +55,7 @@ clc
 fields = {  'num_images',   'load_raw',     'save_pod', ...
             'image_range',  'direct',       'l_scale', ...
             'u_scale_gen',  'save_figures', 'flip',...
-            'new_mask',     'num_clusters'};
+            'update_bnds',  'num_clusters'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -73,7 +76,7 @@ l_scale     = problem.l_scale;
 u_scale_gen = problem.u_scale_gen;
 save_figures= problem.save_figures;
 flip        = problem.flip;
-new_mask    = problem.new_mask;
+update_bnds = problem.update_bnds;
 num_clusters= problem.num_clusters;
 
 clear problem
@@ -100,11 +103,8 @@ num_images = size(u,3);
 % Determine resolution of velocity image
 data_points = numel(x);
 
-% find boundaries of velocity image
-[bnd_x, bnd_y, bnd_idx] = boundary_check_chabot(x, mean_u);
-
 % Exactly define flow boundaries
-[bnd_x, bnd_y] = refine_bounds(x, y, mean_u, bnd_idx, bnd_x, bnd_y, direct, new_mask);
+[bnd_x, bnd_y, bnd_idx] = refine_bounds(x, y, mean_u, mean_v, direct, update_bnds);
 
 % Calculate volume elements of the mesh
 vol_frac = voln_piv2(x, y, bnd_idx);
@@ -149,7 +149,7 @@ for i = 1:length(cluster_range);
     [groups, centers{i}] = kmeans(modal_amp(:,1:cluster_range(i)), ...
         num_clusters, 'Replicates', 10, 'Options', options);
     
-    if i == 1
+    if i == 1 && ~isempty(save_figures)
         cluster_plot(h_clust, modal_amp, groups, centers{i}, cluster_modes, num_clusters, ...
             direct, save_figures);
     end
@@ -189,9 +189,11 @@ else
 end
 
 % Plot pod modes
-Plotsvd2(x, y, pod_u(:,1:num_plot), dimensions, 'u', lambda, bnd_idx, direct, save_figures);
-Plotsvd2(x, y, pod_v(:,1:num_plot), dimensions, 'v', lambda, bnd_idx, direct, save_figures);
-Plotsvd2(x, y, pod_vor(:,1:num_plot), dimensions, 'vorticity', lambda, bnd_idx, direct, save_figures);
+if ~isempty(save_figures)
+    Plotsvd2(x, y, pod_u(:,1:num_plot), dimensions, 'u', lambda, bnd_idx, direct, save_figures);
+    Plotsvd2(x, y, pod_v(:,1:num_plot), dimensions, 'v', lambda, bnd_idx, direct, save_figures);
+    Plotsvd2(x, y, pod_vor(:,1:num_plot), dimensions, 'vorticity', lambda, bnd_idx, direct, save_figures);
+end
 
 % Add mode zero
 [modal_amp, lambda, pod_u, pod_v] = ...
