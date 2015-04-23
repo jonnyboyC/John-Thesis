@@ -313,17 +313,17 @@ for i = 1:length(num_modesG)
     fprintf('Saving Galerkin Variables\n');
 
     % Prepare data
-    results.run_num = run_num;
-    results.l = squeeze(l(:,:,i));
-    results.q = squeeze(q(:,:,i));
-    results.eddy = squeeze(eddy(:,:,i));
-    results.vis = vis;
-    results.num_modesG = num_modes-1;
-    results.modal_amp_sim = squeeze(modal_amp_sim(:,:,i));
-    results.t = squeeze(t(:,:,i));
-    results.sample_freq = sample_freq;
-    results.linear_models = linear_models;
-    results.total_models = total_models;
+    results_coef.run_num = run_num;
+    results_coef.l = squeeze(l(:,:,i));
+    results_coef.q = squeeze(q(:,:,i));
+    results_coef.eddy = squeeze(eddy(:,:,i));
+    results_coef.vis = vis;
+    results_coef.num_modesG = num_modes-1;
+    results_int.modal_amp_sim = squeeze(modal_amp_sim(:,:,i));
+    results_int.t = squeeze(t(:,:,i));
+    results_coef.sample_freq = sample_freq;
+    results_coef.linear_models = linear_models;
+    results_coef.total_models = total_models;
     
     % Save relavent coefficients
     if save_coef == true
@@ -331,7 +331,7 @@ for i = 1:length(num_modesG)
             wait(futures)
         end
         pool = gcp;
-        futures = parfeval(pool, @save_results, 0, results, direct);
+        futures = parfeval(pool, @save_results, 0, results_coef, results_int, direct);
     end
 end
 
@@ -345,11 +345,13 @@ format short g
 end
 
 % Save each mode
-function save_results(results, direct)
+function save_results(results_coef, results_int, direct)
     if ~exist([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(results.num_modesG)], 'dir') 
         mkdir([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(results.num_modesG)]);
     end
-    save([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(results.num_modesG-1) filesep 'Coefficients_run_'...
-    num2str(results.run_num) '.mat'], 'results', '-v7.3');
+    save([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(results_coef.num_modesG-1) filesep 'Coefficients_run_'...
+    num2str(results.run_num) '.mat'], 'results_coef', '-v7.3');
+    save([direct filesep 'Galerkin Coeff' filesep 'mod  es_' num2str(results_coef.num_modesG-1) filesep 'Integration_run_'...
+    num2str(results.run_num) '.mat'], 'results_int', '-v7.3');
 end
 
