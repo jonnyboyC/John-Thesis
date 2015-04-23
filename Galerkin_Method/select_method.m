@@ -133,5 +133,32 @@ while j <= dimensions(2)
 end
 
 if closed_bnd
+    % Determine portion of boundary represented by solid surface
+    solid_bnd = double(bnd_idx == 0);
+    solid_bnd(bnd_x ~= 0 | bnd_y ~= 0) = 0;
+    
+    centralX = zeros(dimensions);
+    centralY = zeros(dimensions);
+    
+    % Index matrix of two indexes to the left and right of solid boundary
+    centralX(logical(circshift(solid_bnd, [1 0]) + circshift(solid_bnd, [2 0]) +...
+        circshift(solid_bnd, [-1 0]) + circshift(solid_bnd, [-2 0]))) = 1;
+    
+    % Index matrix of two indexes to the above and below of solid boundary
+    centralY(logical(circshift(solid_bnd, [0 1]) + circshift(solid_bnd, [0 2]) +...
+        circshift(solid_bnd, [0 -1]) + circshift(solid_bnd, [0 -2]))) = 1;
+    
+    % remove points in the boundary and by the edge of image
+    centralX(bnd_idx <=0) = 0;
+    centralX(1:2, :) = 0;
+    centralX(end-1:end, :) = 0;
+    
+    centralY(bnd_idx <=0) = 0;
+    centralY(:, 1:2) = 0;
+    centralY(:, end-1:end) = 0;
+
+    % Set these methods to 4th order central
+    methodsX(logical(centralX)) = 9;
+    methodsY(logical(centralY)) = 9;
 end
 end
