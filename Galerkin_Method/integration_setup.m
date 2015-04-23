@@ -1,4 +1,4 @@
-function [reduced_model_coeff] = integration_setup(eddy, Re0, l, q, idx, total_models, linear_models, num_modes)
+function [reduced_model_coeff] = integration_setup(eddy, vis, l, q, idx, total_models, linear_models, num_modes)
 
 reduced_model_coeff = cell(total_models,2);
 Gal_coeff   = cell(total_models,2);
@@ -10,7 +10,7 @@ for j = 1:total_models
 
         % Setup up system coefficients
         if j <= linear_models
-            total_vis = repmat((eddy{j,1,idx}+1/Re0), 1, size(l{j,1,idx},1));
+            total_vis = repmat((eddy{j,1,idx}+vis), 1, size(l{j,1,idx},1));
             Gal_coeff{j,1,idx} = [l{j,1,idx}.*total_vis, q{j,1,idx}];
             Gal_coeff{j,2,idx} = eddy{j,2,idx};
         else

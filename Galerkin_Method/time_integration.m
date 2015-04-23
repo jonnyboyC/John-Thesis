@@ -1,4 +1,4 @@
-function [t, modal_amp] = time_integration(reduced_model_coeff, eddy, Re0, modal_TKE, i, t, modal_amp, ao, tspan, total_models, linear_models, options)
+function [t, modal_amp] = time_integration(reduced_model_coeff, eddy, vis, modal_TKE, i, t, modal_amp, ao, tspan, total_models, linear_models, options)
 %#ok<*PFBNS>
 
 t_temp = cell(size(t,1),1);
@@ -9,7 +9,7 @@ parfeval_futures = parallel.FevalOnAllFuture;
 for j = 1:total_models
 %    integration(reduced_model_coeff{j,1}, eddy{j,1,i}, Re0, modal_TKE, ao, tspan, j, linear_models, options)
     parfeval_futures(j) = parfeval(@integration, 3, reduced_model_coeff{j,1}, ...
-        eddy{j,1,i}, Re0, modal_TKE, ao, tspan, j, linear_models, options);
+        eddy{j,1,i}, vis, modal_TKE, ao, tspan, j, linear_models, options);
 end
 
 % Generate waiting bar
@@ -41,7 +41,7 @@ modal_amp(:,:,i)  = [modal_amp_temp, reduced_model_coeff(:,2)];
 
 end
 
-function [t_job, modal_amp_job, time] = integration(reduced_model_coeff, eddy, Re0, modal_TKE, ao, tspan, j, linear_models, options)
+function [t_job, modal_amp_job, time] = integration(reduced_model_coeff, eddy, vis, modal_TKE, ao, tspan, j, linear_models, options)
 if ~isempty(reduced_model_coeff); 
     if j <= linear_models
         % Time integration with linear eddy visocity
@@ -54,7 +54,7 @@ if ~isempty(reduced_model_coeff);
         % Time inetgration with nonlinear eddy visocity
         tic;
         [t_job, modal_amp_job] = ode113(@(t,y) ...
-            system_odes_NL(t, y, reduced_model_coeff, eddy, Re0, modal_TKE), ...
+            system_odes_NL(t, y, reduced_model_coeff, eddy, vis, modal_TKE), ...
             tspan, ao, options);  
         time = toc;  
     end

@@ -1,4 +1,4 @@
-function [modal_eddy_vis, global_eddy_vis] = viscous_dis(modal_amp, num_modes, lambda2, l, q, Re0)
+function [modal_eddy_vis, global_eddy_vis] = viscous_dis(modal_amp, num_modes, lambda2, l, q, vis)
 % Current Naive implementation of viscious disappation term, may want to
 % explore other proposed viscous dissapation methods
 
@@ -14,10 +14,10 @@ for i = 2:num_modes
         end
     end
     l_sum = l(i,i)*lambda2(i);
-    modal_eddy_vis(i) = -(1/Re0 + sum(sum(q_sum))/sum(l_sum));
+    modal_eddy_vis(i) = -(vis + sum(sum(q_sum))/sum(l_sum));
     q_globe = q_globe + sum(sum(q_sum));
     l_globe = l_globe + sum(l_sum);
 end
-global_eddy_vis = repmat(-(1/Re0 + q_globe/l_globe), num_modes,1);
+global_eddy_vis = repmat(-(vis + q_globe/l_globe), num_modes,1);
 global_eddy_vis(1) = 0;
 end

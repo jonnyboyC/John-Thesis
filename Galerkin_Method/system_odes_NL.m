@@ -1,4 +1,4 @@
-function da = system_odes_NL(~, a, model_coef, niu, Re0, modal_TKE)
+function da = system_odes_NL(~, a, model_coef, niu, vis, modal_TKE)
 % System of ode for time evolution of POD/Galerkin system
 %
 % SYSTEM_ODES(~, A, MODEL_COEF) returns the the changes in modal amplitudes
@@ -9,7 +9,7 @@ da = zeros(num_modes, 1);
 
 TKE = sum(1/2*a(2:end).^2);  
 niu = niu*sqrt(TKE/modal_TKE);
-vis = niu + 1/Re0;
+vis_total = niu + vis;
 
 % Mean velocity mode remains at amplitude 1
 da(1) = 0;
@@ -17,7 +17,7 @@ range = 2:num_modes;
 idx = 1;
 
 for j = 1:num_modes
-    da(range) = da(range) + model_coef(range, idx).*repmat(a(j),length(range),1).*vis(range);
+    da(range) = da(range) + model_coef(range, idx).*repmat(a(j),length(range),1).*vis_total(range);
     idx = idx + 1;
 end
 

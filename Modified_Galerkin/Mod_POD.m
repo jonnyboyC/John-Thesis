@@ -116,7 +116,6 @@ l_total     = vars.results.l;
 t_total     = vars.results.t;
 eddy_total  = vars.results.eddy;
 vis         = vars.results.vis;
-modal_amp_sim_total = vars.results.modal_amp_sim;
 linear_models = vars.results.linear_models;
 num_modesG = vars.results.num_modesG;
 
@@ -135,7 +134,6 @@ for i = 1:size(models, 2)
     [C, L, Q, lambda, OG_nm] = term2order(l_total{models(i),1}, q_total{models(i),1}, ...
                                    total_vis, lambda_OG, num_modesG);
     t = t_total{models(i),1};
-    modal_amp_sim = modal_amp_sim_total{models(i),1};
     
 
     % Truncate POD
@@ -164,7 +162,7 @@ for i = 1:size(models, 2)
         'FunValCheck', 'on');
 
         [epsilon_final, ~, ~, OUTPUT] = fzero(@(epsilon) optimal_rotation...
-            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_amp_sim, t, init, 18000), epsilon_range, options);
+            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, t, init, 18000), epsilon_range, options);
         disp(OUTPUT);
     else
         disp('no sign flip detected');
@@ -173,7 +171,7 @@ for i = 1:size(models, 2)
         'FunValCheck', 'on');
 
         [epsilon_final, ~, ~, OUTPUT] = fminbnd(@(epsilon) abs(optimal_rotation...
-            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_amp_sim, t, init, 18000)), epsilon(idx-1), epsilon(idx+1), options);
+            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, t, init, 18000)), epsilon(idx-1), epsilon(idx+1), options);
         disp(OUTPUT);
     end
     close all;
@@ -181,7 +179,7 @@ for i = 1:size(models, 2)
     % Final calculation of transformation matrix and new constant linear and
     % quadratic terms
     [~, X, C_til, L_til, Q_til] = ...
-        optimal_rotation(epsilon_final, C, L, Q, OG_nm, RD_nm, lambda, modal_amp_sim, t, init, 18000);
+        optimal_rotation(epsilon_final, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, t, init, 18000);
 
     [pod_u_til, pod_v_til, pod_vor_til, modal_amp_raw_til] = ...
         basis_transform(pod_ut, pod_vt, pod_vort, modal_ampt, RD_nm, X);
@@ -195,7 +193,7 @@ for i = 1:size(models, 2)
 
     tic1 = tic;
     [t, modal_amp_til] = ode113(@(t,y) system_odes_mod(t,y,Gal_coeff_til), t, ...
-        modal_amp_sim(init,1:RD_nm), options);
+        modal_ampt(init,1:RD_nm), options);
     toc(tic1);
     %% Temp
     

@@ -129,14 +129,17 @@ bnd_idx     = vars.results.bnd_idx;     % location of boundaries
 bnd_x       = vars.results.bnd_x;       % location of flow boundaries normal to x
 bnd_y       = vars.results.bnd_y;       % location of flow boundaries normal to y
 run_num     = vars.results.run_num;     % POD run numbers
-cutoff      = vars.results.cutoff;    % number of modes at cutoff
+cutoff      = vars.results.cutoff;      % number of modes at cutoff
 modal_amp   = vars.results.modal_amp;   % modal amplitude  from raw data
 
 
 clear vars
 
 % Get Reynolds number 
-Re0 = Re0_gen(direct, u_scale, l_scale);      
+Re0 = Re0_gen(direct, u_scale, l_scale);  
+
+% Kinematic visocity Assume values have been non-dimensionalized
+vis = 1/Re0;
 
 t_scale = u_scale/l_scale;  % time scale
 tspan = tspan*t_scale;      % non-dimensionalized timescale
@@ -243,21 +246,21 @@ for i = 1:length(num_modesG)
     
     % calculate coefficients detailed by Couplet
     if ismember('Couplet', dissapation);
-        eddy{3,1,i} = viscous_dis_couplet(modal_amp, num_modes, lc{1,1}, qc{1,1}, Re0);
+        eddy{3,1,i} = viscous_dis_couplet(modal_amp, num_modes, lc{1,1}, qc{1,1}, vis);
         eddy{3,2,i} = 'Modal Base Couplet';
 
-        eddy{4,1,i} = viscous_dis_couplet(modal_amp, num_modes, lc{2,1}, qc{2,1}, Re0);
+        eddy{4,1,i} = viscous_dis_couplet(modal_amp, num_modes, lc{2,1}, qc{2,1}, vis);
         eddy{4,2,i} = 'Modal Weak Couplet';
     end
 
     disp(eddy{3,1,i});
     
     % Calculate coefficeints detailed by Noack
-    [eddy{5,1,i}, eddy{6,1,i}] = viscous_dis(modal_amp, num_modes, lambda, l{1,1,i}, q{1,1,i}, Re0);
+    [eddy{5,1,i}, eddy{6,1,i}] = viscous_dis(modal_amp, num_modes, lambda, l{1,1,i}, q{1,1,i}, vis);
     eddy{5,2,i} = 'Modal Base Noack';
     eddy{6,2,i} = 'Global Base Noack';
 
-    [eddy{7,1,i}, eddy{8,1,i}] = viscous_dis(modal_amp, num_modes, lambda, l{2,1,i}, q{2,1,i}, Re0);
+    [eddy{7,1,i}, eddy{8,1,i}] = viscous_dis(modal_amp, num_modes, lambda, l{2,1,i}, q{2,1,i}, vis);
     eddy{7,2,i} = 'Modal Weak Noack';
     eddy{8,2,i} = 'Global Weak Noack';
     
@@ -268,12 +271,12 @@ for i = 1:length(num_modesG)
     end
     
     % Perform final manipulation to prep integration
-    [reduced_model_coeff] = integration_setup(eddy, Re0, l, q, i, total_models, linear_models, num_modes);
+    [reduced_model_coeff] = integration_setup(eddy, vis, l, q, i, total_models, linear_models, num_modes);
 
 %% Time integration
 
     ao = modal_amp(init,1:num_modes);
-    [t, modal_amp_sim] = time_integration(reduced_model_coeff, eddy, Re0, modal_TKE, ...
+    [t, modal_amp_sim] = time_integration(reduced_model_coeff, eddy, vis, modal_TKE, ...
         i, t, modal_amp_sim, ao, tspan, total_models, linear_models, options);
     
 %% Plotting functions
@@ -314,7 +317,7 @@ for i = 1:length(num_modesG)
     results.l = squeeze(l(:,:,i));
     results.q = squeeze(q(:,:,i));
     results.eddy = squeeze(eddy(:,:,i));
-    results.vis = 1/Re0;
+    results.vis = vis;
     results.num_modesG = num_modes-1;
     results.modal_amp_sim = squeeze(modal_amp_sim(:,:,i));
     results.t = squeeze(t(:,:,i));

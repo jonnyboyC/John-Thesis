@@ -1,4 +1,4 @@
-function modal_eddy_vis = viscous_dis_couplet(modal_amp, num_modes, l, q, Re0)
+function modal_eddy_vis = viscous_dis_couplet(modal_amp, num_modes, l, q, vis)
 % Determine modal visous disspation according the Couplet et al. 2004
 
 num_images = size(modal_amp, 1);    % Number of snapshots
@@ -19,7 +19,7 @@ k_sum = 1:num_cutoff;
 % Calculate systems resolved dissapation
 for i = sum_i
     L_res(:,i)   = L_res(:,i)   + modal_amp(:,sum_j_res)*l(i,sum_j_res)';
-    L_unres(:,i) = L_unres(:,i) + modal_amp(:, sum_j_unres)*l(i,sum_j_unres)'/Re0;
+    L_unres(:,i) = L_unres(:,i) + modal_amp(:, sum_j_unres)*vis*l(i,sum_j_unres)';
 end
 
 % Determine approximately unresolved vicous and convective terms
