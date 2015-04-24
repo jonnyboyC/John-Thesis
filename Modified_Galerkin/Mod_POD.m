@@ -24,6 +24,10 @@ function Mod_POD(varargin)
 % problem.init = 1
 % Specify which image will constitute the initial conditions
 %
+% problem.int_time = 1
+% Specify for how long integration will be performed will be sampled at
+% sampling frequency of base data
+%
 % problem.line_range = 100
 % Specify a relatively range of epsilon values to search to be course
 % searched in order to generate a transformation matrix which produces an
@@ -51,7 +55,8 @@ clc;
 %List of fields that will be checked
 fields = {  'RD_nm',        'plot_type',    'save_mod', ...
             'init',         'line_range',   'direct' ,...
-            'run_num',      'models',       'fft_window'};
+            'run_num',      'models',       'fft_window'
+            'tspan'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -71,6 +76,7 @@ direct      = problem.direct;
 run_num     = problem.run_num;
 models      = problem.models;
 fft_window  = problem.fft_window;
+tspan       = problem.tspan;
 
 % Check status of parrallel pool
 if isempty(gcp('nocreate'));
@@ -89,13 +95,20 @@ end
 % Make sure folders are up to date and load collected data
 update_folders(direct);
 
-% TODO load variables based on type provided
+% determine sampling rate
+if length(t) > 2
+    sample_freq = 1/(tspan(2) - tspan(1));
+    fprintf('Detected Sampling Frequency %6.2f Hz\n\n', sample_freq);
+else
+    error('must provide tspan with a range');
+end
+
+% Load POD variables
 vars = load(direct_POD, 'results');
 
 % Create more readable names
 pod_u       = vars.results.pod_u;       % streamwise pod modes
 pod_v       = vars.results.pod_v;       % spanwise pod modes
-pod_vor     = vars.results.pod_vor;     % vorticity pod modes
 u_scale     = vars.results.u_scale;     % velocity scaling
 l_scale     = vars.results.l_scale;     % length scaling
 lambda_OG   = vars.results.lambda;      % eigenvalues of modes
@@ -106,19 +119,20 @@ x           = vars.results.x;
 y           = vars.results.y;
 bnd_idx     = vars.results.bnd_idx;
 
+% Clear vars
 clear vars
 
-vars = load(direct_Gal, 'results');
+vars = load(direct_Gal, 'results_coef');
 
 % Get results from Galerkin Projection
-q_total     = vars.results.q;
-l_total     = vars.results.l;
-t_total     = vars.results.t;
-eddy_total  = vars.results.eddy;
-vis         = vars.results.vis;
-linear_models = vars.results.linear_models;
-num_modesG = vars.results.num_modesG;
+q_total     = vars.results_coef.q;
+l_total     = vars.results_coef.l;
+eddy_total  = vars.results_coef.eddy;
+vis         = vars.results_coef.vis;
+num_modesG  = vars.results_coef.num_modesG;
+linear_models = vars.results_coef.linear_models;
 
+% clear vars
 clear vars
 
 % Remove any passed models that are greater than the linear models
@@ -133,20 +147,18 @@ for i = 1:size(models, 2)
     % Set variables for model
     [C, L, Q, lambda, OG_nm] = term2order(l_total{models(i),1}, q_total{models(i),1}, ...
                                    total_vis, lambda_OG, num_modesG);
-    t = t_total{models(i),1};
     
-
     % Truncate POD
     pod_ut = pod_u(:,1:OG_nm);
     pod_vt = pod_v(:,1:OG_nm);
-    pod_vort = pod_vor(:,1:OG_nm);
     modal_ampt = modal_amp(:, 1:OG_nm);
     
 
+    % Creat line search problem
     line_problem.C = C;
     line_problem.L = L;
     line_problem.Q = Q;
-    line_problem.t = t;
+    line_problem.tspan = tspan;
     line_problem.init = init;
     line_problem.OG_nm = OG_nm;
     line_problem.RD_nm = RD_nm;
@@ -162,7 +174,7 @@ for i = 1:size(models, 2)
         'FunValCheck', 'on');
 
         [epsilon_final, ~, ~, OUTPUT] = fzero(@(epsilon) optimal_rotation...
-            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, t, init, 18000), epsilon_range, options);
+            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 18000), epsilon_range, options);
         disp(OUTPUT);
     else
         disp('no sign flip detected');
@@ -171,7 +183,7 @@ for i = 1:size(models, 2)
         'FunValCheck', 'on');
 
         [epsilon_final, ~, ~, OUTPUT] = fminbnd(@(epsilon) abs(optimal_rotation...
-            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, t, init, 18000)), epsilon(idx-1), epsilon(idx+1), options);
+            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 18000)), epsilon(idx-1), epsilon(idx+1), options);
         disp(OUTPUT);
     end
     close all;
@@ -179,31 +191,10 @@ for i = 1:size(models, 2)
     % Final calculation of transformation matrix and new constant linear and
     % quadratic terms
     [~, X, C_til, L_til, Q_til] = ...
-        optimal_rotation(epsilon_final, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, t, init, 18000);
+        optimal_rotation(epsilon_final, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 18000);
 
-    [pod_u_til, pod_v_til, pod_vor_til, modal_amp_raw_til] = ...
-        basis_transform(pod_ut, pod_vt, pod_vort, modal_ampt, RD_nm, X);
-
-    %% Temp
-    Gal_coeff_til = [C_til L_til Q_til];
-    Mod = true;
-
-    Gal_coeff_til = ode_coefficients(RD_nm, Gal_coeff_til, Mod);
-    options = odeset('RelTol', 1e-7, 'AbsTol', 1e-9);
-
-    tic1 = tic;
-    [t, modal_amp_til] = ode113(@(t,y) system_odes_mod(t,y,Gal_coeff_til), t, ...
-        modal_ampt(init,1:RD_nm), options);
-    toc(tic1);
-    %% Temp
-    
-    % TODO change
-    if length(t) > 2
-        sample_freq = 1/(t(2) - t(1));
-        fprintf('Detected Sampling Frequency %6.2f Hz\n\n', sample_freq);
-    else
-        error('must provide tspan with a range');
-    end
+    [pod_u_til, pod_v_til, modal_amp_raw_til] = ...
+        basis_transform(pod_ut, pod_vt, modal_ampt, RD_nm, X);
 
     % Prepare data
     plot_data.num_modes     = RD_nm;
@@ -211,7 +202,6 @@ for i = 1:size(models, 2)
     plot_data.init          = init;
     plot_data.pod_ut        = pod_u_til;
     plot_data.pod_vt        = pod_v_til;
-    plot_data.pod_vort      = pod_vor_til;
     plot_data.dimensions    = dimensions;
     plot_data.fft_window    = fft_window;
     plot_data.u_scale       = u_scale;

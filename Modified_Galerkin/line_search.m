@@ -7,7 +7,7 @@ OG_nm       = problem.OG_nm;
 RD_nm       = problem.RD_nm;
 lambda      = problem.lambda;
 modal_amp   = problem.modal_amp;
-t           = problem.t;
+tspan       = problem.tspan;
 init        = problem.init;
 line_range  = problem.line_range;
 flip_idx    = 0;
@@ -17,7 +17,7 @@ epsilon_0 = sum(L(1:RD_nm, 1:RD_nm)*lambda(1:RD_nm));
 epsilon = epsilon_0;
 
 % Find initial value for line search and plot
-transfer = optimal_rotation(epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_amp, t, init, 18000);
+transfer = optimal_rotation(epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_amp, tspan, init, 18000);
 
 % Brute force Line Search, rough pass parrallel loop. Idea is to quickly
 % sweep a large area to look for sign changes to use for a finer pass in
@@ -40,7 +40,7 @@ for i = 1:length(search_space)-1
         end
         amp = floor((search)/2)/8;
         epsilon_temp(j) = epsilon_0*(1-amp*flip);
-        transfer_temp(j) = optimal_rotation(epsilon_temp(j), C, L, Q, OG_nm, RD_nm, lambda, modal_amp, t, init, 18000);
+        transfer_temp(j) = optimal_rotation(epsilon_temp(j), C, L, Q, OG_nm, RD_nm, lambda, modal_amp, tspan, init, 18000);
     end
 
     epsilon       = [epsilon; epsilon_temp];
@@ -60,15 +60,18 @@ for i = 1:length(search_space)-1
     end
 
 
-    % Find suspect zeros perform higher interation rotation if potential
-    % bound found
+    % Find suspect zeros perform more interations of optimal_rotation to more assuredly
+    % find bounds
     for k = 1:length(sign_t)-1
         if sign_t(k)*sign_t(k+1) < 0 && ~any(exclusion_list == k)
-            transfer1 = optimal_rotation(epsilon(k), C, L, Q, OG_nm, RD_nm, lambda, modal_amp, t, init, 18000);
-            transfer2 = optimal_rotation(epsilon(k+1), C, L, Q, OG_nm, RD_nm, lambda, modal_amp, t, init, 18000);
+            transfer1 = optimal_rotation(epsilon(k), C, L, Q, OG_nm, RD_nm, lambda, modal_amp, tspan, init, 18000);
+            transfer2 = optimal_rotation(epsilon(k+1), C, L, Q, OG_nm, RD_nm, lambda, modal_amp, tspan, init, 18000);
+            % if higher accuracy produces bounded solutions exit and
+            % indicate flip location
             if transfer1*transfer2 < 0 
                 flip_idx = k;
                 return;
+            % Otherwise add point to exclusion list
             else
                 exclusion_list = [exclusion_list, k];
             end

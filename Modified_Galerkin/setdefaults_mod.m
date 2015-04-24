@@ -29,6 +29,13 @@ if isempty(problem.fft_window) || (isnumeric(problem.fft_window) && ...
     problem.fft_window = [0 2000];     % time range of integration
 end
 
+% Default for tspan
+if isempty(problem.tspan) || ~(isnumeric(problem.tspan) && ...
+        size(problem.tspan, 1) == 1 && size(problem.tspan,2) > 1)
+    fprintf('Using default value for tspan\nproblem.tspan = 0:0.01:100\n\n');
+    problem.tspan = 0:0.0001:1;     % time range of integration
+end
+
 % Default for save_mod
 if isempty(problem.save_mod) || ~islogical(problem.save_mod)
     fprintf('Using default value for save_mod\nproblem.save_mod = true\n\n');
