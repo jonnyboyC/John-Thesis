@@ -46,8 +46,19 @@ function file_loc = get_data(data_folder, data, direct, run_num, num_modes)
 % Get .mat wildcard
 wildcard = get_wild(run_num, direct, data_folder, num_modes);
 
+% If num_modes requested, look in Galerkin folder for mode data
+full_path = [direct filesep data_folder];
+if num_modes > 0
+    full_path = [full_path filesep 'modes_' num2str(num_modes)];
+    if ~isdir(full_path)
+        % Exit if mode folder isn't found
+        error('Galerkin coefficients for %d modes have not been produced', ...
+            num_modes);
+    end
+end
+
 % Look in provided directory for .mat files
-files = dir([direct filesep data_folder filesep wildcard]);
+files = dir([full_path filesep wildcard]);
 
 % If none are found prompt user to run previous level code
 if size(files,1) == 0
@@ -55,15 +66,15 @@ if size(files,1) == 0
 
 % If only one is found use that as the file location
 elseif size(files, 1) == 1
-    file_loc = [direct filesep data_folder filesep files(1).name];
+    file_loc = [full_path filesep files(1).name];
 
 % If more than one is found, either select the provided mat_name from
 % input or prompt user to select mat
 elseif size(files, 1) > 1
-    cd([direct filesep data_folder]);
+    cd(full_path);
     fprintf(1, 'Please choose specific .mat file\n');
-    num_modes = uigetfile({'*.mat'}, 'Choose .mat file');
-    file_loc = [direct filesep data_folder filesep num_modes];
+    file_name = uigetfile({'*.mat'}, 'Choose .mat file');
+    file_loc = [full_path file_name];
 end
 
 end
@@ -73,14 +84,25 @@ function wildcard = get_wild(run_num, direct, data_folder, num_modes)
 if ischar(run_num)
     if strcmp(run_num, 'first')
         % Find newest file
-        files = dir([direct filesep data_folder]);
+        full_path = [direct filesep data_folder];
+        
+        % if num_modes specify move down the file tree
+        if num_modes > 0
+            full_path = [full_path filesep 'modes_' num2str(num_modes)];
+            if ~isdir(full_path)
+                % exit if folder not found
+               error('Galerkin coefficients for %d modes have not been produced', ...
+                   num_modes);
+            end
+        end
+        
+        % short files by order
+        files = dir(full_path);
         [~, idx] = sort([files.datenum], 2, 'descend');
         files = files(idx);
         matches_idx = 0;
-        if num_modes > 0
-            matches = regexp({files.name}, ['m' num2str(num_modes)]);
-            matches_idx = find(~cellfun(@isempty,matches));
-        end
+        
+        % Return newest file not folder
         for i = 1:length(idx)
             if ~files(i).isdir 
                 if ~matches_idx(1)
@@ -94,14 +116,12 @@ if ischar(run_num)
                 end
             end
         end
+        
+        % if not direct match return generic wild card
         wildcard = '*.mat';
     end
 elseif isscalar(run_num)
     if run_num > 0
-        if num_modes > 0
-            wildcard = ['*' num2str(run_num) '_m' num2str(num_modes) '.mat'];
-            return;
-        end
         wildcard = ['*' num2str(run_num) '*.mat'];
     else
         wildcard = '*.mat';
