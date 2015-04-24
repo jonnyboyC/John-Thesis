@@ -24,7 +24,7 @@ function Mod_POD(varargin)
 % problem.init = 1
 % Specify which image will constitute the initial conditions
 %
-% problem.int_time = 1
+% problem.tspan = 0:0.0001:1
 % Specify for how long integration will be performed will be sampled at
 % sampling frequency of base data
 %
@@ -55,7 +55,7 @@ clc;
 %List of fields that will be checked
 fields = {  'RD_nm',        'plot_type',    'save_mod', ...
             'init',         'line_range',   'direct' ,...
-            'run_num',      'models',       'fft_window'
+            'run_num',      'models',       'fft_window', ...
             'tspan'};
 
 % Parse problem structure provided to set it up correctly
@@ -96,7 +96,7 @@ end
 update_folders(direct);
 
 % determine sampling rate
-if length(t) > 2
+if length(tspan) > 2
     sample_freq = 1/(tspan(2) - tspan(1));
     fprintf('Detected Sampling Frequency %6.2f Hz\n\n', sample_freq);
 else

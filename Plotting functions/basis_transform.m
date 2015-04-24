@@ -1,5 +1,5 @@
 function [pod_u_til, pod_v_til, pod_vor_til, modal_amp_til] = ...
-                basis_transform(pod_ut, pod_vt, pod_vor, modal_amp, RD_nm, X) 
+                basis_transform(pod_ut, pod_vt, modal_amp, RD_nm, X) 
 % Transform pod modes and modal amplitude into new basis
 pod_u_til = zeros(size(pod_ut,1), RD_nm);
 pod_v_til = zeros(size(pod_vt,1), RD_nm);
