@@ -33,7 +33,7 @@ end
 if isempty(problem.tspan) || ~(isnumeric(problem.tspan) && ...
         size(problem.tspan, 1) == 1 && size(problem.tspan,2) > 1)
     fprintf('Using default value for tspan\nproblem.tspan = 0:0.01:100\n\n');
-    problem.tspan = 0:0.01:100;     % time range of integration
+    problem.tspan = 0:0.0001:1;     % time range of integration
 end
 
 % Default for init

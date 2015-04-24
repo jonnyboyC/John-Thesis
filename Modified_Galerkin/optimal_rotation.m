@@ -1,5 +1,5 @@
 function [residual, X, C_til, L_til, Q_til] = ...
-    optimal_rotation(epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_amp, t, init, evals)
+    optimal_rotation(epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_amp, tspan, init, evals)
 %% Find Optimal Rotation 
 
 timers = tic;
@@ -42,9 +42,9 @@ reduced_model_coeff = ode_coefficients(RD_nm, Gal_coeff, Mod);
 options = odeset('RelTol', 1e-8, 'AbsTol', 1e-10);
 
 % Calculate values at same time intervals 
-tspan = t;
+ao = modal_amp(init,1:RD_nm);
 [~,Y_til] = ode113(@(t, y) system_odes_mod(t, y, reduced_model_coeff)...
-    , tspan ,modal_amp(init,1:RD_nm), options); 
+    , tspan ,ao, options); 
 
 % Calculate difference 
 residual = error_til(lambda_til,Y_til);
