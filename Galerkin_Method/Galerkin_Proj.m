@@ -48,6 +48,10 @@ function res = Galerkin_Proj(varargin)
 % problem.dissapation = {'Noack', 'Couplet'}
 % Specify which viscious dissapation method(s) to use
 %
+% problem.time_int = true
+% If false no time integration or plotting will be performed, used to
+% generated the Galerkin systems for MOD_POD
+%
 % problem.use_chunks = false
 % Set this to true if you are running out of memeory well write values of q
 % to disk 
@@ -66,7 +70,8 @@ clc;
 fields = {  'num_modesG',   'plot_type',    'save_coef', ...
             'override_coef','tspan',        'init', ...
             'direct' ,      'Re0_gen',      'fft_window', ...
-            'run_num',      'dissapation',  'use_chunks'};
+            'run_num',      'dissapation',  'time_int', ...
+            'use_chunks'};
         
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -89,6 +94,7 @@ direct          = problem.direct;
 Re0_gen         = problem.Re0_gen;     
 fft_window      = problem.fft_window;
 dissapation     = problem.dissapation;
+time_int        = problem.time_int;
 use_chunks      = problem.use_chunks;
 
 clear problem
@@ -170,8 +176,8 @@ coef_problem.override_coef  = override_coef;
 coef_problem.direct         = direct;
 
 % Free memory 
-clear mean_u mean_v vol_frac bnd_x bnd_y 
-clear z override_coef uniform
+clear vol_frac bnd_x bnd_y override_coef
+clear use_chunks
 
 % Prefill Cells
 lc = cell(2,2);
@@ -202,8 +208,12 @@ total_models = linear_models*2-base_models;
 eddy= cell(total_models,2,length(num_modesG));
 l   = cell(total_models,2,length(num_modesG));
 q   = cell(total_models,2,length(num_modesG));
-t           = cell(total_models,2,length(num_modesG));
-modal_amp_sim   = cell(total_models,2,length(num_modesG));
+
+% initialize if time integration is being performed
+if time_int
+    t           = cell(total_models,2,length(num_modesG));
+    modal_amp_sim   = cell(total_models,2,length(num_modesG));
+end
 
 options = odeset('RelTol', 1e-8, 'AbsTol', 1e-10);
 
@@ -270,48 +280,51 @@ for i = 1:length(num_modesG)
         eddy{j+linear_models-base_models,2,i} = ['NL ' eddy{j,2,i}];
     end
     
-    % Perform final manipulation to prep integration
-    [reduced_model_coeff] = integration_setup(eddy, vis, l, q, i, total_models, linear_models, num_modes);
-
+    if time_int 
+        % Perform final manipulation to prep integration
+        [reduced_model_coeff] = integration_setup(eddy, vis, l, q, i, total_models, ...
+            linear_models, num_modes);
+    
 %% Time integration
 
-    ao = modal_amp(init,1:num_modes);
-    [t, modal_amp_sim] = time_integration(reduced_model_coeff, eddy, vis, modal_TKE, ...
-        i, t, modal_amp_sim, ao, tspan, total_models, linear_models, options);
-    
+        ao = modal_amp(init,1:num_modes);
+        [t, modal_amp_sim] = time_integration(reduced_model_coeff, eddy, vis, modal_TKE, ...
+            i, t, modal_amp_sim, ao, tspan, total_models, linear_models, options);
+
 %% Plotting functions
 
-    % Prepare data
-    plot_data.num_modes     = num_modes-1;
-    plot_data.direct        = direct;
-    plot_data.pod_ut        = pod_ut;
-    plot_data.pod_vt        = pod_vt;
-    plot_data.dimensions    = dimensions;
-    plot_data.fft_window    = fft_window;
-    plot_data.u_scale       = u_scale;
-    plot_data.l_scale       = l_scale;
-    plot_data.plot_type     = plot_type;
-    plot_data.sample_freq   = sample_freq;
-    plot_data.x             = x;
-    plot_data.y             = y;
-    plot_data.bnd_idx       = bnd_idx;
+        % Prepare data
+        plot_data.num_modes     = num_modes-1;
+        plot_data.direct        = direct;
+        plot_data.pod_ut        = pod_ut;
+        plot_data.pod_vt        = pod_vt;
+        plot_data.dimensions    = dimensions;
+        plot_data.fft_window    = fft_window;
+        plot_data.u_scale       = u_scale;
+        plot_data.l_scale       = l_scale;
+        plot_data.plot_type     = plot_type;
+        plot_data.sample_freq   = sample_freq;
+        plot_data.x             = x;
+        plot_data.y             = y;
+        plot_data.bnd_idx       = bnd_idx;
 
-    all_t = t(:,1,i)';
-    all_ids = eddy(:,2,i)';
-    all_modal_amps =  modal_amp_sim(:,1,i)';
+        all_t = t(:,1,i)';
+        all_ids = eddy(:,2,i)';
+        all_modal_amps =  modal_amp_sim(:,1,i)';
 
-    % Cycle through and plot all requested figures
-    for j = 1:total_models;
-        if ~isempty(all_ids{j})
-            plot_data.t = all_t{j};
-            plot_data.id = all_ids{j};
-            plot_data.modal_amp = all_modal_amps{j};
-            produce_plots(plot_data);
+        % Cycle through and plot all requested figures
+        for j = 1:total_models;
+            if ~isempty(all_ids{j})
+                plot_data.t = all_t{j};
+                plot_data.id = all_ids{j};
+                plot_data.modal_amp = all_modal_amps{j};
+                produce_plots(plot_data);
+            end
         end
     end
     
     fprintf('Saving Galerkin Variables\n');
-
+    
     % Prepare data
     results_coef.run_num = run_num;
     results_coef.l = squeeze(l(:,:,i));
@@ -319,11 +332,22 @@ for i = 1:length(num_modesG)
     results_coef.eddy = squeeze(eddy(:,:,i));
     results_coef.vis = vis;
     results_coef.num_modesG = num_modes-1;
+<<<<<<< HEAD
+    results_coef.sample_freq = sample_freq;
+    results_coef.linear_models = linear_models;
+    results_coef.total_models = total_models;
+    
+    if time_int
+        results_int.modal_amp_sim = squeeze(modal_amp_sim(:,:,i));
+        results_int.t = squeeze(t(:,:,i));
+    end
+=======
     results_int.modal_amp_sim = squeeze(modal_amp_sim(:,:,i));
     results_int.t = squeeze(t(:,:,i));
     results_coef.sample_freq = sample_freq;
     results_coef.linear_models = linear_models;
     results_coef.total_models = total_models;
+>>>>>>> 451acc25a6f5f3e685837711a79ca6295026e71d
     
     % Save relavent coefficients
     if save_coef == true
@@ -331,19 +355,50 @@ for i = 1:length(num_modesG)
             wait(futures)
         end
         pool = gcp;
+<<<<<<< HEAD
+        if time_int
+            futures = parfeval(pool, @save_results, 0, direct, results_coef, ...
+                results_int);
+        else
+            futures = parfeval(pool, @save_results, 0, direct, results_coef);
+        end
+=======
         futures = parfeval(pool, @save_results, 0, results_coef, results_int, direct);
+>>>>>>> 451acc25a6f5f3e685837711a79ca6295026e71d
     end
 end
 
 % Return values if requested
 if nargout == 1
-    res = results;
+    res = results_coef;
 end
 
 % return format
 format short g
 end
 
+<<<<<<< HEAD
+% Save Galerkin system for each mode
+function save_results(direct, varargin)
+% check if folder exist create if empty
+if ~exist([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(results.num_modesG)], 'dir')
+    mkdir([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(results.num_modesG)]);
+end
+
+% if only results_coef was passed only save those
+if nargin == 2
+    results_coef = varargin{1};
+    save([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(results_coef.num_modesG-1) ...
+        filesep 'Coefficients_run_' num2str(results.run_num) '.mat'], 'results_coef', '-v7.3');
+else
+    results_coef = varargin{1};
+    results_int = varargin{2};
+    save([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(results_coef.num_modesG-1) ...
+        filesep 'Coefficients_run_' num2str(results_coef.run_num) '.mat'], 'results_coef', '-v7.3');
+    save([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(results_coef.num_modesG-1) ...
+        filesep 'time_integrations_run_' num2str(results_coef.run_num) '.mat'], 'results_int', '-v7.3');
+end
+=======
 % Save each mode
 function save_results(results_coef, results_int, direct)
     if ~exist([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(results.num_modesG)], 'dir') 
@@ -353,5 +408,6 @@ function save_results(results_coef, results_int, direct)
     num2str(results.run_num) '.mat'], 'results_coef', '-v7.3');
     save([direct filesep 'Galerkin Coeff' filesep 'mod  es_' num2str(results_coef.num_modesG-1) filesep 'Integration_run_'...
     num2str(results.run_num) '.mat'], 'results_int', '-v7.3');
+>>>>>>> 451acc25a6f5f3e685837711a79ca6295026e71d
 end
 
