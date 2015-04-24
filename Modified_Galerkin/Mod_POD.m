@@ -129,7 +129,7 @@ q_total     = vars.results_coef.q;
 l_total     = vars.results_coef.l;
 eddy_total  = vars.results_coef.eddy;
 vis         = vars.results_coef.vis;
-num_modesG  = vars.results_coef.num_modesG;
+OG_nm  = vars.results_coef.num_modesG;
 linear_models = vars.results_coef.linear_models;
 
 % clear vars
@@ -145,8 +145,8 @@ for i = 1:size(models, 2)
     total_vis = vis + eddy_total{models(i),1};
     
     % Set variables for model
-    [C, L, Q, lambda, OG_nm] = term2order(l_total{models(i),1}, q_total{models(i),1}, ...
-                                   total_vis, lambda_OG, num_modesG);
+    [C, L, Q, lambda] = term2order(l_total{models(i),1}, q_total{models(i),1}, ...
+                                   total_vis, lambda_OG);
     
     % Truncate POD
     pod_ut = pod_u(:,1:OG_nm);
@@ -179,18 +179,28 @@ for i = 1:size(models, 2)
     else
         disp('no sign flip detected');
         [~, idx] = min(abs(transfer));
+        if idx == 1
+            lower = 1;
+            upper = 2;
+        elseif idx == length(transfer)
+            lower = idx-1;
+            upper = idx;
+        else
+            lower = idx-1;
+            upper = idx;
+        end
         options = optimset('PlotFcns', {@optimplotx, @optimplotfval}, 'Display', 'iter', ...
         'FunValCheck', 'on');
 
         [epsilon_final, ~, ~, OUTPUT] = fminbnd(@(epsilon) abs(optimal_rotation...
-            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 18000)), epsilon(idx-1), epsilon(idx+1), options);
+            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 18000)), epsilon(lower), epsilon(upper), options);
         disp(OUTPUT);
     end
     close all;
 
     % Final calculation of transformation matrix and new constant linear and
     % quadratic terms
-    [~, X, C_til, L_til, Q_til] = ...
+    [~, X, C_til, L_til, Q_til, modal_amp_til, t] = ...
         optimal_rotation(epsilon_final, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 18000);
 
     [pod_u_til, pod_v_til, modal_amp_raw_til] = ...
