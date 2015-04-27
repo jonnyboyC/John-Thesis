@@ -13,6 +13,7 @@ sample_freq = plot_data.sample_freq;
 u_scale     = plot_data.u_scale;
 l_scale     = plot_data.l_scale;
 id          = plot_data.id;
+type        = plot_data.type;
 plot_type   = plot_data.plot_type;
 x           = plot_data.x;
 y           = plot_data.y;
@@ -31,7 +32,7 @@ modal_amp = modal_amp(:,2:end);
 
 % Plot modal amplitude of the response
 if any(strcmp(plot_type, 'amp'))
-    plot_amp(modal_amp, t, direct, id);
+    plot_amp(modal_amp, t, direct, type, id);
 end
 
 
@@ -48,5 +49,5 @@ if any(strcmp(plot_type, 'fft'))
         window_size = ceil(size(t,1)/3);
     end
     modal_fft(modal_amp, num2plot, window_size, ...
-        sample_freq, fft_window, direct, id);
+        sample_freq, fft_window, direct, type, id);
 end

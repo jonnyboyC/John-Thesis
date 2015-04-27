@@ -174,7 +174,7 @@ for i = 1:size(models, 2)
         'FunValCheck', 'on');
 
         [epsilon_final, ~, ~, OUTPUT] = fzero(@(epsilon) optimal_rotation...
-            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 18000), epsilon_range, options);
+            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 36000), epsilon_range, options);
         disp(OUTPUT);
     else
         disp('no sign flip detected');
@@ -193,7 +193,7 @@ for i = 1:size(models, 2)
         'FunValCheck', 'on');
 
         [epsilon_final, ~, ~, OUTPUT] = fminbnd(@(epsilon) abs(optimal_rotation...
-            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 18000)), epsilon(lower), epsilon(upper), options);
+            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 36000)), epsilon(lower), epsilon(upper), options);
         disp(OUTPUT);
     end
     close all;
@@ -201,7 +201,7 @@ for i = 1:size(models, 2)
     % Final calculation of transformation matrix and new constant linear and
     % quadratic terms
     [~, X, C_til, L_til, Q_til, modal_amp_til, t] = ...
-        optimal_rotation(epsilon_final, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 18000);
+        optimal_rotation(epsilon_final, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 36000);
 
     [pod_u_til, pod_v_til, modal_amp_raw_til] = ...
         basis_transform(pod_ut, pod_vt, modal_ampt, RD_nm, X);
@@ -218,6 +218,7 @@ for i = 1:size(models, 2)
     plot_data.l_scale       = l_scale;
     plot_data.plot_type     = plot_type;
     plot_data.sample_freq   = sample_freq;
+    plot_data.type          = 'MOD';
     plot_data.id            = models;
     plot_data.modal_amp     = modal_amp_til;
     plot_data.t             = t;
@@ -239,7 +240,7 @@ for i = 1:size(models, 2)
     
     % Save important coefficients
     if save_mod == true
-        save([direct '\Mod Galerkin Coeff\Coeff_' num2str(run_num) '_m' num2str(RD_nm) '_' models{i} '.mat'], ...
+        save([direct '\Mod Galerkin Coeff\Coeff_' num2str(run_num) '_m' num2str(RD_nm) '_' q_total{models(i),2} '.mat'], ...
             'results');
     end
 end

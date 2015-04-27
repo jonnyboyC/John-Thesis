@@ -18,7 +18,7 @@ problem.options = options;
 
 % Other options to consider changing
 %options.UseParallel = true;
-%options.Algorithm = 'active-set';
+% options.Algorithm = 'sqp';
 
 [x,~,~,OUTPUT,~] = fmincon(problem);
 OUTPUT.message

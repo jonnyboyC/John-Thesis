@@ -302,6 +302,7 @@ for i = 1:length(num_modesG)
         plot_data.fft_window    = fft_window;
         plot_data.u_scale       = u_scale;
         plot_data.l_scale       = l_scale;
+        plot_data.type          = 'Galerkin';
         plot_data.plot_type     = plot_type;
         plot_data.sample_freq   = sample_freq;
         plot_data.x             = x;

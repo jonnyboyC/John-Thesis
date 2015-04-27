@@ -1,4 +1,4 @@
-function handle = plot_amp(modal_amp, t, direct, id)
+function handle = plot_amp(modal_amp, t, direct, type, id)
 % Plot modal amplitudes from the time response of the Galerkin sytem
 % Create figure handle and axis handle
 h = figure;
@@ -26,10 +26,10 @@ if numel(t) < 2
 end
 Hz = 1/(t(2) - t(1));
 
-if ~exist([direct filesep 'Figures' filesep 'Galerkin' filesep 'modes_' num2str(modes)], 'dir') 
-    mkdir([direct filesep 'Figures' filesep 'Galerkin' filesep 'modes_' num2str(modes)]);
+if ~exist([direct filesep 'Figures' filesep type filesep 'modes_' num2str(modes)], 'dir') 
+    mkdir([direct filesep 'Figures' filesep type filesep 'modes_' num2str(modes)]);
 end
-file_name = [direct filesep 'Figures' filesep 'Galerkin' filesep 'modes_' num2str(modes) filesep 'Amplitude_'];
+file_name = [direct filesep 'Figures' filesep type filesep 'modes_' num2str(modes) filesep 'Amplitude_'];
 if nargin == 4 
     file_name = [file_name id '_'];
 end

@@ -1,4 +1,4 @@
-function handle = modal_fft(modal_amp, num_plot, window_samples, sample_freq, xlim, direct, id)
+function handle = modal_fft(modal_amp, num_plot, window_samples, sample_freq, xlim, direct, type, id)
 % Calculate the modal frequency response using fft
 
 % Number of points per windows, set to the next power of 2
@@ -49,11 +49,11 @@ for i = 1:size(num_plot,2)
 end
 legend(leg_names);
 
-if ~exist([direct filesep 'Figures' filesep 'Galerkin' filesep 'modes_' num2str(num_modes)], 'dir') 
-    mkdir([direct filesep 'Figures' filesep 'Galerkin' filesep 'modes_' num2str(num_modes)]);
+if ~exist([direct filesep 'Figures' filesep type filesep 'modes_' num2str(num_modes)], 'dir') 
+    mkdir([direct filesep 'Figures' filesep type filesep 'modes_' num2str(num_modes)]);
 end
 
-file_name = [direct filesep 'Figures' filesep 'Galerkin' filesep 'modes_' num2str(num_modes) filesep 'FFT_'];
+file_name = [direct filesep 'Figures' filesep type filesep 'modes_' num2str(num_modes) filesep 'FFT_'];
 if nargin == 7
     file_name = [file_name id '_'];
 end

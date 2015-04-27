@@ -43,6 +43,9 @@ end
 if ~exist([direct filesep 'Figures' filesep 'Galerkin'], 'dir')
    mkdir([direct filesep 'Figures' filesep 'Galerkin']);
 end  
+if ~exist([direct filesep 'Figures' filesep 'MOD'], 'dir')
+   mkdir([direct filesep 'Figures' filesep 'MOD']);
+end  
 if ~exist([direct filesep 'Figures' filesep 'Movies'], 'dir')
    mkdir([direct filesep 'Figures' filesep 'Movies']);
 end 

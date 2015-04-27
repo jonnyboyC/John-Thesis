@@ -17,7 +17,7 @@ epsilon_0 = sum(L(1:RD_nm, 1:RD_nm)*lambda(1:RD_nm));
 epsilon = epsilon_0;
 
 % Find initial value for line search and plot
-transfer = optimal_rotation(epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_amp, tspan, init, 18000);
+transfer = optimal_rotation(epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_amp, tspan, init, 36000);
 
 % Brute force Line Search, rough pass parrallel loop. Idea is to quickly
 % sweep a large area to look for sign changes to use for a finer pass in
@@ -38,9 +38,9 @@ for i = 1:length(search_space)-1
         else 
             flip = -1;
         end
-        amp = floor((search)/2)/8;
+        amp = floor((search)/2)/16;
         epsilon_temp(j) = epsilon_0*(1-amp*flip);
-        transfer_temp(j) = optimal_rotation(epsilon_temp(j), C, L, Q, OG_nm, RD_nm, lambda, modal_amp, tspan, init, 18000);
+        transfer_temp(j) = optimal_rotation(epsilon_temp(j), C, L, Q, OG_nm, RD_nm, lambda, modal_amp, tspan, init, 36000);
     end
 
     epsilon       = [epsilon; epsilon_temp];
@@ -64,8 +64,8 @@ for i = 1:length(search_space)-1
     % find bounds
     for k = 1:length(sign_t)-1
         if sign_t(k)*sign_t(k+1) < 0 && ~any(exclusion_list == k)
-            transfer1 = optimal_rotation(epsilon(k), C, L, Q, OG_nm, RD_nm, lambda, modal_amp, tspan, init, 18000);
-            transfer2 = optimal_rotation(epsilon(k+1), C, L, Q, OG_nm, RD_nm, lambda, modal_amp, tspan, init, 18000);
+            transfer1 = optimal_rotation(epsilon(k), C, L, Q, OG_nm, RD_nm, lambda, modal_amp, tspan, init, 36000);
+            transfer2 = optimal_rotation(epsilon(k+1), C, L, Q, OG_nm, RD_nm, lambda, modal_amp, tspan, init, 36000);
             % if higher accuracy produces bounded solutions exit and
             % indicate flip location
             if transfer1*transfer2 < 0 

@@ -87,10 +87,10 @@ if ischar(problem.run_num)
     end
 end
 
-% Default for use chunks
+% Default for use time integration
 if isempty(problem.time_int) || ~islogical(problem.time_int)
-    fprintf('Using default value for use_chunks\nproblem.time_int = true\n\n');
-    problem.use_chunks = true;      % time integrate galerkin systems
+    fprintf('Using default value for time_int\nproblem.time_int = true\n\n');
+    problem.time_int = true;      % time integrate galerkin systems
 end
 
 % Default for use chunks
