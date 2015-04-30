@@ -71,5 +71,12 @@ if isempty(problem.num_clusters) || ~isscalar(problem.num_clusters)
     problem.num_clusters = 10;  	% Length scale for problem
 end
 
+% Default for num_clusters
+if isempty(problem.exp_sampling_rate) || ~isscalar(problem.exp_sampling_rate)
+    fprintf('Using default values for exp_sampling_rate\nproblem.exp_sampling_rate = 5\n\n');
+    problem.exp_sampling_rate = 5;  	% Length scale for problem
+end
+
+
 end
 

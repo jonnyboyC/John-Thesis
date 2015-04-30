@@ -46,6 +46,9 @@ function res = POD_Gen(varargin)
 %
 % problem.num_clusters = 10;
 % set the number of clusters that should be determined
+% 
+% problem.exp_sampling_rate = 5;
+% provide experimental sampling rate of the experiment, default is 5Hz
 
 format long g
 close all
@@ -55,7 +58,7 @@ clc
 fields = {  'num_images',   'load_raw',     'save_pod', ...
             'image_range',  'direct',       'l_scale', ...
             'u_scale_gen',  'save_figures', 'flip',...
-            'update_bnds',  'num_clusters'};
+            'update_bnds',  'num_clusters', 'exp_sampling_rate'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -78,6 +81,7 @@ save_figures= problem.save_figures;
 flip        = problem.flip;
 update_bnds = problem.update_bnds;
 num_clusters= problem.num_clusters;
+exp_sampling_rate = problem.exp_sampling_rate;
 
 clear problem
 
@@ -136,25 +140,42 @@ cluster_modes = [1,2];
 
 % Prefil groups and centers
 centers = cell(length(cluster_range),1);
+gm_models = cell(length(cluster_range),1);
+gm_groups = cell(length(cluster_range),1);
 stoc_matrix = cell(length(cluster_range),1);
+gm_stoc_matrix = cell(length(cluster_range),1);
+
+% Clustering options
 options = statset('UseParallel', 1);
+gm_options = statset('MaxIter', 1000);
 
 % ready figures
 h_clust = figure;
+h_gm    = figure;
 h_stoch = figure;
+h_stoch2= figure;
 
+% TODO creating clustering function
 
 % Calculate cluster centers and stochastic matrices
 for i = 1:length(cluster_range);
     [groups, centers{i}] = kmeans(modal_amp(:,1:cluster_range(i)), ...
         num_clusters, 'Replicates', 10, 'Options', options);
     
+    gm_models{i} = fitgmdist(modal_amp(:,1:cluster_range(i)), num_clusters, ...
+        'Replicates', 10, 'SharedCov', true, 'Options', gm_options);
+    gm_groups{i} = cluster(gm_models{i}, modal_amp(:,1:cluster_range(i)));
+    
+    
     if i == 1 && ~isempty(save_figures)
         cluster_plot(h_clust, modal_amp, groups, centers{i}, cluster_modes, num_clusters, ...
             direct, save_figures);
+        gm_cluster_plot(h_gm, modal_amp, gm_groups{i}, gm_models{i}, cluster_modes, ...
+            num_clusters, direct, save_figures);
     end
     
-    stoc_matrix{i} = gen_stochastic_matrix(h_stoch, groups);
+    stoc_matrix{i} = gen_stochastic_matrix(h_stoch, groups, direct, save_figures);
+    gm_stoc_matrix{i} = gen_stochastic_matrix(h_stoch2, gm_groups{i}, direct, save_figures);
 end
 
 pod_u = regroup(pod_u, dimensions);
@@ -204,29 +225,51 @@ run_num = floor(100000*rand(1));
 
 % Place results in a structure
 results.run_num = run_num;
+results.exp_sampling_rate = exp_sampling_rate;
+
+% mesh information
 results.x = x;
 results.y = y;
-results.flux_u = flux_u;
-results.flux_v = flux_v;
-results.mean_u = mean_u;
-results.mean_v = mean_v;
-results.pod_u = pod_u;
-results.pod_v = pod_v;
-results.groups = groups;
-results.centers = centers;
-results.cluster_range = cluster_range;
-results.modal_amp = modal_amp;
-results.lambda = lambda;
-results.l_scale = l_scale;
-results.u_scale = u_scale;
-results.vol_frac = vol_frac;
-results.pod_vor = pod_vor;
-results.cutoff = cutoff;
-results.uniform = uniform;
 results.dimensions = dimensions;
 results.bnd_idx = bnd_idx;
 results.bnd_x = bnd_x;
 results.bnd_y = bnd_y;
+results.uniform = uniform;
+results.vol_frac = vol_frac;
+
+% fluctuating flow
+results.flux_u = flux_u;
+results.flux_v = flux_v;
+
+% mean flow
+results.mean_u = mean_u;
+results.mean_v = mean_v;
+
+% pod modes
+results.pod_u = pod_u;
+results.pod_v = pod_v;
+results.pod_vor = pod_vor;
+
+% k-mean clustering data
+results.groups = groups;
+results.centers = centers;
+results.stoc_matrix = stoc_matrix;
+
+% gaussian mixture model data
+results.gm_models = gm_models;
+results.gm_groups = gm_groups;
+results.gm_stoc_matrix = gm_stoc_matrix;
+results.cluster_range = cluster_range;
+
+% modal coordinates and energy captured, modes to 99%
+results.modal_amp = modal_amp;
+results.lambda = lambda;
+results.cutoff = cutoff;
+
+% scaling factoring
+results.l_scale = l_scale;
+results.u_scale = u_scale;
+
 
 % Save variables relavent to Galerkin to .mat files
 if save_pod == true

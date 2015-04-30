@@ -56,8 +56,6 @@ function res = Galerkin_Proj(varargin)
 % Set this to true if you are running out of memeory well write values of q
 % to disk 
 
-
-
 % Set format, clear figures, and set up correct directory
 format long g
 close all
@@ -329,15 +327,20 @@ for i = 1:length(num_modesG)
     
     % Prepare data
     results_coef.run_num = run_num;
-    results_coef.l = squeeze(l(:,:,i));
-    results_coef.q = squeeze(q(:,:,i));
-    results_coef.eddy = squeeze(eddy(:,:,i));
-    results_coef.vis = vis;
     results_coef.num_modesG = num_modes-1;
     results_coef.sample_freq = sample_freq;
     results_coef.linear_models = linear_models;
     results_coef.total_models = total_models;
     
+    % viscous and convective terms
+    results_coef.l = squeeze(l(:,:,i));
+    results_coef.q = squeeze(q(:,:,i));
+    
+    % visocity and eddy-visocity
+    results_coef.eddy = squeeze(eddy(:,:,i));
+    results_coef.vis = vis;
+
+    % include integration information if requested
     if time_int
         results_int.modal_amp_sim = squeeze(modal_amp_sim(:,:,i));
         results_int.t = squeeze(t(:,:,i));
@@ -360,6 +363,7 @@ end
 
 % Return values if requested
 if nargout == 1
+    results_coef.num_modesG = num_modesG;
     res = results_coef;
 end
 
