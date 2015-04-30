@@ -1,4 +1,4 @@
-function X = constrained_POD(lambda, L, N, n, epsilon, evals)
+function [X, flag] = constrained_POD(lambda, L, N, n, epsilon, evals)
 % Optimization problem to create an optimal rotation that minimizing the
 % energy difference between the original system and the new system.
 
@@ -20,7 +20,7 @@ problem.options = options;
 %options.UseParallel = true;
 % options.Algorithm = 'sqp';
 
-[x,~,~,OUTPUT,~] = fmincon(problem);
+[x,~,flag,OUTPUT,~] = fmincon(problem);
 OUTPUT.message
 
 X = x*(x'*x)^(-1/2);

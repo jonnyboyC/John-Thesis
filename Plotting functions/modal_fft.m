@@ -53,10 +53,7 @@ if ~exist([direct filesep 'Figures' filesep type filesep 'modes_' num2str(num_mo
     mkdir([direct filesep 'Figures' filesep type filesep 'modes_' num2str(num_modes)]);
 end
 
-file_name = [direct filesep 'Figures' filesep type filesep 'modes_' num2str(num_modes) filesep 'FFT_'];
-if nargin == 7
-    file_name = [file_name id '_'];
-end
+file_name = [direct filesep 'Figures' filesep type filesep 'modes_' num2str(num_modes) filesep 'FFT_' id '_'];
 file_name = [file_name '_' num2str(ceil(sample_freq)) 'Hz'];
 drawnow;
 

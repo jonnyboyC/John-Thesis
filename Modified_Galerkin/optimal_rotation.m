@@ -3,7 +3,7 @@ function [residual, X, C_til, L_til, Q_til, modal_amp_til, t] = ...
 %% Find Optimal Rotation 
 
 timers = tic;
-X = constrained_POD(lambda, L, OG_nm, RD_nm, epsilon, evals);
+[X, flag] = constrained_POD(lambda, L, OG_nm, RD_nm, epsilon, evals);
 %inputs of constrained_POD are the POD temporal coefficients,modal_amp',
 %the linear Galerkin matrix, l, the transformation dimensions N and
 %n, and the transfer term parameter epsi
@@ -47,7 +47,7 @@ ao = modal_amp(init,1:RD_nm);
     , tspan, ao, options); 
 
 % Calculate difference 
-residual = error_til(lambda_til, modal_amp_til, t, tspan);
+residual = error_til(lambda_til, modal_amp_til, t, tspan, flag);
 
 % Report time
 toc(timers);

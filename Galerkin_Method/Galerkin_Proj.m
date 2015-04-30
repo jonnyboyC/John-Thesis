@@ -307,6 +307,7 @@ for i = 1:length(num_modesG)
         plot_data.sample_freq   = sample_freq;
         plot_data.x             = x;
         plot_data.y             = y;
+        plot_data.Mod           = false;
         plot_data.bnd_idx       = bnd_idx;
 
         all_t = t(:,1,i)';

@@ -1,10 +1,14 @@
-function [rep] = error_til(Lam_til, a_til, t, tspan)
+function [rep] = error_til(Lam_til, a_til, t, tspan, flag)
 % Total error in eliminating crtical transfer term
 rep = sum(diag(Lam_til))-mean(sum(a_til.^2,2));
 
 % pentalize for not fully integrating
 if ~isequal(t, tspan)
-    rep = rep*10^(length(tspan)/length(t));
+    rep = (rep)*((length(tspan)/length(t))^2);
+end
+
+if flag == -2
+    rep = rep*1000;
 end
 end
  

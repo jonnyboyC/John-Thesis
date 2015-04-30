@@ -29,10 +29,8 @@ Hz = 1/(t(2) - t(1));
 if ~exist([direct filesep 'Figures' filesep type filesep 'modes_' num2str(modes)], 'dir') 
     mkdir([direct filesep 'Figures' filesep type filesep 'modes_' num2str(modes)]);
 end
-file_name = [direct filesep 'Figures' filesep type filesep 'modes_' num2str(modes) filesep 'Amplitude_'];
-if nargin == 4 
-    file_name = [file_name id '_'];
-end
+file_name = [direct filesep 'Figures' filesep type filesep 'modes_' num2str(modes) filesep 'Amplitude_' id '_'];
+
 file_name = [file_name '_t' num2str(ceil(t(1))) '_' num2str(ceil(t(end))) 's_' num2str(ceil(Hz)) 'Hz'];
 drawnow;
 

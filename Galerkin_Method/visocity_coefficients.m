@@ -112,7 +112,7 @@ clear pod_u_pod_u_x pod_u_pod_v_x pod_v_pod_u_y pod_v_pod_v_y
 
 q = reshape(q, [], num_modes*num_modes);
 
-cutoff = num_modes;
+cutoff = num_modes; %#ok<NASGU>
 save([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_og_m' num2str(num_modes) '.mat'], ...
      'l', 'q', 'cutoff', 'run_num', '-v7.3'); 
 

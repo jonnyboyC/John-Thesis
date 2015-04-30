@@ -17,17 +17,25 @@ type        = plot_data.type;
 plot_type   = plot_data.plot_type;
 x           = plot_data.x;
 y           = plot_data.y;
+Mod         = plot_data.Mod;
 bnd_idx     = plot_data.bnd_idx;
 
 t_scale = u_scale/l_scale;
 sample_freq = sample_freq*t_scale;
 t = t/t_scale;
 
+% If using Mod add a mode zero to make it work like Galerkin
+if Mod == true
+    [modal_amp, ~, pod_ut, pod_vt] = add_mode_zero(modal_amp, 1, pod_ut, pod_vt, ...
+            results.mean_u, results.mean_v);
+end
+
 % TODO significant overhaul to this function
 if any(strcmp(plot_type, 'video'))
     plot_prediction(pod_ut, pod_vt, x, y, bnd_idx, modal_amp, t, dimensions, direct, id)
 end
 
+% Strip mean_u, mean_v
 modal_amp = modal_amp(:,2:end);
 
 % Plot modal amplitude of the response

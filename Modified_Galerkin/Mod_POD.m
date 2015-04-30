@@ -115,8 +115,13 @@ lambda_OG   = vars.results.lambda;      % eigenvalues of modes
 modal_amp   = vars.results.modal_amp;   % modal amplitude of each image in pod basis
 dimensions  = vars.results.dimensions;  % dimensions of mesh
 run_num     = vars.results.run_num;     % POD run numbers
-x           = vars.results.x;
-y           = vars.results.y;
+x           = vars.results.x;           % x coordinate
+y           = vars.results.y;           % y coordinate
+
+t_scale = u_scale/l_scale;  % time scale
+tspan = tspan*t_scale;      % non-dimensionalized timescale
+
+
 bnd_idx     = vars.results.bnd_idx;
 
 % Clear vars
@@ -145,8 +150,8 @@ for i = 1:size(models, 2)
     total_vis = vis + eddy_total{models(i),1};
     
     % Set variables for model
-    [C, L, Q, lambda] = term2order(l_total{models(i),1}, q_total{models(i),1}, ...
-                                   total_vis, lambda_OG);
+    [C, L, Q, lambda, modal_amp] = term2order(l_total{models(i),1}, q_total{models(i),1}, ...
+                                   total_vis, lambda_OG, modal_amp);
     
     % Truncate POD
     pod_ut = pod_u(:,1:OG_nm);
@@ -166,42 +171,39 @@ for i = 1:size(models, 2)
     line_problem.modal_amp = modal_ampt;
     line_problem.line_range = line_range;
 
-    [epsilon, transfer, flip_idx] = line_search(line_problem);
+    [epsilon_low, epsilon_high, transfer, flip] = line_search(line_problem);
 
-    if flip_idx ~= 0
-        epsilon_range = [epsilon(flip_idx) epsilon(flip_idx+1)];
+    if flip == true
+        epsilon_range = [epsilon_low, epsilon_high];
         options = optimset('PlotFcns', {@optimplotx, @optimplotfval}, 'Display', 'iter', ...
         'FunValCheck', 'on');
 
         [epsilon_final, ~, ~, OUTPUT] = fzero(@(epsilon) optimal_rotation...
-            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 36000), epsilon_range, options);
+            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 64000), epsilon_range, options);
         disp(OUTPUT);
     else
         disp('no sign flip detected');
-        [~, idx] = min(abs(transfer));
-        if idx == 1
-            lower = 1;
-            upper = 2;
-        elseif idx == length(transfer)
-            lower = idx-1;
-            upper = idx;
-        else
-            lower = idx-1;
-            upper = idx;
-        end
-        options = optimset('PlotFcns', {@optimplotx, @optimplotfval}, 'Display', 'iter', ...
-        'FunValCheck', 'on');
+        options = optimset('PlotFcns', {@optimplotx, @optimplotfval}, 'Display', 'iter', 'TolFun', 1e-10);
 
         [epsilon_final, ~, ~, OUTPUT] = fminbnd(@(epsilon) abs(optimal_rotation...
-            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 36000)), epsilon(lower), epsilon(upper), options);
+            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 64000)), epsilon_low, epsilon_high, options);
         disp(OUTPUT);
     end
+    
+    
+%     options = optimset('PlotFcns', {@optimplotx, @optimplotfval}, 'Display', 'iter', ...
+%         'FunValCheck', 'on');
+%     epsilon_0 = sum(L(1:RD_nm, 1:RD_nm)*lambda(1:RD_nm)); 
+%     [epsilon_final, ~, ~, OUTPUT] = fzero(@(epsilon) optimal_rotation...
+%         (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 36000), epsilon_0, options);
+%     disp(OUTPUT);
     close all;
+    
 
     % Final calculation of transformation matrix and new constant linear and
     % quadratic terms
     [~, X, C_til, L_til, Q_til, modal_amp_til, t] = ...
-        optimal_rotation(epsilon_final, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 36000);
+        optimal_rotation(epsilon_final, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 64000);
 
     [pod_u_til, pod_v_til, modal_amp_raw_til] = ...
         basis_transform(pod_ut, pod_vt, modal_ampt, RD_nm, X);
@@ -219,7 +221,7 @@ for i = 1:size(models, 2)
     plot_data.plot_type     = plot_type;
     plot_data.sample_freq   = sample_freq;
     plot_data.type          = 'MOD';
-    plot_data.id            = models;
+    plot_data.id            = eddy_total{models(i),2};
     plot_data.modal_amp     = modal_amp_til;
     plot_data.t             = t;
     plot_data.x             = x;
@@ -240,7 +242,7 @@ for i = 1:size(models, 2)
     
     % Save important coefficients
     if save_mod == true
-        save([direct '\Mod Galerkin Coeff\Coeff_' num2str(run_num) '_m' num2str(RD_nm) '_' q_total{models(i),2} '.mat'], ...
+        save([direct '\Mod Galerkin Coeff\Coeff_' num2str(run_num) '_m' num2str(RD_nm) '_' eddy_total{models(i),2} '.mat'], ...
             'results');
     end
 end
