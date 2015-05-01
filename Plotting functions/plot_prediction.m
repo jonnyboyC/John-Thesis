@@ -1,6 +1,6 @@
 function plot_prediction(pod_u, pod_v, x, y, bnd_idx, modal_amp, t, dimensions, direct, id)
 % Create a movie of the time response of the predicted Galerkin sytem
-max_plot = 10000;
+max_plot = 500;
 if max_plot < size(modal_amp,1);  
     plot_points = 1:max_plot;
 else
