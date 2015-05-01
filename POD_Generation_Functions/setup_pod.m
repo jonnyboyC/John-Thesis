@@ -12,7 +12,7 @@ problem_airfoil.save_pod = true;
 problem_airfoil.save_figures = {'jpg'};
 problem_airfoil.l_scale = 0.2032;
 problem_airfoil.u_scale_gen = @u_scale_gen_airfoil;
-problem_airfoil.flip = [false, false, true, false];
+problem_airfoil.flip = [true, false, true, false];
 
 problem_cavity.num_images = 2000;
 problem_cavity.load_raw = false;

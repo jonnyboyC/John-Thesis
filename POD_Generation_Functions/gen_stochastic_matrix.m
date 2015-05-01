@@ -1,4 +1,4 @@
-function [stoc_matrix] = gen_stochastic_matrix(h, groups, direct, save_figures)
+function [stoc_matrix] = gen_stochastic_matrix(h, groups, direct, make_plot, save_figures)
 % Generate the approximate stochastic matrix from the group data
 
 figure(h);
@@ -16,17 +16,19 @@ for i = 1:num_cluster
    stoc_matrix(i,:) = stoc_matrix(i,:)/sum(stoc_matrix(i,:));
 end
 
-% plot transition matrix
-pcolor(stoc_matrix);
-colorbar;
-xlabel('Next State');
-ylabel('Current State');
+if make_plot == true
+    % plot transition matrix
+    pcolor(stoc_matrix);
+    colorbar;
+    xlabel('Next State');
+    ylabel('Current State');
 
-if ~isempty(save_figures)
-    for i = 1:length(save_figures)
-        saveas(h, [direct filesep 'Figures' filesep 'POD' filesep ...
-            'Clusters' filesep 'Stochastic_matirx_modes', num2str(size(groups,2))], save_figures{i});
+    if ~isempty(save_figures)
+        for i = 1:length(save_figures)
+            saveas(h, [direct filesep 'Figures' filesep 'POD' filesep ...
+                'Clusters' filesep 'Stochastic_matirx_modes', num2str(size(groups,2))], save_figures{i});
+        end
     end
-end
 
-drawnow;
+    drawnow;
+end

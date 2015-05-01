@@ -1,4 +1,4 @@
-function [dx, d2x, dy, d2y] = derivatives3(var, bnd_idx, bnd_x, bnd_y, x, y, dimensions)
+function [dx, dy, d2x, d2y] = derivatives3(var, bnd_idx, bnd_x, bnd_y, x, y, dimensions)
 % Find derivatives of variable var
 
 % Figure out how many loops are needed
@@ -32,13 +32,15 @@ for i = 1:number2calc
         dy(:,:,i) = dy(:,:,i) + padded_var2(:,10-j:end-j+1).*stencilY(:,:,j);
     end
     
-    % Padding to allow for simultaneous calculation of derivatives
-    padded_dx = [zeros(4,dimensions(2)); dx(:,:,i); zeros(4,dimensions(2))];
-    padded_dy = [zeros(dimensions(1),4), dy(:,:,i), zeros(dimensions(1),4)];
-    
-    % 2nd order terms
-    for j = 1:size(stencilX,3)
-        d2x(:,:,i) = d2x(:,:,i) + padded_dx(10-j:end-j+1,:).*stencilX(:,:,j);
-        d2y(:,:,i) = d2y(:,:,i) + padded_dy(:,10-j:end-j+1).*stencilY(:,:,j);
+    if nargout == 4
+        % Padding to allow for simultaneous calculation of derivatives
+        padded_dx = [zeros(4,dimensions(2)); dx(:,:,i); zeros(4,dimensions(2))];
+        padded_dy = [zeros(dimensions(1),4), dy(:,:,i), zeros(dimensions(1),4)];
+
+        % 2nd order terms
+        for j = 1:size(stencilX,3)
+            d2x(:,:,i) = d2x(:,:,i) + padded_dx(10-j:end-j+1,:).*stencilX(:,:,j);
+            d2y(:,:,i) = d2y(:,:,i) + padded_dy(:,10-j:end-j+1).*stencilY(:,:,j);
+        end
     end
 end

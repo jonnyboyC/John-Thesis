@@ -1,7 +1,12 @@
-function pod_vor = calc_pod_vor_fast(u, v, dimensions, cutoff)
-% Calculate vorticity values using matlabs built in curl function
+function pod_vor = calc_pod_vor(u, v, dimensions, cutoff)
+% Calculate vorticity values using galerkin derivatives function
 pod_vor = zeros(dimensions(1), dimensions(2), cutoff);
+
+% Calculate dervatives
+[~, ~, udy, ~] = derivatives3(u, bnd_idx, bnd_x, bnd_y, x, y, dimensions);
+[vdx, ~, ~, ~] = derivatives3(v, bnd_idx, bnd_x, bnd_y, x, y, dimensions);
+
 for i = 1:cutoff
-    [pod_vor(:,:,i), ~] = curl(u(:,:,i), v(:,:,i));
+    pod_vor(:,:,i) = vdx(:,:,i)-udy(:,:,i);
 end
 end

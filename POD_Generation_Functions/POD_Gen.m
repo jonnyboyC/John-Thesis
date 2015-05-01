@@ -130,53 +130,17 @@ mean_v      = reshape(mean_v, data_points, 1);
 vol_frac    = reshape(vol_frac, data_points, 1);
 
 %% Perform Proper Orthogonal Decomposition
+
+% Generate covariance matrix
 covariance = cal_covariance_mat2(flux_u, flux_v, vol_frac, bnd_idx);
+
+% Perform POD on fluctuating data
 [pod_u, pod_v, lambda, modal_amp, cutoff] =  ...
     calc_eig_modes2(covariance, flux_u, flux_v); 
 
-% Cluster dimensions of clusters
-cluster_range = 2:40;
-cluster_modes = [1,2];
-
-% Prefil groups and centers
-centers = cell(length(cluster_range),1);
-gm_models = cell(length(cluster_range),1);
-gm_groups = cell(length(cluster_range),1);
-stoc_matrix = cell(length(cluster_range),1);
-gm_stoc_matrix = cell(length(cluster_range),1);
-
-% Clustering options
-options = statset('UseParallel', 1);
-gm_options = statset('MaxIter', 1000);
-
-% ready figures
-h_clust = figure;
-h_gm    = figure;
-h_stoch = figure;
-h_stoch2= figure;
-
-% TODO creating clustering function
-
-% Calculate cluster centers and stochastic matrices
-for i = 1:length(cluster_range);
-    [groups, centers{i}] = kmeans(modal_amp(:,1:cluster_range(i)), ...
-        num_clusters, 'Replicates', 10, 'Options', options);
-    
-    gm_models{i} = fitgmdist(modal_amp(:,1:cluster_range(i)), num_clusters, ...
-        'Replicates', 10, 'SharedCov', true, 'Options', gm_options);
-    gm_groups{i} = cluster(gm_models{i}, modal_amp(:,1:cluster_range(i)));
-    
-    
-    if i == 1 && ~isempty(save_figures)
-        cluster_plot(h_clust, modal_amp, groups, centers{i}, cluster_modes, num_clusters, ...
-            direct, save_figures);
-        gm_cluster_plot(h_gm, modal_amp, gm_groups{i}, gm_models{i}, cluster_modes, ...
-            num_clusters, direct, save_figures);
-    end
-    
-    stoc_matrix{i} = gen_stochastic_matrix(h_stoch, groups, direct, save_figures);
-    gm_stoc_matrix{i} = gen_stochastic_matrix(h_stoch2, gm_groups{i}, direct, save_figures);
-end
+% Cluster resulting POD modes
+% [km_stoc_matrix, gm_stoc_matrix, gm_models, gm_groups, centers] = ...
+%     cluster_POD(modal_amp, num_clusters, direct, save_figures);
 
 pod_u = regroup(pod_u, dimensions);
 pod_v = regroup(pod_v, dimensions);
@@ -191,15 +155,12 @@ for i = 1:cutoff
     pod_v(:,:,i) = pod_v(:,:,i)*sign_flip(i);
 end
 
-% Currently using built in curl function may need to have option for
-% non-uniform mesh 
-if uniform
-    pod_vor = calc_pod_vor_fast(pod_u, pod_v, dimensions, cutoff);
-end
-
 % Calculate pod_vor
 pod_u = reshape(pod_u, data_points, cutoff);
 pod_v = reshape(pod_v, data_points, cutoff);
+
+% Calculate voritcity
+pod_vor = calc_pod_vor(pod_u, pod_v, dimensions, cutoff, bnd_idx, bnd_x, bnd_y, x, y);
 pod_vor = reshape(pod_vor, data_points, cutoff);
 
 %% Setup for Plotting and Plotting
@@ -253,7 +214,7 @@ results.pod_vor = pod_vor;
 % k-mean clustering data
 results.groups = groups;
 results.centers = centers;
-results.stoc_matrix = stoc_matrix;
+results.km_stoc_matrix = km_stoc_matrix;
 
 % gaussian mixture model data
 results.gm_models = gm_models;
