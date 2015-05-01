@@ -82,4 +82,8 @@ if isempty(problem.models) || ~isvector(problem.models);
     problem.models = [3, 4];      % previous galerkin type
 end
 
+% Default of OG_nm
+if isempty(problem.run_num) || ~isscalar(problem.run_num) || ~ischar(problem.run_num)
+    fprintf('Using default value for OG_nm\nproblem.OG_nm = "double"\n\n');
+    problem.OG_nm = 2*problem.RD_nm;
 end

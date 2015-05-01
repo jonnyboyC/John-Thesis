@@ -13,6 +13,10 @@ function Mod_POD(varargin)
 % Specify the number of modes that will be calculated the basis
 % transformation
 %
+% problem.OG_nm = 'double'
+% Specify the basis that you want the reduced model to be constructed from
+% by default a basis of 2*RD_nm is selected
+%
 % problem.plot_type = {'amp', 'fft'}
 % Specify which outout graphes are desired, current options are modal
 % amplitude 'amp', fourier fast transform 'fft', and 'video which produces
@@ -56,7 +60,7 @@ clc;
 fields = {  'RD_nm',        'plot_type',    'save_mod', ...
             'init',         'line_range',   'direct' ,...
             'run_num',      'models',       'fft_window', ...
-            'tspan'};
+            'tspan',        'OG_nm'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -68,6 +72,7 @@ else
 end
 
 RD_nm       = problem.RD_nm;
+OG_nm       = problem.OG_nm;
 plot_type   = problem.plot_type;
 save_mod    = problem.save_mod;
 init        = problem.init;
@@ -86,10 +91,10 @@ end
 % Handle File IO
 if strcmp(direct, '');
     [direct_POD, direct] = prompt_folder('POD', run_num);
-    [direct_Gal, direct] = prompt_folder('Galerkin', run_num, direct, 2*RD_nm);
+    [direct_Gal, direct] = prompt_folder('Galerkin', run_num, direct, OG_nm);
 else
     [direct_POD, direct] = prompt_folder('POD', run_num, direct);
-    [direct_Gal, direct] = prompt_folder('Galerkin', run_num, direct, 2*RD_nm);
+    [direct_Gal, direct] = prompt_folder('Galerkin', run_num, direct, OG_nm);
 end
 
 % Make sure folders are up to date and load collected data
@@ -134,7 +139,6 @@ q_total     = vars.results_coef.q;
 l_total     = vars.results_coef.l;
 eddy_total  = vars.results_coef.eddy;
 vis         = vars.results_coef.vis;
-OG_nm  = vars.results_coef.num_modesG;
 linear_models = vars.results_coef.linear_models;
 
 % clear vars
@@ -171,7 +175,8 @@ for i = 1:size(models, 2)
     line_problem.modal_amp = modal_ampt;
     line_problem.line_range = line_range;
 
-    [epsilon_low, epsilon_high, transfer, flip] = line_search(line_problem);
+    % Brute force line search
+    [epsilon_low, epsilon_high, ~, flip] = line_search(line_problem);
 
     if flip == true
         epsilon_range = [epsilon_low, epsilon_high];
@@ -226,6 +231,7 @@ for i = 1:size(models, 2)
     plot_data.t             = t;
     plot_data.x             = x;
     plot_data.y             = y;
+    plot_data.Mod           = true;
     plot_data.bnd_idx       = bnd_idx;
 
     % Generate plots
