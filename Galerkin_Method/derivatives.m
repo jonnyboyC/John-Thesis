@@ -1,4 +1,4 @@
-function [dx, dy, d2x, d2y] = derivatives3(var, bnd_idx, bnd_x, bnd_y, x, y, dimensions)
+function [dx, dy, d2x, d2y] = derivatives(var, bnd_idx, bnd_x, bnd_y, x, y, dimensions)
 % Find derivatives of variable var
 
 % Figure out how many loops are needed
@@ -7,8 +7,10 @@ number2calc = size(var, 2);
 % Prefill outputs
 dx = zeros(dimensions(1), dimensions(2), number2calc);
 dy = zeros(dimensions(1), dimensions(2), number2calc);
-d2x = zeros(dimensions(1), dimensions(2), number2calc);
-d2y = zeros(dimensions(1), dimensions(2), number2calc);
+if nargout == 4
+    d2x = zeros(dimensions(1), dimensions(2), number2calc);
+    d2y = zeros(dimensions(1), dimensions(2), number2calc);
+end
 
 % ensure x and y and in 2D
 x = reshape(x, dimensions);
