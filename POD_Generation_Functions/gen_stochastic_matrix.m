@@ -1,10 +1,8 @@
-function [stoc_matrix] = gen_stochastic_matrix(h, groups, direct, make_plot, save_figures)
+function [stoc_matrix] = gen_stochastic_matrix(h, num_clusters, groups, direct, make_plot, save_figures)
 % Generate the approximate stochastic matrix from the group data
 
 figure(h);
-
-num_cluster = max(groups);
-stoc_matrix = zeros(num_cluster);
+stoc_matrix = zeros(num_clusters);
 
 % Add values to each entry
 for i = 1:length(groups)-1;
@@ -12,8 +10,12 @@ for i = 1:length(groups)-1;
 end
 
 % determine probability as ratio
-for i = 1:num_cluster
-   stoc_matrix(i,:) = stoc_matrix(i,:)/sum(stoc_matrix(i,:));
+for i = 1:num_clusters
+    sum_col = sum(stoc_matrix(i,:));
+    if sum_col == 0;
+        sum_col = 1;
+    end
+    stoc_matrix(i,:) = stoc_matrix(i,:)/sum_col;
 end
 
 if make_plot == true

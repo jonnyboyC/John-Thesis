@@ -1,4 +1,4 @@
-function [km_stoc_matrix, gm_stoc_matrix, gm_models, gm_groups, centers] = ...
+function [km_stoch, gm_stoch, gm_models, gm_groups, km_groups, centers] = ...
     cluster_POD(modal_amp, num_clusters, direct, save_figures)
 
 % Flag
@@ -12,8 +12,8 @@ cluster_modes = [1,2];
 centers = cell(length(cluster_range),1);
 gm_models = cell(length(cluster_range),1);
 gm_groups = cell(length(cluster_range),1);
-km_stoc_matrix = cell(length(cluster_range),1);
-gm_stoc_matrix = cell(length(cluster_range),1);
+km_stoch = cell(length(cluster_range),1);
+gm_stoch = cell(length(cluster_range),1);
 
 % Clustering options
 options = statset('UseParallel', 1);
@@ -47,8 +47,8 @@ for i = 1:length(cluster_range);
     end
     
     % Generate stochastic matrices for both clustering methods
-    km_stoc_matrix{i} = gen_stochastic_matrix(h_stoch, km_groups, direct, make_plot, save_figures);
-    gm_stoc_matrix{i} = gen_stochastic_matrix(h_stoch2, gm_groups{i}, direct, make_plot, save_figures);
+    km_stoch{i} = gen_stochastic_matrix(h_stoch, km_groups, direct, make_plot, save_figures);
+    gm_stoch{i} = gen_stochastic_matrix(h_stoch2, gm_groups{i}, direct, make_plot, save_figures);
 end
 
 end

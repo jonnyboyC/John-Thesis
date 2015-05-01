@@ -139,8 +139,8 @@ covariance = cal_covariance_mat2(flux_u, flux_v, vol_frac, bnd_idx);
     calc_eig_modes2(covariance, flux_u, flux_v); 
 
 % Cluster resulting POD modes
-% [km_stoc_matrix, gm_stoc_matrix, gm_models, gm_groups, centers] = ...
-%     cluster_POD(modal_amp, num_clusters, direct, save_figures);
+[km_stoch, gm_stoch, gm_models, gm_groups, km_groups, centers] = ...
+    cluster_POD(modal_amp, num_clusters, direct, save_figures);
 
 pod_u = regroup(pod_u, dimensions);
 pod_v = regroup(pod_v, dimensions);
@@ -212,15 +212,15 @@ results.pod_v = pod_v;
 results.pod_vor = pod_vor;
 
 % k-mean clustering data
-results.groups = groups;
+results.km_groups = km_groups;
 results.centers = centers;
-results.km_stoc_matrix = km_stoc_matrix;
+results.km_stoch = km_stoch;
 
 % gaussian mixture model data
 results.gm_models = gm_models;
 results.gm_groups = gm_groups;
-results.gm_stoc_matrix = gm_stoc_matrix;
-results.cluster_range = cluster_range;
+results.gm_stoch = gm_stoch;
+results.cluster_range = 2:40;
 
 % modal coordinates and energy captured, modes to 99%
 results.modal_amp = modal_amp;

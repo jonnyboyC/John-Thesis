@@ -125,8 +125,11 @@ l_scale     = vars.results.l_scale;     % length scaling
 pod_u       = vars.results.pod_u;       % streamwise pod modes
 pod_v       = vars.results.pod_v;       % spanwise pod modes
 lambda      = vars.results.lambda;      % eigenvalues of modes
-% cluster_range  = vars.results.cluster_range;    % number of variables in cluster
-% centers     = vars.results.centers;     % cluster centers
+cluster_range  = vars.results.cluster_range;    % number of variables in cluster
+centers     = vars.results.centers;     % k-means cluster centers
+km_stoch    = vars.results.km_stoch;    % k-mean stochastic matrix
+gm_stoch    = vars.results.gm_stoch;    % gaussian mixture stochastic matrix
+gm_models   = vars.results.gm_models;   % gaussian mixture models
 dimensions  = vars.results.dimensions;  % dimensions of mesh
 vol_frac    = vars.results.vol_frac;    % mesh area size
 bnd_idx     = vars.results.bnd_idx;     % location of boundaries
@@ -202,7 +205,9 @@ base_models = 2;
 linear_models = 8;
 total_models = linear_models*2-base_models;
 
-% Prefill cell
+% Prefill cells
+scores_km = cell(total_models,2,length(num_modesG));
+scores_gm = cell(total_models,2,length(num_modesG));
 eddy= cell(total_models,2,length(num_modesG));
 l   = cell(total_models,2,length(num_modesG));
 q   = cell(total_models,2,length(num_modesG));
@@ -290,6 +295,10 @@ for i = 1:length(num_modesG)
             i, t, modal_amp_sim, ao, tspan, total_models, linear_models, options);
 
 %% Plotting functions
+
+        idx = (cluster_range == num_modes-1);
+        % [scores_km(:,1,i), scores_gm(:,1,i)] = 
+        classify_Gal(centers{idx}, gm_models{idx}, modal_amp_sim(:,:,i), direct, km_stoch{idx}, gm_stoch{idx});
 
         % Prepare data
         plot_data.num_modes     = num_modes-1;
