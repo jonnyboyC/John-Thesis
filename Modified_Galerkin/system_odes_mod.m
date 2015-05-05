@@ -1,4 +1,4 @@
-function da = system_odes_mod(~, a, model_coef)
+function da = system_odes_mod2(~, a, model_coef)
 % System of ode for time evolution of POD/Galerkin system
 %
 % SYSTEM_ODES(~, A, MODEL_COEF) returns the the changes in modal amplitudes
@@ -12,10 +12,8 @@ da = model_coef(:,1);
 idx = 2;
 
 % Linear terms
-for j = 1:num_modes
-    da = da + model_coef(:, idx).*repmat(a(j),num_modes,1);
-    idx = idx + 1;
-end
+da = da + model_coef(:, idx).*repmat(a(j),num_modes,1);
+
 
 % Quadractic terms, index upper half of matrix
 for j = 1:num_modes

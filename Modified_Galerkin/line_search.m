@@ -25,6 +25,7 @@ transfer(1) = optimal_rotation(epsilon_0, C, L, Q, OG_nm, RD_nm, lambda, modal_a
 % sweep a large area to look for sign changes to use for a finer pass in
 % fzero
 
+parfeval_futures = parallel.FevalOnAllFuture;
 for i = 1:line_range
     if mod(i,2) 
         flip = 1;

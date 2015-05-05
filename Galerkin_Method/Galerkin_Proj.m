@@ -320,8 +320,10 @@ for i = 1:length(num_modesG)
         % Perform final manipulation to prep integration
         [reduced_model_coeff] = integration_setup(eddy, vis, l, q, i, total_models, ...
             linear_models, num_modes);
+        tic;
         [t, modal_amp_sim] = time_integration(reduced_model_coeff, eddy, vis, modal_TKE, ...
             i, t, modal_amp_sim, ao, tspan, total_models, linear_models, options);
+        toc;
 
 %% Plotting functions
 
