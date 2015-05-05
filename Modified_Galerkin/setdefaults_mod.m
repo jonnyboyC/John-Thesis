@@ -8,12 +8,12 @@ end
 
 % Default for type
 if isempty(problem.plot_type) || ~ischar(problem.plot_type) || iscell(problem.plot_type);
-    fprintf('Using default value for plot_type\nproblem.plot_type = {"amp", "fft"}\n\n');
-    problem.plot_type = {'amp', 'fft'};      % plot_types to be used
+    fprintf('Using default value for plot_type\nproblem.plot_type = {"amp", "fft", "energy"}\n\n');
+    problem.plot_type = {'amp', 'fft', 'energy'};      % plot_types to be used
 end
 
 % Check to make sure incorrect strings are not passed
-correct = {'fft', 'amp', 'video'};
+correct = {'fft', 'amp', 'energy', 'video'};
 correct_members = ismember(problem.plot_type, correct);
 for i = 1:size(correct_members,2)
     if ~correct_members(i)
@@ -78,8 +78,8 @@ end
 
 % Default for previous galerkin type
 if isempty(problem.models) || ~isvector(problem.models);
-    fprintf('Using default value for models\nproblem.models = [3, 4]\n\n');
-    problem.models = [3, 4];      % previous galerkin type
+    fprintf('Using default value for models\nproblem.models = 1:8\n\n');
+    problem.models = 1:8;      % previous galerkin type
 end
 
 % Default of OG_nm

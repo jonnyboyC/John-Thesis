@@ -9,12 +9,12 @@ end
 
 % Default for plot_type
 if isempty(problem.plot_type) || ~iscell(problem.plot_type);
-    fprintf('Using default value for plot_type\nproblem.plot_type = {"amp", "fft"}\n\n');
-    problem.plot_type = {'amp', 'fft'};      % plot types to be used
+    fprintf('Using default value for plot_type\nproblem.plot_type = {"amp", "fft", "energy"}\n\n');
+    problem.plot_type = {'amp', 'fft', 'energy'};      % plot types to be used
 end
 
 % Check to make sure incorrect strings are not passed
-correct = {'fft', 'amp', 'video'};
+correct = {'fft', 'amp', 'energy', 'video'};
 problem.plot_type = list_check(problem.plot_type, correct, 'plot_type');
 
 % Default for save_coef
@@ -91,6 +91,12 @@ end
 if isempty(problem.time_int) || ~islogical(problem.time_int)
     fprintf('Using default value for time_int\nproblem.time_int = true\n\n');
     problem.time_int = true;      % time integrate galerkin systems
+end
+
+% Default for use coefficient calculation
+if isempty(problem.calc_coef) || ~islogical(problem.calc_coef)
+    fprintf('Using default value for calc_coef\nproblem.calc_coef = true\n\n');
+    problem.calc_coef = true;      % time integrate galerkin systems
 end
 
 % Default for use chunks

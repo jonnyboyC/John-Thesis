@@ -26,8 +26,8 @@ t = t/t_scale;
 
 % If using Mod add a mode zero to make it work like Galerkin
 if Mod == true
-    [modal_amp, ~, pod_ut, pod_vt] = add_mode_zero(modal_amp, 1, pod_ut, pod_vt, ...
-            results.mean_u, results.mean_v);
+    [modal_amp, pod_ut, pod_vt] = add_mode_zero_mod(modal_amp, pod_ut, pod_vt, ...
+            plot_data.mean_u, plot_data.mean_v);
 end
 
 % TODO significant overhaul to this function
@@ -41,6 +41,10 @@ modal_amp = modal_amp(:,2:end);
 % Plot modal amplitude of the response
 if any(strcmp(plot_type, 'amp'))
     plot_amp(modal_amp, t, direct, type, id);
+end
+
+if any(strcmp(plot_type, 'energy'))
+    plot_energy(modal_amp, t, direct, type, id);
 end
 
 

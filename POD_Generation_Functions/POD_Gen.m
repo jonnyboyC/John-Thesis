@@ -1,4 +1,4 @@
-function res = POD_Gen(varargin)
+function [res_pod, res_clust] = POD_Gen(varargin)
 % POD_GEN Creates and sets up proper folder format for vc7 images
 % files, produces .mat files for processed vc7 files, and produced a
 % requested number of POD modes with some simulaition specifications
@@ -185,60 +185,63 @@ end
 run_num = floor(100000*rand(1));
 
 % Place results in a structure
-results.run_num = run_num;
-results.exp_sampling_rate = exp_sampling_rate;
+results_pod.run_num = run_num;
+results_pod.exp_sampling_rate = exp_sampling_rate;
 
 % mesh information
-results.x = x;
-results.y = y;
-results.dimensions = dimensions;
-results.bnd_idx = bnd_idx;
-results.bnd_x = bnd_x;
-results.bnd_y = bnd_y;
-results.uniform = uniform;
-results.vol_frac = vol_frac;
+results_pod.x = x;
+results_pod.y = y;
+results_pod.dimensions = dimensions;
+results_pod.bnd_idx = bnd_idx;
+results_pod.bnd_x = bnd_x;
+results_pod.bnd_y = bnd_y;
+results_pod.uniform = uniform;
+results_pod.vol_frac = vol_frac;
 
 % fluctuating flow
-results.flux_u = flux_u;
-results.flux_v = flux_v;
+results_pod.flux_u = flux_u;
+results_pod.flux_v = flux_v;
 
 % mean flow
-results.mean_u = mean_u;
-results.mean_v = mean_v;
+results_pod.mean_u = mean_u;
+results_pod.mean_v = mean_v;
 
 % pod modes
-results.pod_u = pod_u;
-results.pod_v = pod_v;
-results.pod_vor = pod_vor;
-
-% k-mean clustering data
-results.km_groups = km_groups;
-results.centers = centers;
-results.km_stoch = km_stoch;
-
-% gaussian mixture model data
-results.gm_models = gm_models;
-results.gm_groups = gm_groups;
-results.gm_stoch = gm_stoch;
-results.cluster_range = 2:40;
+results_pod.pod_u = pod_u;
+results_pod.pod_v = pod_v;
+results_pod.pod_vor = pod_vor;
 
 % modal coordinates and energy captured, modes to 99%
-results.modal_amp = modal_amp;
-results.lambda = lambda;
-results.cutoff = cutoff;
+results_pod.modal_amp = modal_amp;
+results_pod.lambda = lambda;
+results_pod.cutoff = cutoff;
 
 % scaling factoring
-results.l_scale = l_scale;
-results.u_scale = u_scale;
+results_pod.l_scale = l_scale;
+results_pod.u_scale = u_scale;
 
+% k-mean clustering data
+results_clust.km_groups = km_groups;
+results_clust.centers = centers;
+results_clust.km_stoch = km_stoch;
+
+% gaussian mixture model data
+results_clust.gm_models = gm_models;
+results_clust.gm_groups = gm_groups;
+results_clust.gm_stoch = gm_stoch;
+results_clust.cluster_range = 2:40;
 
 % Save variables relavent to Galerkin to .mat files
 if save_pod == true
-    save([direct filesep 'POD Data' filesep 'POD_run_' num2str(run_num) '.mat'], 'results', '-v7.3');
+    save([direct filesep 'POD Data' filesep 'POD_run_' num2str(run_num) '.mat'], ...
+        'results_pod', 'results_clust', '-v7.3');
 end
 
-if nargout == 1
-    res = results;
+if nargout >= 1
+    res_pod = results_pod;
+end
+if nargout == 2
+    res_clust = results_clust;
 end
 
 % return format

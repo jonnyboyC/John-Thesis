@@ -1,4 +1,4 @@
-function res = Galerkin_Proj(varargin)
+function [res_coef, res_int] = Galerkin_Proj(varargin)
 % GALERKIN_PROJ perform Galerkin projection of the POD system onto Navier
 % Stokes. This requires POD_GEN to be run, can produce and save graphs
 % see below return results into RES if output is requested
@@ -12,10 +12,10 @@ function res = Galerkin_Proj(varargin)
 % problem.num_modesG = 10
 % Specify the number of modes that will calculated in Galerkin projection
 %
-% problem.plot_type = {'amp', 'fft'}
+% problem.plot_type = {'amp', 'fft', 'energy'}
 % Specify which outout graphes are desired, current options are modal
-% amplitude 'amp', fourier fast transform 'fft', and 'video which produces
-% a video of the simulated flow
+% amplitude 'amp', fourier fast transform 'fft', system energy 'energy', 
+% and 'video' which produces a video of the simulated flow
 % 
 % problem.save_coef = true
 % Save relvant values to at .mat file
@@ -52,6 +52,9 @@ function res = Galerkin_Proj(varargin)
 % If false no time integration or plotting will be performed, used to
 % generated the Galerkin systems for MOD_POD
 %
+% problem.calc_coef = true
+% If false attempt to locate previous runs files to time integration
+%
 % problem.use_chunks = false
 % Set this to true if you are running out of memeory well write values of q
 % to disk 
@@ -61,15 +64,12 @@ format long g
 close all
 clc;
 
-% TODO need to allow to have multiple datasets present to more rapidly
-% experiement with runs
-
 %List of fields that will be checked
 fields = {  'num_modesG',   'plot_type',    'save_coef', ...
             'override_coef','tspan',        'init', ...
             'direct' ,      'Re0_gen',      'fft_window', ...
             'run_num',      'dissapation',  'time_int', ...
-            'use_chunks'};
+            'use_chunks',   'calc_coef'};
         
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -92,6 +92,7 @@ direct          = problem.direct;
 Re0_gen         = problem.Re0_gen;     
 fft_window      = problem.fft_window;
 dissapation     = problem.dissapation;
+calc_coef       = problem.calc_coef;
 time_int        = problem.time_int;
 use_chunks      = problem.use_chunks;
 
@@ -115,32 +116,47 @@ end
 update_folders(direct);
 
 % Load POD variables
-vars = load(direct_POD, 'results');
+vars = load(direct_POD, 'results_pod');
 
 % Create more readable names
-x           = vars.results.x;           % mesh coordinates in x direction
-y           = vars.results.y;           % mesh coordinates in y direction
-u_scale     = vars.results.u_scale;     % velocity scaling
-l_scale     = vars.results.l_scale;     % length scaling
-pod_u       = vars.results.pod_u;       % streamwise pod modes
-pod_v       = vars.results.pod_v;       % spanwise pod modes
-lambda      = vars.results.lambda;      % eigenvalues of modes
-cluster_range  = vars.results.cluster_range;    % number of variables in cluster
-centers     = vars.results.centers;     % k-means cluster centers
-km_stoch    = vars.results.km_stoch;    % k-mean stochastic matrix
-gm_stoch    = vars.results.gm_stoch;    % gaussian mixture stochastic matrix
-gm_models   = vars.results.gm_models;   % gaussian mixture models
-dimensions  = vars.results.dimensions;  % dimensions of mesh
-vol_frac    = vars.results.vol_frac;    % mesh area size
-bnd_idx     = vars.results.bnd_idx;     % location of boundaries
-bnd_x       = vars.results.bnd_x;       % location of flow boundaries normal to x
-bnd_y       = vars.results.bnd_y;       % location of flow boundaries normal to y
-run_num     = vars.results.run_num;     % POD run numbers
-cutoff      = vars.results.cutoff;      % number of modes at cutoff
-modal_amp   = vars.results.modal_amp;   % modal amplitude  from raw data
+x           = vars.results_pod.x;           % mesh coordinates in x direction
+y           = vars.results_pod.y;           % mesh coordinates in y direction
+u_scale     = vars.results_pod.u_scale;     % velocity scaling
+l_scale     = vars.results_pod.l_scale;     % length scaling
+pod_u       = vars.results_pod.pod_u;       % streamwise pod modes
+pod_v       = vars.results_pod.pod_v;       % spanwise pod modes
+lambda      = vars.results_pod.lambda;      % eigenvalues of modes
+dimensions  = vars.results_pod.dimensions;  % dimensions of mesh
+bnd_idx     = vars.results_pod.bnd_idx;     % location of boundaries
+run_num     = vars.results_pod.run_num;     % POD run numbers
+cutoff      = vars.results_pod.cutoff;      % number of modes at cutoff
+modal_amp   = vars.results_pod.modal_amp;   % modal amplitude  from raw data
 
+if calc_coef
+    bnd_x       = vars.results_pod.bnd_x;       % location of flow boundaries normal to x
+    bnd_y       = vars.results_pod.bnd_y;       % location of flow boundaries normal to y
+    vol_frac    = vars.results_pod.vol_frac;    % mesh area size
+end
 
+% Free memory
 clear vars
+
+if time_int
+    % Load Cluster variables
+    vars = load(direct_POD, 'results_clust');
+    
+    centers         = vars.results_clust.centers;     % k-means cluster centers
+    km_stoch        = vars.results_clust.km_stoch;    % k-mean stochastic matrix
+    gm_stoch        = vars.results_clust.gm_stoch;    % gaussian mixture stochastic matrix
+    gm_models       = vars.results_clust.gm_models;   % gaussian mixture models
+    cluster_range   = vars.results_clust.cluster_range;    % number of variables in cluster
+    
+    % Free memory
+    clear vars
+end
+
+
+
 
 % Get Reynolds number 
 Re0 = Re0_gen(direct, u_scale, l_scale);  
@@ -161,67 +177,68 @@ end
 
 %% Calculate Coefficients
 
-% Ready Coef Problem Structure
-coef_problem.x              = x;
-coef_problem.y              = y;
-coef_problem.use_chunks     = use_chunks;
-coef_problem.pod_u          = pod_u;
-coef_problem.pod_v          = pod_v;
-coef_problem.dimensions     = dimensions;
-coef_problem.vol_frac       = vol_frac;
-coef_problem.bnd_idx        = bnd_idx;
-coef_problem.bnd_x          = bnd_x;
-coef_problem.bnd_y          = bnd_y;
-coef_problem.run_num        = run_num;
-coef_problem.override_coef  = override_coef;
-coef_problem.direct         = direct;
-
-% Free memory 
-clear vol_frac bnd_x bnd_y override_coef
-clear use_chunks
-
-% Prefill Cells
-lc = cell(2,2);
-qc = cell(2,2);
-
-% Generate values up to cutoff to be used for Couplet viscous dissipation
-if ismember('Couplet', dissapation);
-    % Calculate for traditional Galerkin Projection
-    fprintf('Generating coefficients for unresolved modes using %d modes\n\n', cutoff);
-    [lc{1,1}, qc{1,1}] = visocity_coefficients(coef_problem);
-    lc{1,2}         = 'Base cutoff';
-    qc{1,2}         = 'Base cutoff';
+if calc_coef 
     
-    % Calculate for weak formulation Galerkin Projection
-    fprintf('Generating coefficients for unresolved modes using %d modes for Weak Solution \n\n', cutoff);
-    lc{2,1}  = visocity_coefficients_ws(coef_problem); 
-    lc{2,2}  = 'Weak cutoff';
-    qc{2,1}  = qc{1,1}; 
-    qc{2,2}  = 'Weak cutoff';
+    % Ready Coef Problem Structure
+    coef_problem.x              = x;
+    coef_problem.y              = y;
+    coef_problem.use_chunks     = use_chunks;
+    coef_problem.pod_u          = pod_u;
+    coef_problem.pod_v          = pod_v;
+    coef_problem.dimensions     = dimensions;
+    coef_problem.vol_frac       = vol_frac;
+    coef_problem.bnd_idx        = bnd_idx;
+    coef_problem.bnd_x          = bnd_x;
+    coef_problem.bnd_y          = bnd_y;
+    coef_problem.run_num        = run_num;
+    coef_problem.override_coef  = override_coef;
+    coef_problem.direct         = direct;
+    
+    % Free memory
+    clear vol_frac bnd_x bnd_y 
+    
+    % Prefill Cells
+    lc = cell(2,2);
+    qc = cell(2,2);
+    
+    % Generate values up to cutoff to be used for Couplet viscous dissipation
+    if ismember('Couplet', dissapation);
+        % Calculate for traditional Galerkin Projection
+        fprintf('Generating coefficients for unresolved modes using %d modes\n\n', cutoff);
+        [lc{1,1}, qc{1,1}] = visocity_coefficients(coef_problem);
+        lc{1,2}  = 'Base cutoff';
+        qc{1,2}  = 'Base cutoff';
+        
+        % Calculate for weak formulation Galerkin Projection
+        fprintf('Generating coefficients for unresolved modes using %d modes for Weak Solution \n\n', cutoff);
+        lc{2,1}  = visocity_coefficients_ws(coef_problem);
+        lc{2,2}  = 'Weak cutoff';
+        qc{2,1}  = qc{1,1};
+        qc{2,2}  = 'Weak cutoff';
+    end
 end
 
+% TODO eventually make this more dynamic
 % determine number of models
-base_models = 2;
-linear_models = 8;
-total_models = linear_models*2-base_models;
+base_models     = 2;
+linear_models   = 8;
+total_models    = linear_models*2-base_models;
 
-% Prefill cells
-scores_km = cell(total_models,2,length(num_modesG));
-scores_gm = cell(total_models,2,length(num_modesG));
-eddy= cell(total_models,2,length(num_modesG));
-l   = cell(total_models,2,length(num_modesG));
-q   = cell(total_models,2,length(num_modesG));
+% initialize coefficeints
+eddy    = cell(total_models,2,length(num_modesG));
+l       = cell(total_models,2,length(num_modesG));
+q       = cell(total_models,2,length(num_modesG));
+
 
 % initialize if time integration is being performed
 if time_int
-    t           = cell(total_models,2,length(num_modesG));
+    t               = cell(total_models,2,length(num_modesG));
     modal_amp_sim   = cell(total_models,2,length(num_modesG));
+    scores_km       = cell(total_models,2,length(num_modesG));
+    scores_gm       = cell(total_models,2,length(num_modesG));
 end
 
-options = odeset('RelTol', 1e-8, 'AbsTol', 1e-10);
-
 for i = 1:length(num_modesG)
-    close all
     
     % Pull current number of modes to be investigated
     num_modes = num_modesG(i);
@@ -231,74 +248,86 @@ for i = 1:length(num_modesG)
     pod_ut  = pod_u(:,1:num_modes);
     pod_vt  = pod_v(:,1:num_modes);
 
-    coef_problem.pod_u = pod_ut;
-    coef_problem.pod_v = pod_vt;
-
-    fprintf('Generating coefficients for resolved modes using %d modes\n\n', num_modes);
-    [l{1,1,i}, q{1,1,i}] = visocity_coefficients(coef_problem);
-    l{1,2,i} = 'Base Coeff';
-    q{1,2,i} = 'Base Coeff';
-
-    fprintf('Generating coefficients for resolved modes using %d modes for Weak Solution \n\n', num_modes);
-    l{2,1,i} = visocity_coefficients_ws(coef_problem); 
-    l{2,2,i} = 'Weak Coeff';
-    q{2,1,i} = q{1,1,i};
-    q{2,2,i} = 'Weak Coeff';
-    
-    % duplicate
-    l(:,:,i) = repmat(l(1:2,:,i), total_models/2, 1, 1);
-    q(:,:,i) = repmat(q(1:2,:,i), total_models/2, 1, 1);
+    if calc_coef
+        coef_problem.pod_u = pod_ut;
+        coef_problem.pod_v = pod_vt;
+        
+        fprintf('Generating coefficients for resolved modes using %d modes\n\n', num_modes);
+        [l{1,1,i}, q{1,1,i}] = visocity_coefficients(coef_problem);
+        l{1,2,i} = 'Base Coeff';
+        q{1,2,i} = 'Base Coeff';
+        
+        fprintf('Generating coefficients for resolved modes using %d modes for Weak Solution \n\n', num_modes);
+        l{2,1,i} = visocity_coefficients_ws(coef_problem);
+        l{2,2,i} = 'Weak Coeff';
+        q{2,1,i} = q{1,1,i};
+        q{2,2,i} = 'Weak Coeff';
+        
+        % duplicate
+        l(:,:,i) = repmat(l(1:2,:,i), total_models/2, 1, 1);
+        q(:,:,i) = repmat(q(1:2,:,i), total_models/2, 1, 1);
     
 %% Modified coefficients 
 
-    % Attempt to estimate the neglected viscoius dissapation function
-    fprintf('Calculating viscous dissapation terms\n\n');
+        % Attempt to estimate the neglected viscoius dissapation function
+        fprintf('Calculating viscous dissapation terms\n\n');
 
-    eddy(1,:,i) = {zeros(num_modes,1), 'Base Original'};
-    eddy(2,:,i) = {zeros(num_modes,1), 'Weak Original'};
-    
-    % calculate coefficients detailed by Couplet
-    if ismember('Couplet', dissapation);
-        eddy{3,1,i} = viscous_dis_couplet(modal_amp, num_modes, lc{1,1}, qc{1,1}, vis);
-        eddy{3,2,i} = 'Modal Base Couplet';
+        eddy(1,:,i) = {zeros(num_modes,1), 'Base Original'};
+        eddy(2,:,i) = {zeros(num_modes,1), 'Weak Original'};
 
-        eddy{4,1,i} = viscous_dis_couplet(modal_amp, num_modes, lc{2,1}, qc{2,1}, vis);
-        eddy{4,2,i} = 'Modal Weak Couplet';
+        % calculate coefficients detailed by Couplet
+        if ismember('Couplet', dissapation);
+            eddy{3,1,i} = viscous_dis_couplet(modal_amp, num_modes, lc{1,1}, qc{1,1}, vis);
+            eddy{3,2,i} = 'Modal Base Couplet';
+
+            eddy{4,1,i} = viscous_dis_couplet(modal_amp, num_modes, lc{2,1}, qc{2,1}, vis);
+            eddy{4,2,i} = 'Modal Weak Couplet';
+        end
+
+        % Calculate coefficeints detailed by Noack
+        [eddy{5,1,i}, eddy{6,1,i}] = viscous_dis(modal_amp, num_modes, lambda, l{1,1,i}, q{1,1,i}, vis);
+        eddy{5,2,i} = 'Modal Base Noack';
+        eddy{6,2,i} = 'Global Base Noack';
+
+        [eddy{7,1,i}, eddy{8,1,i}] = viscous_dis(modal_amp, num_modes, lambda, l{2,1,i}, q{2,1,i}, vis);
+        eddy{7,2,i} = 'Modal Weak Noack';
+        eddy{8,2,i} = 'Global Weak Noack';
+
+        % duplicate TODO name this better
+        eddy(linear_models+1:total_models,1,i) = eddy(base_models+1:linear_models,1,i);
+        for j = base_models+1:linear_models
+            eddy{j+linear_models-base_models,2,i} = ['NL ' eddy{j,2,i}];
+        end
     end
-
-    disp(eddy{3,1,i});
     
-    % Calculate coefficeints detailed by Noack
-    [eddy{5,1,i}, eddy{6,1,i}] = viscous_dis(modal_amp, num_modes, lambda, l{1,1,i}, q{1,1,i}, vis);
-    eddy{5,2,i} = 'Modal Base Noack';
-    eddy{6,2,i} = 'Global Base Noack';
-
-    [eddy{7,1,i}, eddy{8,1,i}] = viscous_dis(modal_amp, num_modes, lambda, l{2,1,i}, q{2,1,i}, vis);
-    eddy{7,2,i} = 'Modal Weak Noack';
-    eddy{8,2,i} = 'Global Weak Noack';
-    
-    % duplicate TODO name this better
-    eddy(linear_models+1:total_models,1,i) = eddy(base_models+1:linear_models,1,i);
-    for j = base_models+1:linear_models
-        eddy{j+linear_models-base_models,2,i} = ['NL ' eddy{j,2,i}];
-    end
-    
-    if time_int 
+    %% Time integration
+    if time_int    
+        if ~calc_coef 
+           vars = load([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(num_modes-1) ...
+                filesep 'Coefficients_run_' num2str(run_num) '.mat'], 'results_coef');                
+           l(:,:,i) = vars.results_coef.l;
+           q(:,:,i) = vars.results_coef.q;
+           eddy(:,:,i) = vars.results_coef.eddy;
+           vis = vars.results_coef.vis;
+           
+           clear vars;
+        end
+        
+        % intial conditions and integration options
+        options = odeset('RelTol', 1e-8, 'AbsTol', 1e-10);
+        ao = modal_amp(init,1:num_modes);
+        
         % Perform final manipulation to prep integration
         [reduced_model_coeff] = integration_setup(eddy, vis, l, q, i, total_models, ...
             linear_models, num_modes);
-    
-%% Time integration
-
-        ao = modal_amp(init,1:num_modes);
         [t, modal_amp_sim] = time_integration(reduced_model_coeff, eddy, vis, modal_TKE, ...
             i, t, modal_amp_sim, ao, tspan, total_models, linear_models, options);
 
 %% Plotting functions
 
         idx = (cluster_range == num_modes-1);
-        % [scores_km(:,1,i), scores_gm(:,1,i)] = 
-        classify_Gal(centers{idx}, gm_models{idx}, modal_amp_sim(:,:,i), direct, km_stoch{idx}, gm_stoch{idx});
+        [scores_km(:,1,i), scores_gm(:,1,i)] = classify_Gal(centers{idx}, ...
+            gm_models{idx}, modal_amp_sim(:,:,i), direct, km_stoch{idx}, gm_stoch{idx});
 
         % Prepare data
         plot_data.num_modes     = num_modes-1;
@@ -321,6 +350,7 @@ for i = 1:length(num_modesG)
         all_ids = eddy(:,2,i)';
         all_modal_amps =  modal_amp_sim(:,1,i)';
 
+        close all
         % Cycle through and plot all requested figures
         for j = 1:total_models;
             if ~isempty(all_ids{j})
@@ -334,23 +364,28 @@ for i = 1:length(num_modesG)
     
     fprintf('Saving Galerkin Variables\n');
     
-    % Prepare data
-    results_coef.run_num = run_num;
-    results_coef.num_modesG = num_modes-1;
-    results_coef.sample_freq = sample_freq;
-    results_coef.linear_models = linear_models;
-    results_coef.total_models = total_models;
-    
-    % viscous and convective terms
-    results_coef.l = squeeze(l(:,:,i));
-    results_coef.q = squeeze(q(:,:,i));
-    
-    % visocity and eddy-visocity
-    results_coef.eddy = squeeze(eddy(:,:,i));
-    results_coef.vis = vis;
+    % Include coefficent terms if requested
+    if calc_coef
+        results_coef.run_num = run_num;
+        results_coef.num_modesG = num_modes-1;
+        results_coef.sample_freq = sample_freq;
+        results_coef.linear_models = linear_models;
+        results_coef.total_models = total_models;
 
-    % include integration information if requested
+        % viscous and convective terms
+        results_coef.l = squeeze(l(:,:,i));
+        results_coef.q = squeeze(q(:,:,i));
+
+        % visocity and eddy-visocity
+        results_coef.eddy = squeeze(eddy(:,:,i));
+        results_coef.vis = vis;
+    end
+
+    % Include integration information if requested
     if time_int
+        results_int.num_modesG = num_modes-1;
+        results_int.run_num = run_num;
+
         results_int.modal_amp_sim = squeeze(modal_amp_sim(:,:,i));
         results_int.t = squeeze(t(:,:,i));
     end
@@ -361,19 +396,24 @@ for i = 1:length(num_modesG)
             wait(futures)
         end
         pool = gcp;
-        if time_int
-            futures = parfeval(pool, @save_results, 0, direct, results_coef, ...
+        if time_int && calc_coef
+            futures = parfeval(pool, @save_results, 0, direct, true, results_coef, ...
                 results_int);
+        elseif time_int
+            futures = parfeval(pool, @save_results, 0, direct, false, results_int);
         else
-            futures = parfeval(pool, @save_results, 0, direct, results_coef);
+            futures = parfeval(pool, @save_results, 0, direct, true, results_coef);
         end
     end
 end
 
 % Return values if requested
-if nargout == 1
+if nargout >= 1
     results_coef.num_modesG = num_modesG;
-    res = results_coef;
+    res_coef = results_coef;
+end
+if nargout == 2
+    res_int = results_int;
 end
 
 % return format
@@ -381,23 +421,29 @@ format short g
 end
 
 % Save Galerkin system for each mode
-function save_results(direct, varargin)
+function save_results(direct, coef, varargin)
 % check if folder exist create if empty
-results_coef = varargin{1};
-if ~exist([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(results_coef.num_modesG)], 'dir')
-    mkdir([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(results_coef.num_modesG)]);
+if ~exist([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(varargin{1}.num_modesG)], 'dir')
+    mkdir([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(varargin{1}.num_modesG)]);
 end
 
+% file name for mat file
+filename = [direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(varargin{1}.num_modesG) ...
+            filesep 'Coefficients_run_' num2str(varargin{1}.run_num) '.mat'];
+
+% allow direct access to file
+file = matfile(filename, 'Writable', true);
+
 % if only results_coef was passed only save those
-if nargin == 2
-    save([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(results_coef.num_modesG) ...
-        filesep 'Coefficients_run_' num2str(results_coef.run_num) '.mat'], 'results_coef', '-v7.3');
+if nargin == 3
+    if coef
+        file.results_coef = varargin{1};
+    else
+        file.results_int = varargin{1};
+    end
 else
-    results_int = varargin{2}; %#ok<NASGU>
-    save([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(results_coef.num_modesG) ...
-        filesep 'Coefficients_run_' num2str(results_coef.run_num) '.mat'], 'results_coef', '-v7.3');
-    save([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(results_coef.num_modesG) ...
-        filesep 'Coefficients_run_' num2str(results_coef.run_num) '.mat'], 'results_int', '-append');
+    file.results_coef = varargin{1};
+    file.results_int = varargin{2};
 end
 end
 

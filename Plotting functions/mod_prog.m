@@ -4,14 +4,14 @@ if nargin == 2
     ax = newplot;
     epsilon(transfer == 0) = [];
     transfer(transfer == 0) = [];
-    plot(ax, epsilon, transfer, 'o');
+    semilogy(ax, epsilon, abs(transfer), 'o');
     ax.Title.String = 'Line Search for Sign Change';
     ax.XLabel.String = 'Epsilon Value';
-    ax.YLabel.String = 'Unresolved Transfer Term';
+    ax.YLabel.String = 'Unresolved Transfer Term Magnitude';
 else
     ax = varargin{1};
     epsilon(transfer == 0) = [];
     transfer(transfer == 0) = [];
-    plot(ax, epsilon, transfer, 'o');
+    semilogy(ax, epsilon, abs(transfer), 'o');
 end
 drawnow;

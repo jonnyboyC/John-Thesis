@@ -42,7 +42,7 @@ reduced_model_coeff = ode_coefficients(RD_nm, Gal_coeff, Mod);
 options = odeset('RelTol', 1e-8, 'AbsTol', 1e-10);
 
 % Calculate values at same time intervals 
-ao = modal_amp(init,1:RD_nm);
+ ao = til_init(modal_amp, init, RD_nm, X);
 [t, modal_amp_til] = ode113(@(t, y) system_odes_mod(t, y, reduced_model_coeff)...
     , tspan, ao, options); 
 

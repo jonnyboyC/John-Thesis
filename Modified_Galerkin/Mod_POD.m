@@ -17,7 +17,7 @@ function Mod_POD(varargin)
 % Specify the basis that you want the reduced model to be constructed from
 % by default a basis of 2*RD_nm is selected
 %
-% problem.plot_type = {'amp', 'fft'}
+% problem.plot_type = {'amp', 'fft', 'energy'}
 % Specify which outout graphes are desired, current options are modal
 % amplitude 'amp', fourier fast transform 'fft', and 'video which produces
 % a video of the simulated flow
@@ -45,7 +45,7 @@ function Mod_POD(varargin)
 % Specify which run this Galerkn Projection should be based from, default
 % is to use the most recent
 %
-% problem.models = [2, 3]
+% problem.models = 1:8
 % Specify which Galerkin Models from GALKERKIN_PROJ are corrected with a
 % basis transform. 
 %
@@ -100,6 +100,27 @@ end
 % Make sure folders are up to date and load collected data
 update_folders(direct);
 
+% Load POD variables
+vars = load(direct_POD, 'results_pod');
+
+% Create more readable names
+pod_u       = vars.results_pod.pod_u;       % streamwise pod modes
+pod_v       = vars.results_pod.pod_v;       % spanwise pod modes
+mean_u      = vars.results_pod.mean_u;
+mean_v      = vars.results_pod.mean_v;
+u_scale     = vars.results_pod.u_scale;     % velocity scaling
+l_scale     = vars.results_pod.l_scale;     % length scaling
+lambda_OG   = vars.results_pod.lambda;      % eigenvalues of modes
+modal_amp   = vars.results_pod.modal_amp;   % modal amplitude of each image in pod basis
+dimensions  = vars.results_pod.dimensions;  % dimensions of mesh
+run_num     = vars.results_pod.run_num;     % POD run numbers
+x           = vars.results_pod.x;           % x coordinate
+y           = vars.results_pod.y;           % y coordinate
+bnd_idx     = vars.results_pod.bnd_idx;
+
+t_scale = u_scale/l_scale;  % time scale
+tspan = tspan*t_scale;      % non-dimensionalized timescale
+
 % determine sampling rate
 if length(tspan) > 2
     sample_freq = 1/(tspan(2) - tspan(1));
@@ -108,29 +129,13 @@ else
     error('must provide tspan with a range');
 end
 
-% Load POD variables
-vars = load(direct_POD, 'results');
-
-% Create more readable names
-pod_u       = vars.results.pod_u;       % streamwise pod modes
-pod_v       = vars.results.pod_v;       % spanwise pod modes
-u_scale     = vars.results.u_scale;     % velocity scaling
-l_scale     = vars.results.l_scale;     % length scaling
-lambda_OG   = vars.results.lambda;      % eigenvalues of modes
-modal_amp   = vars.results.modal_amp;   % modal amplitude of each image in pod basis
-dimensions  = vars.results.dimensions;  % dimensions of mesh
-run_num     = vars.results.run_num;     % POD run numbers
-x           = vars.results.x;           % x coordinate
-y           = vars.results.y;           % y coordinate
-
-t_scale = u_scale/l_scale;  % time scale
-tspan = tspan*t_scale;      % non-dimensionalized timescale
-
-
-bnd_idx     = vars.results.bnd_idx;
-
-% Clear vars
-clear vars
+% vars = load(direct_POD, 'results_clust');
+%     
+% centers         = vars.results_clust.centers;     % k-means cluster centers
+% km_stoch        = vars.results_clust.km_stoch;    % k-mean stochastic matrix
+% gm_stoch        = vars.results_clust.gm_stoch;    % gaussian mixture stochastic matrix
+% gm_models       = vars.results_clust.gm_models;   % gaussian mixture models
+% cluster_range   = vars.results_clust.cluster_range;    % number of variables in cluster
 
 vars = load(direct_Gal, 'results_coef');
 
@@ -141,7 +146,7 @@ eddy_total  = vars.results_coef.eddy;
 vis         = vars.results_coef.vis;
 linear_models = vars.results_coef.linear_models;
 
-% clear vars
+% Free memory
 clear vars
 
 % Remove any passed models that are greater than the linear models
@@ -188,20 +193,13 @@ for i = 1:size(models, 2)
         disp(OUTPUT);
     else
         disp('no sign flip detected');
-        options = optimset('PlotFcns', {@optimplotx, @optimplotfval}, 'Display', 'iter', 'TolFun', 1e-10);
+        options = optimset('PlotFcns', {@optimplotx, @optimplotfval}, 'Display', 'iter', 'TolFun', 1e-10, 'TolX', 1e-6);
 
         [epsilon_final, ~, ~, OUTPUT] = fminbnd(@(epsilon) abs(optimal_rotation...
             (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 64000)), epsilon_low, epsilon_high, options);
         disp(OUTPUT);
     end
     
-    
-%     options = optimset('PlotFcns', {@optimplotx, @optimplotfval}, 'Display', 'iter', ...
-%         'FunValCheck', 'on');
-%     epsilon_0 = sum(L(1:RD_nm, 1:RD_nm)*lambda(1:RD_nm)); 
-%     [epsilon_final, ~, ~, OUTPUT] = fzero(@(epsilon) optimal_rotation...
-%         (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 36000), epsilon_0, options);
-%     disp(OUTPUT);
     close all;
     
 
@@ -212,6 +210,10 @@ for i = 1:size(models, 2)
 
     [pod_u_til, pod_v_til, modal_amp_raw_til] = ...
         basis_transform(pod_ut, pod_vt, modal_ampt, RD_nm, X);
+    
+%     idx = (cluster_range == RD_nm);
+%     [scores_km, scores_gm] = classify_Gal(centers{idx}, ...
+%         gm_models{idx}, modal_amp_til, direct, km_stoch{idx}, gm_stoch{idx});
 
     % Prepare data
     plot_data.num_modes     = RD_nm;
@@ -219,6 +221,8 @@ for i = 1:size(models, 2)
     plot_data.init          = init;
     plot_data.pod_ut        = pod_u_til;
     plot_data.pod_vt        = pod_v_til;
+    plot_data.mean_u        = mean_u;
+    plot_data.mean_v        = mean_v;
     plot_data.dimensions    = dimensions;
     plot_data.fft_window    = fft_window;
     plot_data.u_scale       = u_scale;
@@ -237,19 +241,24 @@ for i = 1:size(models, 2)
     % Generate plots
     produce_plots(plot_data);
 
-    results.X               = X;
-    results.C_til           = C_til;
-    results.L_til           = L_til;
-    results.Q_til           = Q_til;
-    results.pod_u_til       = pod_u_til;
-    results.pod_v_til       = pod_v_til;
-    results.modal_amp_til   = modal_amp_raw_til;
-    results.epsilon_final   = epsilon_final;
+    results_mod_coef.X               = X;
+    results_mod_coef.C_til           = C_til;
+    results_mod_coef.L_til           = L_til;
+    results_mod_coef.Q_til           = Q_til;
+    results_mod_coef.pod_u_til       = pod_u_til;
+    results_mod_coef.pod_v_til       = pod_v_til;
+    results_mod_coef.modal_amp_til   = modal_amp_raw_til;
+    results_mod_coef.epsilon_final   = epsilon_final;
+    
+    results_mod_int.t = t;
+    results_mod_int.modal_amp_til = modal_amp_til;
+%     results.scores_km       = scores_km;
+%     results.scores_gm       = scores_gm;
     
     % Save important coefficients
     if save_mod == true
         save([direct '\Mod Galerkin Coeff\Coeff_' num2str(run_num) '_m' num2str(RD_nm) '_' eddy_total{models(i),2} '.mat'], ...
-            'results');
+            'results_mod_coef', 'results_mod_int');
     end
 end
 

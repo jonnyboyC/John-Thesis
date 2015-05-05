@@ -27,22 +27,32 @@ for i = 1:windows
 end
 
 freq_response_dB = 20*log10(freq_response);
+phase_angle = angle(freq_response);
 
-% Plot fft
-h = figure;
-ax = newplot;
+% setup plot frequency response
+hf = figure;
+axf = newplot;
+
+% setup plot phase angle
+
+% Return if we have no information to avoid throwing error
 if size(freq_response_dB,1) < 2
    if nargout == 1
-       handle = h;
+       handle = hf;
    end
    return
 end
-plot(fspan, freq_response_dB(:, num_plot));
-ax.XLabel.String = 'frequency (Hz)';
-ax.YLabel.String = 'Modal Amplitude';
-ax.Title.String  = ['Modal Frequency Response ' id];
-ax.XLim = xlim;
 
+% plot frequency response Label axis and title
+plot(fspan, freq_response_dB(:, num_plot));
+axf.XLabel.String = 'frequency (Hz)';
+axf.YLabel.String = 'Frequency Response (dB)';
+axf.Title.String  = ['Modal Frequency Response ' id];
+axf.XLim = xlim;
+
+%
+
+% Generate legend
 leg_names = cell(size(num_plot,1),1);
 for i = 1:size(num_plot,2)
    leg_names{i} = ['Modal FRF ' num2str(num_plot(i))]; 
@@ -53,12 +63,12 @@ if ~exist([direct filesep 'Figures' filesep type filesep 'modes_' num2str(num_mo
     mkdir([direct filesep 'Figures' filesep type filesep 'modes_' num2str(num_modes)]);
 end
 
-file_name = [direct filesep 'Figures' filesep type filesep 'modes_' num2str(num_modes) filesep 'FFT_' id '_'];
-file_name = [file_name '_' num2str(ceil(sample_freq)) 'Hz'];
+file_namef = [direct filesep 'Figures' filesep type filesep 'modes_' num2str(num_modes) filesep 'FFT_' id '_'];
+file_namef = [file_namef '_' num2str(ceil(sample_freq)) 'Hz'];
 drawnow;
 
-saveas(h, file_name, 'fig');
+saveas(hf, file_namef, 'fig');
 
 if nargout == 1
-    handle = h;
+    handle = hf;
 end

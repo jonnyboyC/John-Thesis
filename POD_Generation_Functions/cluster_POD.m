@@ -29,11 +29,11 @@ h_stoch2= figure;
 for i = 1:length(cluster_range);
     % Cluster based on k-mean
     [km_groups, centers{i}] = kmeans(modal_amp(:,1:cluster_range(i)), ...
-        num_clusters, 'Replicates', 10, 'Options', options);
+        num_clusters, 'Replicates', num_clusters, 'Options', options);
     
     % Create gaussian mixture model
     gm_models{i} = fitgmdist(modal_amp(:,1:cluster_range(i)), num_clusters, ...
-        'Replicates', 10, 'SharedCov', true, 'Options', gm_options);
+        'Replicates', num_clusters, 'SharedCov', true, 'Options', gm_options);
     
     % Cluster based on gaussian mixture model
     gm_groups{i} = cluster(gm_models{i}, modal_amp(:,1:cluster_range(i)));
@@ -47,8 +47,8 @@ for i = 1:length(cluster_range);
     end
     
     % Generate stochastic matrices for both clustering methods
-    km_stoch{i} = gen_stochastic_matrix(h_stoch, km_groups, direct, make_plot, save_figures);
-    gm_stoch{i} = gen_stochastic_matrix(h_stoch2, gm_groups{i}, direct, make_plot, save_figures);
+    km_stoch{i} = gen_stochastic_matrix(h_stoch, num_clusters, km_groups, direct, make_plot, save_figures);
+    gm_stoch{i} = gen_stochastic_matrix(h_stoch2, num_clusters, gm_groups{i}, direct, make_plot, save_figures);
 end
 
 end
