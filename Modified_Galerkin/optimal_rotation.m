@@ -43,7 +43,7 @@ options = odeset('RelTol', 1e-8, 'AbsTol', 1e-10);
 
 % Calculate values at same time intervals 
  ao = til_init(modal_amp, init, RD_nm, X);
-[t, modal_amp_til] = ode113(@(t, y) system_odes_mod(t, y, reduced_model_coeff)...
+[t, modal_amp_til] = ode113(@(t, y) system_odes_mod2(t, y, reduced_model_coeff)...
     , tspan, ao, options); 
 
 % Calculate difference 
