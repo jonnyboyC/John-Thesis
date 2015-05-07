@@ -19,6 +19,7 @@ x           = plot_data.x;
 y           = plot_data.y;
 Mod         = plot_data.Mod;
 bnd_idx     = plot_data.bnd_idx;
+custom      = plot_data.custom;
 
 t_scale = u_scale/l_scale;
 sample_freq = sample_freq*t_scale;
@@ -32,7 +33,7 @@ end
 
 % TODO significant overhaul to this function
 if any(strcmp(plot_type, 'video'))
-    plot_prediction(pod_ut, pod_vt, x, y, bnd_idx, modal_amp, t, dimensions, direct, id)
+    plot_prediction(pod_ut, pod_vt, x, y, bnd_idx, modal_amp, t, dimensions, direct, custom, id)
 end
 
 % Strip mean_u, mean_v
@@ -40,11 +41,11 @@ modal_amp = modal_amp(:,2:end);
 
 % Plot modal amplitude of the response
 if any(strcmp(plot_type, 'amp'))
-    plot_amp(modal_amp, t, direct, type, id);
+    plot_amp(modal_amp, t, direct, type, custom, id);
 end
 
 if any(strcmp(plot_type, 'energy'))
-    plot_energy(modal_amp, t, direct, type, id);
+    plot_energy(modal_amp, t, direct, type, custom, id);
 end
 
 
@@ -61,5 +62,5 @@ if any(strcmp(plot_type, 'fft'))
         window_size = ceil(size(t,1)/3);
     end
     modal_fft(modal_amp, num2plot, window_size, ...
-        sample_freq, fft_window, direct, type, id);
+        sample_freq, fft_window, direct, type, custom, id);
 end

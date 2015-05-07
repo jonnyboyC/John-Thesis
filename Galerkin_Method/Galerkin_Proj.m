@@ -81,7 +81,7 @@ else
 end
 
 % Create more readable names
-num_modesG      = problem.num_modesG+1; % Add mean flow
+num_modesG      = problem.num_modesG; % Add mean flow
 run_num         = problem.run_num;
 plot_type       = problem.plot_type;
 save_coef       = problem.save_coef;
@@ -193,6 +193,7 @@ if calc_coef
     coef_problem.run_num        = run_num;
     coef_problem.override_coef  = override_coef;
     coef_problem.direct         = direct;
+    coef_problem.custom         = false;
     
     % Free memory
     clear vol_frac bnd_x bnd_y 
@@ -204,13 +205,13 @@ if calc_coef
     % Generate values up to cutoff to be used for Couplet viscous dissipation
     if ismember('Couplet', dissapation);
         % Calculate for traditional Galerkin Projection
-        fprintf('Generating coefficients for unresolved modes using %d modes\n\n', cutoff);
+        fprintf('Generating coefficients for unresolved modes using %d modes\n', cutoff);
         [lc{1,1}, qc{1,1}] = visocity_coefficients(coef_problem);
         lc{1,2}  = 'Base cutoff';
         qc{1,2}  = 'Base cutoff';
         
         % Calculate for weak formulation Galerkin Projection
-        fprintf('Generating coefficients for unresolved modes using %d modes for Weak Solution \n\n', cutoff);
+        fprintf('Generating coefficients for unresolved modes using %d modes for Weak Solution \n', cutoff);
         lc{2,1}  = visocity_coefficients_ws(coef_problem);
         lc{2,2}  = 'Weak cutoff';
         qc{2,1}  = qc{1,1};
@@ -239,25 +240,45 @@ if time_int
 end
 
 for i = 1:length(num_modesG)
+    fprintf('\n');
     
     % Pull current number of modes to be investigated
-    num_modes = num_modesG(i);
-    modal_TKE = sum(1/2*mean(modal_amp(:,2:num_modes).^2,1));
+    if iscell(num_modesG)
+        custom = true;
+    else
+        custom = false;
+    end
+    
+    if custom
+        num_modes = length(num_modesG{i})+1;
+        modes = num_modesG{i}+1;
+    else
+        num_modes = num_modesG(i)+1;
+        modes = 2:num_modes;
+    end
+    modal_TKE = sum(1/2*mean(modal_amp(:,modes).^2,1));
     
     % Created truncated pod basis
-    pod_ut  = pod_u(:,1:num_modes);
-    pod_vt  = pod_v(:,1:num_modes);
+    pod_ut  = pod_u(:,[1, modes]);
+    pod_vt  = pod_v(:,[1, modes]);
 
     if calc_coef
+        
+        % Calculate coefficeints for current system
         coef_problem.pod_u = pod_ut;
         coef_problem.pod_v = pod_vt;
+        coef_problem.custom = custom;
         
-        fprintf('Generating coefficients for resolved modes using %d modes\n\n', num_modes);
+        if custom
+            fprintf('Generating coefficients for custom selected modes using %d modes\n', num_modes);
+        else
+            fprintf('Generating coefficients for resolved modes using %d modes\n', num_modes);
+        end
+        
         [l{1,1,i}, q{1,1,i}] = visocity_coefficients(coef_problem);
         l{1,2,i} = 'Base Coeff';
         q{1,2,i} = 'Base Coeff';
         
-        fprintf('Generating coefficients for resolved modes using %d modes for Weak Solution \n\n', num_modes);
         l{2,1,i} = visocity_coefficients_ws(coef_problem);
         l{2,2,i} = 'Weak Coeff';
         q{2,1,i} = q{1,1,i};
@@ -269,18 +290,18 @@ for i = 1:length(num_modesG)
     
 %% Modified coefficients 
 
-        % Attempt to estimate the neglected viscoius dissapation function
-        fprintf('Calculating viscous dissapation terms\n\n');
+        % Attempt to estimate the neglected energy transfer with viscous
+        fprintf('Calculating viscous dissapation terms\n');
 
         eddy(1,:,i) = {zeros(num_modes,1), 'Base Original'};
         eddy(2,:,i) = {zeros(num_modes,1), 'Weak Original'};
 
         % calculate coefficients detailed by Couplet
         if ismember('Couplet', dissapation);
-            eddy{3,1,i} = viscous_dis_couplet(modal_amp, num_modes, lc{1,1}, qc{1,1}, vis);
+            eddy{3,1,i} = viscous_dis_couplet(modal_amp, num_modes, modes, lc{1,1}, qc{1,1}, vis);
             eddy{3,2,i} = 'Modal Base Couplet';
 
-            eddy{4,1,i} = viscous_dis_couplet(modal_amp, num_modes, lc{2,1}, qc{2,1}, vis);
+            eddy{4,1,i} = viscous_dis_couplet(modal_amp, num_modes, modes, lc{2,1}, qc{2,1}, vis);
             eddy{4,2,i} = 'Modal Weak Couplet';
         end
 
@@ -298,24 +319,33 @@ for i = 1:length(num_modesG)
         for j = base_models+1:linear_models
             eddy{j+linear_models-base_models,2,i} = ['NL ' eddy{j,2,i}];
         end
+        
+        % Get correct names
+        l(:,2,i) = eddy(:,2,i);
+        q(:,2,i) = eddy(:,2,i);
     end
     
     %% Time integration
     if time_int    
         if ~calc_coef 
-           vars = load([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(num_modes-1) ...
-                filesep 'Coefficients_run_' num2str(run_num) '.mat'], 'results_coef');                
-           l(:,:,i) = vars.results_coef.l;
-           q(:,:,i) = vars.results_coef.q;
-           eddy(:,:,i) = vars.results_coef.eddy;
-           vis = vars.results_coef.vis;
-           
-           clear vars;
+            if custom
+                vars = load([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(num_modes-1) '_custom' ...
+                    filesep 'Coefficients_run_' num2str(run_num) '.mat'], 'results_coef');
+            else
+                vars = load([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(num_modes-1) ...
+                    filesep 'Coefficients_run_' num2str(run_num) '.mat'], 'results_coef');
+            end
+            l(:,:,i) = vars.results_coef.l;
+            q(:,:,i) = vars.results_coef.q;
+            eddy(:,:,i) = vars.results_coef.eddy;
+            vis = vars.results_coef.vis;
+            
+            clear vars;
         end
         
         % intial conditions and integration options
         options = odeset('RelTol', 1e-8, 'AbsTol', 1e-10);
-        ao = modal_amp(init,1:num_modes);
+        ao = modal_amp(init,[1 modes]);
         
         % Perform final manipulation to prep integration
         [reduced_model_coeff] = integration_setup(eddy, vis, l, q, i, total_models, ...
@@ -327,9 +357,11 @@ for i = 1:length(num_modesG)
 
 %% Plotting functions
 
-        idx = (cluster_range == num_modes-1);
-        [scores_km(:,1,i), scores_gm(:,1,i)] = classify_Gal(centers{idx}, ...
-            gm_models{idx}, modal_amp_sim(:,:,i), direct, km_stoch{idx}, gm_stoch{idx});
+        if ~custom
+            idx = (cluster_range == num_modes-1);
+            [scores_km(:,1,i), scores_gm(:,1,i)] = classify_Gal(centers{idx}, ...
+                gm_models{idx}, modal_amp_sim(:,:,i), direct, km_stoch{idx}, gm_stoch{idx});
+        end
 
         % Prepare data
         plot_data.num_modes     = num_modes-1;
@@ -347,6 +379,7 @@ for i = 1:length(num_modesG)
         plot_data.y             = y;
         plot_data.Mod           = false;
         plot_data.bnd_idx       = bnd_idx;
+        plot_data.custom        = custom;
 
         all_t = t(:,1,i)';
         all_ids = eddy(:,2,i)';
@@ -399,12 +432,12 @@ for i = 1:length(num_modesG)
         end
         pool = gcp;
         if time_int && calc_coef
-            futures = parfeval(pool, @save_results, 0, direct, true, results_coef, ...
+            futures = parfeval(pool, @save_results, 0, direct, true, custom, results_coef, ...
                 results_int);
         elseif time_int
-            futures = parfeval(pool, @save_results, 0, direct, false, results_int);
+            futures = parfeval(pool, @save_results, 0, direct, false, custom, results_int);
         else
-            futures = parfeval(pool, @save_results, 0, direct, true, results_coef);
+            futures = parfeval(pool, @save_results, 0, direct, true, custom, results_coef);
         end
     end
 end
@@ -423,15 +456,20 @@ format short g
 end
 
 % Save Galerkin system for each mode
-function save_results(direct, coef, varargin)
+function save_results(direct, coef, custom, varargin)
 % check if folder exist create if empty
-if ~exist([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(varargin{1}.num_modesG)], 'dir')
-    mkdir([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(varargin{1}.num_modesG)]);
+if custom
+    direct_ext = [direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(varargin{1}.num_modesG) '_custom'];
+else
+    direct_ext = [direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(varargin{1}.num_modesG)];
+end
+
+if ~exist(direct_ext, 'dir')
+    mkdir(direct_ext);
 end
 
 % file name for mat file
-filename = [direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(varargin{1}.num_modesG) ...
-            filesep 'Coefficients_run_' num2str(varargin{1}.run_num) '.mat'];
+filename = [direct_ext filesep 'Coefficients_run_' num2str(varargin{1}.run_num) '.mat'];
 
 % allow direct access to file
 file = matfile(filename, 'Writable', true);

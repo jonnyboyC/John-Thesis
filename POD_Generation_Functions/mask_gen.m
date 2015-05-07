@@ -87,7 +87,7 @@ bnd_y_temp = bnd_y;
 bnd_idx_temp = data.bnd_idx;
 
 % Generate a plot of the mean flow
-[~, ~, haxes] = plot_flow(data);
+[~, ~, haxes] = plot_vector_field(data);
 colorbar;
 
 % Assign the GUI a name to appear in the window title.
@@ -223,7 +223,7 @@ uiwait(f);
         data.bnd_idx = bnd_idx_temp;
         
         % Re-plot
-        plot_flow(data);
+        plot_vector_field(data);
         colorbar;
     end
 
@@ -236,7 +236,7 @@ uiwait(f);
         data.bnd_idx = data.bnd_idx;
         
         % Re-plot
-        plot_flow(data);
+        plot_vector_field(data);
         colorbar;
     end
 

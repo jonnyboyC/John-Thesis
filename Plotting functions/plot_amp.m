@@ -1,10 +1,10 @@
-function handle = plot_amp(modal_amp, t, direct, type, id)
+function handle = plot_amp(modal_amp, t, direct, type, custom, id)
 % Plot modal amplitudes from the time response of the Galerkin sytem
 % Create figure handle and axis handle
 h = figure;
 ax = newplot;
 
-modes = size(modal_amp,2);
+num_modes = size(modal_amp,2);
 
 plot(ax, t, modal_amp);
 ax.XLabel.String = 'time (s)';
@@ -26,12 +26,21 @@ if numel(t) < 2
 end
 Hz = 1/(t(2) - t(1));
 
-if ~exist([direct filesep 'Figures' filesep type filesep 'modes_' num2str(modes)], 'dir') 
-    mkdir([direct filesep 'Figures' filesep type filesep 'modes_' num2str(modes)]);
+if custom
+    direct_ext = [direct filesep 'Figures' filesep type filesep 'modes_' ...
+        num2str(num_modes) '_custom'];
+else
+    direct_ext = [direct filesep 'Figures' filesep type filesep 'modes_' ...
+        num2str(num_modes)];
 end
-file_name = [direct filesep 'Figures' filesep type filesep 'modes_' num2str(modes) filesep 'Amplitude_' id '_'];
 
-file_name = [file_name '_t' num2str(ceil(t(1))) '_' num2str(ceil(t(end))) 's_' num2str(ceil(Hz)) 'Hz'];
+if ~exist(direct_ext, 'dir') 
+    mkdir(direct_ext);
+end
+file_name = [direct_ext filesep 'Amplitude_' id '_'];
+
+file_name = [file_name '_t' num2str(ceil(t(1))) '_' num2str(ceil(t(end))) ...
+    's_' num2str(ceil(Hz)) 'Hz'];
 drawnow;
 
 % Save figure in Figure\Galerkin folder

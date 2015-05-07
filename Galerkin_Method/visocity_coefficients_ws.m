@@ -12,6 +12,7 @@ override_coef = coef_problem.override_coef;
 bnd_idx     = coef_problem.bnd_idx;
 bnd_x       = coef_problem.bnd_x;
 bnd_y       = coef_problem.bnd_y;
+custom      = coef_problem.custom;
 
 clear coef_problem
 
@@ -23,7 +24,7 @@ bnd_y = reshape(bnd_y, num_elem, 1);
 
 % If we are using the same number of cutoff modes and overwrite is set to
 % false look for previous data
-if override_coef == false;
+if override_coef == false && custom == false
    saved_files = dir([direct '\Viscous Coeff\Coeff_*']);
    if size(saved_files,1) ~= 0
        match_run = regexp({saved_files.name}, num2str(run_num));
@@ -58,7 +59,9 @@ surf_cv = surf_inner_prod(pod_vdx, pod_v, vol_frac, bnd_x) + ...
 l = ccux + ccuy + ccvx + ccvy + surf_cu + surf_cv;
 
 cutoff = num_modes;
-save([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_wk_m' num2str(num_modes) '.mat'], ...
-    'l', 'cutoff', 'run_num', '-v7.3'); 
+if ~custom
+    save([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_wk_m' num2str(num_modes) '.mat'], ...
+        'l', 'cutoff', 'run_num', '-v7.3');
+end
 
 end

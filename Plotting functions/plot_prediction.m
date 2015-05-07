@@ -6,12 +6,12 @@ if max_plot < size(modal_amp,1);
 else
     plot_points = 1:size(modal_amp,1);
 end
-modes = size(modal_amp,2);
+num_modes = size(modal_amp,2);
 
 % Fill all plots with blank images to set renderer to opengl
 h_parent = figure('Name', ['Time Prediction for ' id], ...
-           'Position', [500, 400, 700, 500]);
-
+           'Position', [0, 0, 700, 800]);
+movegui(h_parent,'center')
 set(h_parent, 'Renderer', 'opengl');
 
 if length(t) < 2 
@@ -19,63 +19,94 @@ if length(t) < 2
 end
 Hz = 1/(t(2) - t(1));
 
-% Intialize Video creator
-if ~exist([direct filesep 'Figures' filesep 'Movies' filesep 'modes_' num2str(modes-1)], 'dir') 
-    mkdir([direct filesep 'Figures' filesep 'Movies' filesep 'modes_' num2str(modes-1)]);
+if custom
+    direct_ext = [direct filesep 'Figures' filesep 'Movies' filesep 'modes_' ...
+        num2str(num_modes-1) '_custom'];
+else
+    direct_ext = [direct filesep 'Figures' filesep 'Movies' filesep 'modes_' ...
+        num2str(num_modes-1)];
 end
 
-file_name = [direct filesep 'Figures' filesep 'Movies' filesep 'modes_' ...
-             num2str(modes-1) filesep 'Flow_prediction_' id];
+% Intialize Video creator
+if ~exist(direct_ext, 'dir') 
+    mkdir(direct_ext);
+end
+
+file_name = [direct_ext filesep 'Flow_prediction_' id];
 
 % TODO May need to relook at this to make it more memory efficient
-data_u = zeros(dimensions(1), dimensions(2), size(plot_points,2));
-data_v = zeros(dimensions(1), dimensions(2), size(plot_points,2));
+data_u_full = zeros(dimensions(1), dimensions(2), size(plot_points,2));
+data_v_full = zeros(dimensions(1), dimensions(2), size(plot_points,2));
+
+data_u_flux = zeros(dimensions(1), dimensions(2), size(plot_points,2));
+data_v_flux = zeros(dimensions(1), dimensions(2), size(plot_points,2));
+
 
 % calculate predicted images
-sum_j = 1:modes;
+sum_full = 1:num_modes;
+sum_flux = 2:num_modes;
 for i = plot_points;
-    data_u(:,:,i) = reshape(pod_u(:,sum_j)*modal_amp(i,sum_j)',dimensions(1), dimensions(2));
-    data_v(:,:,i) = reshape(pod_v(:,sum_j)*modal_amp(i,sum_j)',dimensions(1), dimensions(2));
+    data_u_full(:,:,i) = reshape(pod_u(:,sum_full)*modal_amp(i,sum_full)',dimensions);
+    data_v_full(:,:,i) = reshape(pod_v(:,sum_full)*modal_amp(i,sum_full)',dimensions);
+    
+    data_u_flux(:,:,i) = reshape(pod_u(:,sum_flux)*modal_amp(i,sum_flux)',dimensions);
+    data_v_flux(:,:,i) = reshape(pod_v(:,sum_flux)*modal_amp(i,sum_flux)',dimensions);
 end
 
-data_m = sqrt(data_u.^2 + data_v.^2);
+data_m_full = sqrt(data_u_full.^2 + data_v_full.^2);
+data_m_flux = sqrt(data_u_flux.^2 + data_v_flux.^2);
 
-
-type = {'Flow Visualization'};
+type = {'Full Flow Visualization', 'Turbulent Flow Visualization'};
 
 % Determine max values for u v and magnitude
 % Leave a bit left off so useful plots can be produced even with blow up
-[~, idx] = sort(abs(data_m(:)));
-cmax = abs(data_m(idx(floor(0.95*length(idx)))));
+[~, idx] = sort(abs(data_m_full(:)));
+cmax(1) = abs(data_m_full(idx(floor(0.95*length(idx)))));
+
+[~, idx] = sort(abs(data_m_flux(:)));
+cmax(2) = abs(data_m_flux(idx(floor(0.95*length(idx)))));
 cmin = 0;
 
 data_temp.x = x;
 data_temp.y = y;
 data_temp.bnd_idx = bnd_idx;
 
-writer = VideoWriter([file_name '_' num2str(t(1)) '_' num2str(t(end)) 's_' num2str(ceil(Hz)) 'Hz.avi']);
+writer = VideoWriter([file_name '_' num2str(t(1)) '_' num2str(t(end)) 's_' ...
+    num2str(ceil(Hz)) 'Hz.avi'], 'MPEG-4');
 writer.Quality = 100;
 writer.FrameRate = 60;
 open(writer);
 
+% Preallocate figure subplot handles
+h_surf = gobjects(2, 1);
+h_quiver = gobjects(2, 1);
+ax = gobjects(2, 1);
+
 % Plot results, print current image number, and save images to .avi video
 for i = 1:size(plot_points,2)  
     fprintf('image %d of %d\n', i, size(plot_points,2));
-    for j = 1:length(type);
-        data_temp.pod = squeeze(data_m(:,:,i));
-        data_temp.u = squeeze(data_u(:,:,i));
-        data_temp.v = squeeze(data_v(:,:,i));
+    for j = 1:2
+        if j == 1
+            data_temp.pod = squeeze(data_m_full(:,:,i));
+            data_temp.u = squeeze(data_u_full(:,:,i));
+            data_temp.v = squeeze(data_v_full(:,:,i));
+        else
+            data_temp.pod = squeeze(data_m_flux(:,:,i));
+            data_temp.u = squeeze(data_u_flux(:,:,i));
+            data_temp.v = squeeze(data_v_flux(:,:,i));
+        end
+        figure(h_parent);
+        subplot(2,1,j);
         if i == 1
-            figure(h_parent);
-            [h_surf, h_quiver, ax] = plot_flow(data_temp);
-            ax.Title = title(type{j}, 'fontname','times new roman','fontsize', 14);
-            ax.XLabel = xlabel('x/D', 'fontname','times new roman','fontsize',12);
-            ax.YLabel = ylabel('y/D', 'fontname','times new roman','fontsize',12);
-            ax.ZLim = [cmin, cmax];
-            ax.CLim = [cmin, cmax];
+            [h_surf(j), h_quiver(j), ax(j)] = plot_vector_field(data_temp);
+            ax(j).Title = title(type{j}, 'fontname','times new roman','fontsize',14);
+            ax(j).XLabel = xlabel('x/D', 'fontname','times new roman','fontsize',12);
+            ax(j).YLabel = ylabel('y/D', 'fontname','times new roman','fontsize',12);
+            ax(j).ZLim = [cmin, cmax(j)];
+            ax(j).CLim = [cmin, cmax(j)];
             colorbar;
         else
-            [h_surf, h_quiver] = plot_flow(data_temp, h_surf, h_quiver);
+            [h_surf(j), h_quiver(j)] = plot_vector_field(data_temp, h_surf(j), h_quiver(j));
         end
     end
     frame = getframe(gcf);

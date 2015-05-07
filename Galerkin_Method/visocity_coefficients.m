@@ -13,6 +13,7 @@ use_chunks  = coef_problem.use_chunks;
 bnd_idx     = coef_problem.bnd_idx;
 bnd_x       = coef_problem.bnd_x;
 bnd_y       = coef_problem.bnd_y;
+custom      = coef_problem.custom;
 
 
 clear coef_problem
@@ -22,7 +23,7 @@ num_modes = size(pod_u, 2);
 
 % If we are using the same number of cutoff modes and overwrite is set to
 % false look for previous data
-if override_coef == false;
+if override_coef == false && custom == false
    saved_files = dir([direct '\Viscous Coeff\Coeff_*']);
    if size(saved_files,1) ~= 0
        match_run = regexp({saved_files.name}, num2str(run_num));
@@ -113,8 +114,10 @@ clear pod_u_pod_u_x pod_u_pod_v_x pod_v_pod_u_y pod_v_pod_v_y
 q = reshape(q, [], num_modes*num_modes);
 
 cutoff = num_modes; %#ok<NASGU>
-save([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_og_m' num2str(num_modes) '.mat'], ...
-     'l', 'q', 'cutoff', 'run_num', '-v7.3'); 
+if ~custom
+    save([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_og_m' num2str(num_modes) '.mat'], ...
+         'l', 'q', 'cutoff', 'run_num', '-v7.3'); 
+end
 
 if isempty(gcp('nocreate'));
     parpool('local');

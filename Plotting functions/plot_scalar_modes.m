@@ -1,28 +1,20 @@
-function Plotsvd2(x, y, pod, dimensions,varname,lambda, bnd_idx, direct, save_figures)
-% Plot pod modes for u v and vorticity
-
-% Determine number of modes
-[~,num_modes] = size(pod);
+function plot_scalar_modes(data, u, num_modes, dimensions, varname, lambda, direct, save_figures)
+% Plot scalar modes of the velocity field
 
 % Determine energy content of each mode
 energy = lambda(1:num_modes)./sum(lambda)*100;
 
 % Determine maximum values of each POD mode
-cmax=max(abs(pod));
+cmax=max(abs(u));
 
 % Scale all images to max magnitude of one
 for i = 1:num_modes
-    pod(:,i) = pod(:,i)/cmax(i);
+    u(:,i) = u(:,i)/cmax(i);
 end
 
 % Get color scaling
 cmax = 1;
 cmin = -cmax;
-
-% set plot data
-data.x = x;
-data.y = y;
-data.bnd_idx = bnd_idx;
 
 % Preallocate figure subplot handles
 h_sub = gobjects(4, 1);
@@ -31,11 +23,11 @@ plot_img_num = 1;
 
 % Generate plot handles
 h = figure('Name',['  Variable: ' varname ',  (' num2str(sum(energy),4) '%)'],'color','w');
-h.Position = [500, 500, 800, 500];
+h.Position = [400, 400, 1100, 650];
 
 for i = 1:num_modes
     % Update pod data
-    data.pod = reshape(pod(:,i),dimensions);
+    data.pod = reshape(u(:,i),dimensions);
     
     % After Originally generating 4 plots, update values
     if plot_img_num > 4 
@@ -43,7 +35,7 @@ for i = 1:num_modes
         if any(ismember({'fig', 'jpg'}, save_figures))
             for j = 1:size(save_figures,2)
                 saveas(h, [direct filesep 'Figures' filesep 'POD' filesep ...
-                    'Modes' filesep 'POD_' varname '_' num2str(i-4) '_' num2str(i-1)], save_figures{j});
+                    'Modes' filesep varname '_modes_' num2str(i-4) '_' num2str(i-1)], save_figures{j});
             end
         end
         plot_img_num = 1;
@@ -54,13 +46,13 @@ for i = 1:num_modes
     
     % plot individual plots
     if i <= 4
-        [h_sub(i), ax_sub(i)] = Plottec2(data);
+        [h_sub(i), ax_sub(i)] = plot_scalar_field(data);
         ax_sub(plot_img_num).XLabel = xlabel('x/D', 'fontname','times new roman','fontsize',12);
         ax_sub(plot_img_num).YLabel = ylabel('y/D', 'fontname','times new roman','fontsize',12);
         ax_sub(plot_img_num).CLim = [cmin cmax];
         colorbar;
     else
-        h_sub(plot_img_num) = Plottec2(data, h_sub(plot_img_num));
+        h_sub(plot_img_num) = plot_scalar_field(data, h_sub(plot_img_num));
     end
     
     % update plot title
@@ -74,7 +66,7 @@ for i = 1:num_modes
         if any(ismember({'fig', 'jpg'}, save_figures))
             for j = 1:size(save_figures,2)
                 saveas(h, [direct filesep 'Figures' filesep 'POD' filesep ...
-                    'Modes' filesep 'POD_' varname '_' num2str(i-4) '_' num2str(i-1)], save_figures{j});            
+                    'Modes' filesep varname '_modes' num2str(i-4) '_' num2str(i-1)], save_figures{j});            
             end
         end
     end

@@ -8,8 +8,8 @@ l_globe = 0;
 q_sum = zeros(num_modes,num_modes);
 for i = 2:num_modes
     q_temp = reshape(q(i,:), num_modes, num_modes);
-    for j = 1:num_modes;
-        for k = 1:num_modes;
+    for j = 1:num_modes
+        for k = 1:num_modes
             q_sum(j,k) = q_temp(j, k)* mean(modal_amp(:,j).*modal_amp(:,k).*modal_amp(:,i));
         end
     end

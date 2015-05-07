@@ -1,4 +1,4 @@
-function [h_surf, h_quiver, cax] = plot_flow(data, h_s, h_q)
+function [h_surf, h_quiver, cax] = plot_vector_field(data, h_s, h_q)
 
 % If no magnitude value is provided calculate the value
 if ~isfield(data, 'pod') 
@@ -14,9 +14,9 @@ end
 
 % If a handle is provided simply update value instead of redrawling
 if nargin == 1
-    [h_s, ax] = Plottec2(data);
+    [h_s, ax] = plot_scalar_field(data);
 else
-    h_s = Plottec2(data, h_s);
+    h_s = plot_scalar_field(data, h_s);
 end
 
 % Get no more than 50 quiver arrows

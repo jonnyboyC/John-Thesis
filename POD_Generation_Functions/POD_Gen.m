@@ -172,9 +172,19 @@ end
 
 % Plot pod modes
 if ~isempty(save_figures)
-    Plotsvd2(x, y, pod_u(:,1:num_plot), dimensions, 'u', lambda, bnd_idx, direct, save_figures);
-    Plotsvd2(x, y, pod_v(:,1:num_plot), dimensions, 'v', lambda, bnd_idx, direct, save_figures);
-    Plotsvd2(x, y, pod_vor(:,1:num_plot), dimensions, 'vorticity', lambda, bnd_idx, direct, save_figures);
+    
+    % setup data structure
+    data.x      = x;
+    data.y      = y;
+    data.bnd_idx = bnd_idx;
+    
+    % Plot vector field modes
+    plot_vector_modes(data, pod_u, pod_v, num_plot, dimensions, 'POD', lambda, direct, save_figures);
+    
+    % plot scalar field modes
+    plot_scalar_modes(data, pod_u, num_plot, dimensions, 'u', lambda, direct, save_figures);
+    plot_scalar_modes(data, pod_v, num_plot, dimensions, 'v', lambda, direct, save_figures);
+    plot_scalar_modes(data, pod_vor, num_plot, dimensions, 'vorticity', lambda, direct, save_figures);
 end
 
 % Add mode zero
