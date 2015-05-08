@@ -145,14 +145,12 @@ covariance = cal_covariance_mat2(flux_u, flux_v, vol_frac, bnd_idx);
 pod_u = regroup(pod_u, dimensions);
 pod_v = regroup(pod_v, dimensions);
 
-% Flip images so they all "face" the same way
-sign_flip = zeros(1, cutoff);
-
 % Figure out sign and apply flip
 for i = 1:cutoff
-    sign_flip(i) = sign(mean(mean(sign(pod_v(:,:,i)./(pod_v(:,:,i) + eps)))));
-    pod_u(:,:,i) = pod_u(:,:,i)*sign_flip(i);
-    pod_v(:,:,i) = pod_v(:,:,i)*sign_flip(i);
+    sign_flip = sign(mean(mean(sign(pod_v(:,:,i)./(pod_v(:,:,i) + eps)))));
+    pod_u(:,:,i) = pod_u(:,:,i)*sign_flip;
+    pod_v(:,:,i) = pod_v(:,:,i)*sign_flip;
+    modal_amp(:,i) = modal_amp(:,i)*sign_flip;
 end
 
 % Calculate pod_vor

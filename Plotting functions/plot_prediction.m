@@ -49,12 +49,12 @@ sum_flux = 2:num_modes;
 for i = plot_points;
     data_u_full(:,:,i) = reshape(pod_u(:,sum_full)*modal_amp(i,sum_full)',dimensions);
     data_v_full(:,:,i) = reshape(pod_v(:,sum_full)*modal_amp(i,sum_full)',dimensions);
-    data_vor_full(:,:,i) = reshape(pod_v(:,sum_full)*modal_amp(i,sum_full)',dimensions);
+    data_vor_full(:,:,i) = reshape(pod_vor(:,sum_full)*modal_amp(i,sum_full)',dimensions);
 
     
     data_u_flux(:,:,i) = reshape(pod_u(:,sum_flux)*modal_amp(i,sum_flux)',dimensions);
     data_v_flux(:,:,i) = reshape(pod_v(:,sum_flux)*modal_amp(i,sum_flux)',dimensions);
-    data_vor_flux(:,:,i) = reshape(pod_v(:,sum_flux)*modal_amp(i,sum_flux)',dimensions);
+    data_vor_flux(:,:,i) = reshape(pod_vor(:,sum_flux)*modal_amp(i,sum_flux)',dimensions);
 end
 
 % data_m_full = sqrt(data_u_full.^2 + data_v_full.^2);
@@ -85,6 +85,9 @@ open(writer);
 % Preallocate figure subplot handles
 h_surf = gobjects(2, 1);
 h_quiver = gobjects(2, 1);
+if pretty 
+    h_stream = gobjects(2, 1);
+end
 ax = gobjects(2, 1);
 
 % Plot results, print current image number, and save images to .avi video
@@ -104,6 +107,9 @@ for i = 1:size(plot_points,2)
         subplot(2,1,j);
         if i == 1
             [h_surf(j), h_quiver(j), ax(j)] = plot_vector_field(data_temp);
+            if pretty
+                h_stream(j) = streamslice(data_temp.x', data_temp.y', data_temp.u', data_temp.v');
+            end
             ax(j).Title = title(type{j}, 'fontname','times new roman','fontsize',14);
             ax(j).XLabel = xlabel('x/D', 'fontname','times new roman','fontsize',12);
             ax(j).YLabel = ylabel('y/D', 'fontname','times new roman','fontsize',12);
@@ -112,6 +118,10 @@ for i = 1:size(plot_points,2)
             colorbar;
         else
             [h_surf(j), h_quiver(j)] = plot_vector_field(data_temp, h_surf(j), h_quiver(j));
+            if pretty
+                delete(h_stream(j))
+                h_stream(j) = streamslice(data_temp.x', data_temp.y', data_temp.u', data_temp.v');
+            end
         end
     end
     frame = getframe(gcf);
