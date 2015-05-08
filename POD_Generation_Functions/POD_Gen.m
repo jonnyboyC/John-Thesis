@@ -160,8 +160,9 @@ pod_u = reshape(pod_u, data_points, cutoff);
 pod_v = reshape(pod_v, data_points, cutoff);
 
 % Calculate voritcity
-pod_vor = calc_pod_vor(pod_u, pod_v, dimensions, cutoff, bnd_idx, bnd_x, bnd_y, x, y);
+[pod_vor, mean_vor] = calc_pod_vor(pod_u, pod_v, mean_u, mean_v, dimensions, cutoff, bnd_idx, bnd_x, bnd_y, x, y);
 pod_vor = reshape(pod_vor, data_points, cutoff);
+mean_vor = reshape(mean_vor, data_points, 1);
 
 %% Setup for Plotting and Plotting
 if cutoff > 40
@@ -188,8 +189,8 @@ if ~isempty(save_figures)
 end
 
 % Add mode zero
-[modal_amp, lambda, pod_u, pod_v] = ...
-    add_mode_zero(modal_amp, lambda, pod_u, pod_v, mean_u, mean_v);
+[modal_amp, lambda, pod_u, pod_v, pod_vor] = ...
+    add_mode_zero(modal_amp, lambda, pod_u, pod_v, pod_vor, mean_u, mean_v, mean_vor);
 
 %% Save / Return variables
 run_num = floor(100000*rand(1));

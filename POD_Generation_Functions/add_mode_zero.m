@@ -1,5 +1,5 @@
-function [modal_amp, lambda, pod_u, pod_v] = ...
-    add_mode_zero(modal_amp, lambda, pod_u, pod_v,  mean_u, mean_v)
+function [modal_amp, lambda, pod_u, pod_v, pod_vor] = ...
+    add_mode_zero(modal_amp, lambda, pod_u, pod_v, pod_vor, mean_u, mean_v, mean_vor)
 % Add an additional zeroth mode corresponding to the flow mean
 
 % Number of snapshots
@@ -13,4 +13,5 @@ modal_amp = [ones(num_images,1), modal_amp];
 % Add mode zero
 pod_u = [mean_u, pod_u];
 pod_v = [mean_v, pod_v];
+pod_vor = [mean_vor, pod_vor];
 end

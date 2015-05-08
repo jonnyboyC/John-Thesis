@@ -1,4 +1,4 @@
-function plot_prediction(pod_u, pod_v, x, y, bnd_idx, modal_amp, t, dimensions, direct, id)
+function plot_prediction(pod_u, pod_v, pod_vor, x, y, bnd_idx, modal_amp, t, dimensions, direct, custom, id)
 % Create a movie of the time response of the predicted Galerkin sytem
 max_plot = 500;
 if max_plot < size(modal_amp,1);  
@@ -37,10 +37,11 @@ file_name = [direct_ext filesep 'Flow_prediction_' id];
 % TODO May need to relook at this to make it more memory efficient
 data_u_full = zeros(dimensions(1), dimensions(2), size(plot_points,2));
 data_v_full = zeros(dimensions(1), dimensions(2), size(plot_points,2));
+data_vor_full = zeros(dimensions(1), dimensions(2), size(plot_points,2));
 
 data_u_flux = zeros(dimensions(1), dimensions(2), size(plot_points,2));
 data_v_flux = zeros(dimensions(1), dimensions(2), size(plot_points,2));
-
+data_vor_flux = zeros(dimensions(1), dimensions(2), size(plot_points,2));
 
 % calculate predicted images
 sum_full = 1:num_modes;
@@ -48,24 +49,28 @@ sum_flux = 2:num_modes;
 for i = plot_points;
     data_u_full(:,:,i) = reshape(pod_u(:,sum_full)*modal_amp(i,sum_full)',dimensions);
     data_v_full(:,:,i) = reshape(pod_v(:,sum_full)*modal_amp(i,sum_full)',dimensions);
+    data_vor_full(:,:,i) = reshape(pod_v(:,sum_full)*modal_amp(i,sum_full)',dimensions);
+
     
     data_u_flux(:,:,i) = reshape(pod_u(:,sum_flux)*modal_amp(i,sum_flux)',dimensions);
     data_v_flux(:,:,i) = reshape(pod_v(:,sum_flux)*modal_amp(i,sum_flux)',dimensions);
+    data_vor_flux(:,:,i) = reshape(pod_v(:,sum_flux)*modal_amp(i,sum_flux)',dimensions);
 end
 
-data_m_full = sqrt(data_u_full.^2 + data_v_full.^2);
-data_m_flux = sqrt(data_u_flux.^2 + data_v_flux.^2);
+% data_m_full = sqrt(data_u_full.^2 + data_v_full.^2);
+% data_m_flux = sqrt(data_u_flux.^2 + data_v_flux.^2);
 
 type = {'Full Flow Visualization', 'Turbulent Flow Visualization'};
 
 % Determine max values for u v and magnitude
 % Leave a bit left off so useful plots can be produced even with blow up
-[~, idx] = sort(abs(data_m_full(:)));
-cmax(1) = abs(data_m_full(idx(floor(0.95*length(idx)))));
+[~, idx] = sort(abs(data_vor_full(:)));
+cmax(1) = abs(data_vor_full(idx(floor(0.95*length(idx)))));
+cmin(1) = -cmax(1);
 
-[~, idx] = sort(abs(data_m_flux(:)));
-cmax(2) = abs(data_m_flux(idx(floor(0.95*length(idx)))));
-cmin = 0;
+[~, idx] = sort(abs(data_vor_flux(:)));
+cmax(2) = abs(data_vor_flux(idx(floor(0.95*length(idx)))));
+cmin(2) = -cmax(2);
 
 data_temp.x = x;
 data_temp.y = y;
@@ -87,11 +92,11 @@ for i = 1:size(plot_points,2)
     fprintf('image %d of %d\n', i, size(plot_points,2));
     for j = 1:2
         if j == 1
-            data_temp.pod = squeeze(data_m_full(:,:,i));
+            data_temp.pod = squeeze(data_vor_full(:,:,i));
             data_temp.u = squeeze(data_u_full(:,:,i));
             data_temp.v = squeeze(data_v_full(:,:,i));
         else
-            data_temp.pod = squeeze(data_m_flux(:,:,i));
+            data_temp.pod = squeeze(data_vor_flux(:,:,i));
             data_temp.u = squeeze(data_u_flux(:,:,i));
             data_temp.v = squeeze(data_v_flux(:,:,i));
         end
@@ -102,8 +107,8 @@ for i = 1:size(plot_points,2)
             ax(j).Title = title(type{j}, 'fontname','times new roman','fontsize',14);
             ax(j).XLabel = xlabel('x/D', 'fontname','times new roman','fontsize',12);
             ax(j).YLabel = ylabel('y/D', 'fontname','times new roman','fontsize',12);
-            ax(j).ZLim = [cmin, cmax(j)];
-            ax(j).CLim = [cmin, cmax(j)];
+            ax(j).ZLim = [cmin(j), cmax(j)];
+            ax(j).CLim = [cmin(j), cmax(j)];
             colorbar;
         else
             [h_surf(j), h_quiver(j)] = plot_vector_field(data_temp, h_surf(j), h_quiver(j));

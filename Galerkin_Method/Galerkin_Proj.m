@@ -125,6 +125,7 @@ u_scale     = vars.results_pod.u_scale;     % velocity scaling
 l_scale     = vars.results_pod.l_scale;     % length scaling
 pod_u       = vars.results_pod.pod_u;       % streamwise pod modes
 pod_v       = vars.results_pod.pod_v;       % spanwise pod modes
+pod_vor     = vars.results_pod.pod_vor;     % vorticity pod modes
 lambda      = vars.results_pod.lambda;      % eigenvalues of modes
 dimensions  = vars.results_pod.dimensions;  % dimensions of mesh
 bnd_idx     = vars.results_pod.bnd_idx;     % location of boundaries
@@ -261,6 +262,7 @@ for i = 1:length(num_modesG)
     % Created truncated pod basis
     pod_ut  = pod_u(:,[1, modes]);
     pod_vt  = pod_v(:,[1, modes]);
+    pod_vort = pod_vor(:,[1, modes]);
 
     if calc_coef
         
@@ -368,6 +370,7 @@ for i = 1:length(num_modesG)
         plot_data.direct        = direct;
         plot_data.pod_ut        = pod_ut;
         plot_data.pod_vt        = pod_vt;
+        plot_data.pod_vort      = pod_vort;
         plot_data.dimensions    = dimensions;
         plot_data.fft_window    = fft_window;
         plot_data.u_scale       = u_scale;
@@ -475,7 +478,7 @@ filename = [direct_ext filesep 'Coefficients_run_' num2str(varargin{1}.run_num) 
 file = matfile(filename, 'Writable', true);
 
 % if only results_coef was passed only save those
-if nargin == 3
+if nargin == 4
     if coef
         file.results_coef = varargin{1};
     else

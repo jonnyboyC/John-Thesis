@@ -30,7 +30,7 @@ short_v = data.v(1:spacing_x:end, 1:spacing_y:end);
 
 if nargin == 1 
     hold(ax, 'on')
-    h_q = quiver(ax, short_x, short_y, short_u, short_v, 'color', [0 0 0]);
+    h_q = streamslice(ax, short_x, short_y, short_u, short_v, 40, 40, []);%, 'color', [0 0 0]);
     hold(ax, 'off')
 else
     h_q.UData = short_u;
