@@ -19,6 +19,18 @@ if isempty(problem.save_pod) || ~islogical(problem.save_pod)
     problem.save_pod = true;        % save pod results
 end
 
+% Default for cluster
+if isempty(problem.cluster) || ~islogical(problem.cluster)
+    fprintf('Using default value for cluster\nproblem.cluster = true\n\n');
+    problem.cluster = true;        % save pod results
+end
+
+% Default for average_mesh
+if isempty(problem.average_mesh) || ~islogical(problem.average_mesh)
+    fprintf('Using default value for cluster\nproblem.average_mesh = true\n\n');
+    problem.average_mesh = true;        % save pod results
+end
+
 % Default for save_figures
 if  ~iscell(problem.save_figures)
     fprintf('Using default value for save_figures\nproblem.save_figures = {}\n\n');

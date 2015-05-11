@@ -31,6 +31,9 @@ function [res_pod, res_clust] = POD_Gen(varargin)
 % Specify absolute path of top of data directory. '' will prompt user for
 % location
 % 
+% problem.cluster = true
+% Specify if you want to cluster results or not
+%
 % problem.l_scale = 1
 % Specify a scalar to be used as the length scale for the problem
 %
@@ -58,7 +61,8 @@ clc
 fields = {  'num_images',   'load_raw',     'save_pod', ...
             'image_range',  'direct',       'l_scale', ...
             'u_scale_gen',  'save_figures', 'flip',...
-            'update_bnds',  'num_clusters', 'exp_sampling_rate'};
+            'update_bnds',  'num_clusters', 'exp_sampling_rate',
+            'cluster',      'average_mesh'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -81,6 +85,8 @@ save_figures= problem.save_figures;
 flip        = problem.flip;
 update_bnds = problem.update_bnds;
 num_clusters= problem.num_clusters;
+cluster     = problem.cluster;
+average_mesh= problem.average_mesh;
 exp_sampling_rate = problem.exp_sampling_rate;
 
 clear problem
@@ -96,6 +102,10 @@ end
 [x, y, u, v, u_scale, direct] = Velocity_Read_Save(num_images, load_raw, image_range, ...
                             l_scale, u_scale_gen, flip, direct);
 
+if average_mesh
+    [x, y, u, v] = compress_mesh(x, y, u, v);
+end
+                        
 % mean velocities and picture dimensions
 mean_u = mean(u,3);
 mean_v = mean(v,3);
@@ -138,9 +148,11 @@ covariance = cal_covariance_mat2(flux_u, flux_v, vol_frac, bnd_idx);
 [pod_u, pod_v, lambda, modal_amp, cutoff] =  ...
     calc_eig_modes2(covariance, flux_u, flux_v); 
 
-% Cluster resulting POD modes
-[km_stoch, gm_stoch, gm_models, gm_groups, km_groups, centers] = ...
-    cluster_POD(modal_amp, num_clusters, direct, save_figures);
+if cluster
+    % Cluster resulting POD modes
+    [km_stoch, gm_stoch, gm_models, gm_groups, km_groups, centers] = ...
+        cluster_POD(modal_amp, num_clusters, direct, save_figures);
+end
 
 pod_u = regroup(pod_u, dimensions);
 pod_v = regroup(pod_v, dimensions);
@@ -229,21 +241,28 @@ results_pod.cutoff = cutoff;
 results_pod.l_scale = l_scale;
 results_pod.u_scale = u_scale;
 
-% k-mean clustering data
-results_clust.km_groups = km_groups;
-results_clust.centers = centers;
-results_clust.km_stoch = km_stoch;
-
-% gaussian mixture model data
-results_clust.gm_models = gm_models;
-results_clust.gm_groups = gm_groups;
-results_clust.gm_stoch = gm_stoch;
-results_clust.cluster_range = 2:40;
+if cluster
+    % k-mean clustering data
+    results_clust.km_groups = km_groups;
+    results_clust.centers = centers;
+    results_clust.km_stoch = km_stoch;
+    
+    % gaussian mixture model data
+    results_clust.gm_models = gm_models;
+    results_clust.gm_groups = gm_groups;
+    results_clust.gm_stoch = gm_stoch;
+    results_clust.cluster_range = 2:40;
+end
 
 % Save variables relavent to Galerkin to .mat files
 if save_pod == true
-    save([direct filesep 'POD Data' filesep 'POD_run_' num2str(run_num) '.mat'], ...
-        'results_pod', 'results_clust', '-v7.3');
+    if cluster
+        save([direct filesep 'POD Data' filesep 'POD_run_' num2str(run_num) '.mat'], ...
+            'results_pod', 'results_clust', '-v7.3');
+    else
+        save([direct filesep 'POD Data' filesep 'POD_run_' num2str(run_num) '.mat'], ...
+            'results_pod', '-v7.3');
+    end
 end
 
 if nargout >= 1
