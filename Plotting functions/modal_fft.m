@@ -27,7 +27,6 @@ for i = 1:windows
 end
 
 freq_response_dB = 20*log10(freq_response);
-phase_angle = angle(freq_response);
 
 % setup plot frequency response
 hf = figure;
@@ -49,8 +48,6 @@ axf.XLabel.String = 'frequency (Hz)';
 axf.YLabel.String = 'Frequency Response (dB)';
 axf.Title.String  = ['Modal Frequency Response ' id];
 axf.XLim = xlim;
-
-%
 
 % Generate legend
 leg_names = cell(size(num_plot,1),1);

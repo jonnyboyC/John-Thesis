@@ -19,7 +19,7 @@ if isempty(problem.plot_type) || ~iscell(problem.plot_type);
 end
 
 % Check to make sure incorrect strings are not passed
-correct = {'fft', 'amp', 'energy', 'video'};
+correct = {'fft', 'amp', 'energy', 'video', 'video stream'};
 problem.plot_type = list_check(problem.plot_type, correct, 'plot_type');
 
 % Default for save_coef

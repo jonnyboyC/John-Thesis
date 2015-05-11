@@ -1,4 +1,5 @@
-function [bnd_x, bnd_y, bnd_idx] = refine_bounds(x, y, mean_u, mean_v, direct, update_bnds)
+function [bnd_x, bnd_y, bnd_idx, mean_u, mean_v, flux_u, flux_v] = ...
+    refine_bounds(x, y, mean_u, mean_v, flux_u, flux_v, direct, update_bnds)
 % Load boundaries if already determined
 if exist([direct filesep 'Processed Data' filesep 'Mask' filesep 'Mask.mat'], 'file') && ~update_bnds
     load([direct filesep 'Processed Data' filesep 'Mask' filesep 'Mask.mat'], 'bnd_idx', 'bnd_x', 'bnd_y');
@@ -24,3 +25,13 @@ else
     % Save values
     save([direct filesep 'Processed Data' filesep 'Mask' filesep 'Mask.mat'], 'bnd_idx', 'bnd_x', 'bnd_y', '-v7.3');
 end
+
+% Later needed to some plots later
+mean_u(bnd_idx <= 0) = 0;
+mean_v(bnd_idx <= 0) = 0;
+
+mask = repmat(bnd_idx, 1, 1, size(flux_u, 3));
+
+flux_u(mask <= 0) = 0;
+flux_v(mask <= 0) = 0;
+

@@ -7,7 +7,6 @@ t           = plot_data.t;
 direct      = plot_data.direct;
 pod_ut      = plot_data.pod_ut;
 pod_vt      = plot_data.pod_vt;
-pod_vort    = plot_data.pod_vort;
 dimensions  = plot_data.dimensions;
 fft_window  = plot_data.fft_window;
 sample_freq = plot_data.sample_freq;
@@ -25,6 +24,7 @@ custom      = plot_data.custom;
 t_scale = u_scale/l_scale;
 sample_freq = sample_freq*t_scale;
 t = t/t_scale;
+use_stream = false;
 
 % If using Mod add a mode zero to make it work like Galerkin
 if Mod == true
@@ -33,8 +33,12 @@ if Mod == true
 end
 
 % TODO significant overhaul to this function
-if any(strcmp(plot_type, 'video'))
-    plot_prediction(pod_ut, pod_vt, pod_vort, x, y, bnd_idx, modal_amp, t, dimensions, direct, custom, id)
+if any(strcmp(plot_type, 'video stream'))
+    use_stream = true;
+end
+
+if any(strcmp(plot_type, 'video') | strcmp(plot_type, 'video stream'))
+    plot_prediction(pod_ut, pod_vt, pod_vort, x, y, bnd_idx, modal_amp, t, dimensions, use_stream, direct, custom, id)
 end
 
 % Strip mean_u, mean_v
@@ -58,9 +62,10 @@ if any(strcmp(plot_type, 'fft'))
         num2plot = 1:num_modes;
     end
     if size(t,1) > 8192
-        window_size = 4096;
+        window_size = ceil(size(t,1)/4);
+%         window_size = 8192;
     else
-        window_size = ceil(size(t,1)/3);
+        window_size = ceil(size(t,1)/4);
     end
     modal_fft(modal_amp, num2plot, window_size, ...
         sample_freq, fft_window, direct, type, custom, id);

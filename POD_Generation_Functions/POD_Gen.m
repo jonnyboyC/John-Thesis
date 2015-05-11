@@ -109,28 +109,29 @@ end
 % mean velocities and picture dimensions
 mean_u = mean(u,3);
 mean_v = mean(v,3);
-dimensions = size(x);   
+dimensions = size(x);  
 
 % Determine the number of images actually in memory
 num_images = size(u,3);
+
+% Find fluxating velocity of flow
+flux_u = u - repmat(mean_u,1,1,num_images);
+flux_v = v - repmat(mean_v,1,1,num_images);
 
 % Determine resolution of velocity image
 data_points = numel(x);
 
 % Exactly define flow boundaries
-[bnd_x, bnd_y, bnd_idx] = refine_bounds(x, y, mean_u, mean_v, direct, update_bnds);
+[bnd_x, bnd_y, bnd_idx, mean_u, mean_v, flux_u, flux_v] = ...
+    refine_bounds(x, y, mean_u, mean_v, flux_u, flux_v, direct, update_bnds);
 
 % Calculate volume elements of the mesh
 vol_frac = voln_piv2(x, y, bnd_idx);
 
 % Check if mesh has even spacing
 uniform = check_mesh(x, y);
-
-% Find fluxating velocity of flow
-flux_u = u - repmat(mean_u,1,1,num_images);
-flux_v = v - repmat(mean_v,1,1,num_images);
     
-clear u v
+% clear u v
 
 % Create a stacked data matrix for u and v velocities
 flux_u      = reshape(flux_u, data_points, num_images);
@@ -148,26 +149,20 @@ covariance = cal_covariance_mat2(flux_u, flux_v, vol_frac, bnd_idx);
 [pod_u, pod_v, lambda, modal_amp, cutoff] =  ...
     calc_eig_modes2(covariance, flux_u, flux_v); 
 
-if cluster
-    % Cluster resulting POD modes
-    [km_stoch, gm_stoch, gm_models, gm_groups, km_groups, centers] = ...
-        cluster_POD(modal_amp, num_clusters, direct, save_figures);
-end
-
-pod_u = regroup(pod_u, dimensions);
-pod_v = regroup(pod_v, dimensions);
 
 % Figure out sign and apply flip
 for i = 1:cutoff
-    sign_flip = sign(mean(mean(sign(pod_v(:,:,i)./(pod_v(:,:,i) + eps)))));
-    pod_u(:,:,i) = pod_u(:,:,i)*sign_flip;
-    pod_v(:,:,i) = pod_v(:,:,i)*sign_flip;
+    sign_flip = sign(mean(mean(sign(pod_v(:,i)./(pod_v(:,i) + eps)))));
+    pod_u(:,i) = pod_u(:,i)*sign_flip;
+    pod_v(:,i) = pod_v(:,i)*sign_flip;
     modal_amp(:,i) = modal_amp(:,i)*sign_flip;
 end
 
-% Calculate pod_vor
-pod_u = reshape(pod_u, data_points, cutoff);
-pod_v = reshape(pod_v, data_points, cutoff);
+% Cluster resulting POD modes
+if cluster
+    [km_stoch, gm_stoch, gm_models, gm_groups, km_groups, centers] = ...
+        cluster_POD(modal_amp, num_clusters, direct, save_figures);
+end
 
 % Calculate voritcity
 [pod_vor, mean_vor] = calc_pod_vor(pod_u, pod_v, mean_u, mean_v, dimensions, cutoff, bnd_idx, bnd_x, bnd_y, x, y);

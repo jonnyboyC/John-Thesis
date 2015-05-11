@@ -236,6 +236,7 @@ for i = 1:size(models, 2)
     plot_data.x             = x;
     plot_data.y             = y;
     plot_data.Mod           = true;
+    plot_data.custom        = false;
     plot_data.bnd_idx       = bnd_idx;
 
     % Generate plots
