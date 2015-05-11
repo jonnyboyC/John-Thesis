@@ -30,6 +30,8 @@ plot_img_num = 1;
 % Generate plot handles
 h = figure('Name',['  Variable: ' varname ',  (' num2str(sum(energy),4) '%)'],'color','w');
 h.Position = [400, 400, 1100, 650];
+movegui(h,'center')
+
 
 for i = 1:num_modes
     % Update pod data

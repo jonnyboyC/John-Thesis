@@ -15,7 +15,9 @@ function [res_coef, res_int] = Galerkin_Proj(varargin)
 % problem.plot_type = {'amp', 'fft', 'energy'}
 % Specify which outout graphes are desired, current options are modal
 % amplitude 'amp', fourier fast transform 'fft', system energy 'energy', 
-% and 'video' which produces a video of the simulated flow
+% 'video' which produces a video of the simulated flow using quivers, 
+% 'video stream' will produce a video of simulated flow using streamlines,
+% caution very slow
 % 
 % problem.save_coef = true
 % Save relvant values to at .mat file
@@ -205,14 +207,14 @@ if calc_coef
     
     % Generate values up to cutoff to be used for Couplet viscous dissipation
     if ismember('Couplet', dissapation);
-        % Calculate for traditional Galerkin Projection
         fprintf('Generating coefficients for unresolved modes using %d modes\n', cutoff);
+        
+        % Calculate for traditional Galerkin Projection
         [lc{1,1}, qc{1,1}] = visocity_coefficients(coef_problem);
         lc{1,2}  = 'Base cutoff';
         qc{1,2}  = 'Base cutoff';
         
         % Calculate for weak formulation Galerkin Projection
-        fprintf('Generating coefficients for unresolved modes using %d modes for Weak Solution \n', cutoff);
         lc{2,1}  = visocity_coefficients_ws(coef_problem);
         lc{2,2}  = 'Weak cutoff';
         qc{2,1}  = qc{1,1};
@@ -319,7 +321,9 @@ for i = 1:length(num_modesG)
         % duplicate TODO name this better
         eddy(linear_models+1:total_models,1,i) = eddy(base_models+1:linear_models,1,i);
         for j = base_models+1:linear_models
-            eddy{j+linear_models-base_models,2,i} = ['NL ' eddy{j,2,i}];
+            if ~isempty(eddy{j,2,i}) 
+                eddy{j+linear_models-base_models,2,i} = ['NL ' eddy{j,2,i}];
+            end
         end
         
         % Get correct names
@@ -349,17 +353,23 @@ for i = 1:length(num_modesG)
         options = odeset('RelTol', 1e-8, 'AbsTol', 1e-10);
         ao = modal_amp(init,[1 modes]);
         
+        %%%%%%%%%%%%%%%%%% Will potentially remove %%%%%%%%%%%%%%%%%%%%%%%
+        phase = angle(modal_amp(1,2) + modal_amp(1,3)*1i);
+%         ao(2) = 0.06165*sin(phase);
+%         ao(3) = 0.06165*cos(phase);
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
         % Perform final manipulation to prep integration
         [reduced_model_coeff] = integration_setup(eddy, vis, l, q, i, total_models, ...
             linear_models, num_modes);
         tic;
         [t, modal_amp_sim] = time_integration(reduced_model_coeff, eddy, vis, modal_TKE, ...
-            i, t, modal_amp_sim, ao, tspan, total_models, linear_models, options);
+            i, t, modal_amp_sim, ao, phase, tspan, total_models, linear_models, options);
         toc;
 
 %% Plotting functions
 
-        if ~custom
+        if ~custom && num_modes <= 40
             idx = (cluster_range == num_modes-1);
             [scores_km(:,1,i), scores_gm(:,1,i)] = classify_Gal(centers{idx}, ...
                 gm_models{idx}, modal_amp_sim(:,:,i), direct, km_stoch{idx}, gm_stoch{idx});

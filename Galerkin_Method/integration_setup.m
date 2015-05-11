@@ -19,7 +19,7 @@ for j = 1:total_models
         end
 
         % Galerkin 1D coefficients using 
-        reduced_model_coeff{j,1} = ode_coefficients(num_modes, Gal_coeff{j,1,idx}, Mod);
+        reduced_model_coeff{j,1} = ode_coefficients2(num_modes, Gal_coeff{j,1,idx}, Mod);
         reduced_model_coeff{j,2} = Gal_coeff{j,2,idx};
     end
 end
