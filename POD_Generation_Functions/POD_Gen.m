@@ -34,6 +34,9 @@ function [res_pod, res_clust] = POD_Gen(varargin)
 % problem.cluster = true
 % Specify if you want to cluster results or not
 %
+% problem.average_mesh = false
+% Specify if you would like to average raw data over 2x2 range
+%
 % problem.l_scale = 1
 % Specify a scalar to be used as the length scale for the problem
 %
@@ -102,10 +105,13 @@ end
 [x, y, u, v, u_scale, direct] = Velocity_Read_Save(num_images, load_raw, image_range, ...
                             l_scale, u_scale_gen, flip, direct);
 
-% if average_mesh
-%     [x, y, u, v] = compress_mesh(x, y, u, v);
-% end
+% Check if mesh has even spacing
+uniform = check_mesh(x, y);
                         
+if average_mesh && uniform
+    [x, y, u, v] = compress_mesh(x, y, u, v);
+end
+
 % mean velocities and picture dimensions
 mean_u = mean(u,3);
 mean_v = mean(v,3);
@@ -127,11 +133,8 @@ data_points = numel(x);
 
 % Calculate volume elements of the mesh
 vol_frac = voln_piv2(x, y, bnd_idx);
-
-% Check if mesh has even spacing
-uniform = check_mesh(x, y);
     
-% clear u v
+clear u v
 
 % Create a stacked data matrix for u and v velocities
 flux_u      = reshape(flux_u, data_points, num_images);
