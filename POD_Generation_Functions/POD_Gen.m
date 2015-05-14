@@ -61,7 +61,7 @@ clc
 fields = {  'num_images',   'load_raw',     'save_pod', ...
             'image_range',  'direct',       'l_scale', ...
             'u_scale_gen',  'save_figures', 'flip',...
-            'update_bnds',  'num_clusters', 'exp_sampling_rate',
+            'update_bnds',  'num_clusters', 'exp_sampling_rate',...
             'cluster',      'average_mesh'};
 
 % Parse problem structure provided to set it up correctly
@@ -102,9 +102,9 @@ end
 [x, y, u, v, u_scale, direct] = Velocity_Read_Save(num_images, load_raw, image_range, ...
                             l_scale, u_scale_gen, flip, direct);
 
-if average_mesh
-    [x, y, u, v] = compress_mesh(x, y, u, v);
-end
+% if average_mesh
+%     [x, y, u, v] = compress_mesh(x, y, u, v);
+% end
                         
 % mean velocities and picture dimensions
 mean_u = mean(u,3);

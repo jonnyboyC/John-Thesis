@@ -60,7 +60,8 @@ for i = 1:num_modes
         ax_sub(plot_img_num).XLabel = xlabel('x/D', 'fontname','times new roman','fontsize',12);
         ax_sub(plot_img_num).YLabel = ylabel('y/D', 'fontname','times new roman','fontsize',12);
         ax_sub(plot_img_num).CLim = [cmin cmax];
-        colorbar;
+        cax = colorbar('peer', ax_sub(plot_img_num));
+        cax.Label.String = 'Free Stream Velocity U_{\infty}';
     else
         [h_surf_sub(plot_img_num), h_quiver_sub(plot_img_num)] ...
             = plot_vector_field(data, h_surf_sub(plot_img_num), h_quiver_sub(plot_img_num));
