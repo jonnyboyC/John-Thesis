@@ -148,6 +148,7 @@ flux_v = v - repmat(mean_v,1,1,num_images);
 
 % Calculate volume elements of the mesh
 vol_frac = voln_piv_2D(x, y, bnd_idx);
+vol_frac = voln_piv_2D2(x, y, bnd_idx, bnd_x, bnd_y);
     
 clear u v
 

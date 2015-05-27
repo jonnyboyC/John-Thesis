@@ -27,10 +27,10 @@ bnd_y(bnd_idx == -1) = 0;
 bnd_x(bnd_idx == -1) = 0;
 
 exterior = false(size(bnd_idx));
-
-bnd_x(bnd_idx == 1 & ~exterior) = 0;
 exterior([1,size(bnd_idx,1)],:) = true;
 exterior(:,[1,size(bnd_idx,2)]) = true;
+
+bnd_x(bnd_idx == 1 & ~exterior) = 0;
 bnd_y(bnd_idx == 1 & ~exterior) = 0;
 
 end

@@ -32,7 +32,7 @@ for i = 1:size(x,1)
             lh = y(i,j)-ym(i-1,j-1);
             vol_frac(i,j) = lh*wd;
         
-        elseif ( i == 1 && (j == 1|| bnd_idx(i,j) == 0 && bnd_idx(i+1,j) == 0 && bnd_idx(i+1,j+1) > 0)) % Bottom Left Corner
+        elseif (i == 1 && (j == 1|| bnd_idx(i,j) == 0 && bnd_idx(i+1,j) == 0 && bnd_idx(i+1,j+1) > 0)) % Bottom Left Corner
             wd = (xm(i,j)-x(i,j));
             lh = ym(i,j)-y(i,j);
             vol_frac(i,j) = lh*wd;
@@ -68,7 +68,7 @@ for i = 1:size(x,1)
             rh = ym(i,j)-y(i,j);
             vol_frac(i,j) = (rh+lh)/2*wd;
         
-        elseif (i == 1 || i > 1 && j > 1 && j < size(x,2)  &&  bnd_idx(i,j) == 0 &&  bnd_idx(i,j-1) == 0 && bnd_idx(i,j+1) == 0 && bnd_idx(i+1,j) > 0) % Left Boundary
+        elseif (i == 1 || i > 1 && j > 1 && j < size(x,2) &&  bnd_idx(i,j) == 0 &&  bnd_idx(i,j-1) == 0 && bnd_idx(i,j+1) == 0 && bnd_idx(i+1,j) > 0) % Left Boundary
             wd = (xm(i,j)-x(i,j));
             lh = ym(i,j)-ym(i,j-1);
             vol_frac(i,j) = lh*wd;
