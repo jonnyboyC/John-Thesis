@@ -13,6 +13,13 @@ if isempty(problem.load_raw) || ~islogical(problem.load_raw)
     problem.load_raw = true;        % read raw data
 end
 
+% Default for load_raw
+if isempty(problem.streamlines) || ~islogical(problem.streamlines)
+    fprintf('Using default value for streamlines\nproblem.streamlines = false\n\n');
+    problem.streamlines = false;        % read raw data
+end
+
+
 % Default for save_pod
 if isempty(problem.save_pod) || ~islogical(problem.save_pod)
     fprintf('Using default value for save_pod\nproblem.save_pod = true\n\n');
@@ -25,10 +32,16 @@ if isempty(problem.cluster) || ~islogical(problem.cluster)
     problem.cluster = true;        % save pod results
 end
 
+% Default for filter
+if isempty(problem.filter) || ~islogical(problem.filter)
+    fprintf('Using default value for cluster\nproblem.filter = false\n\n');
+    problem.filter = false;        % save pod results
+end
+
 % Default for average_mesh
 if isempty(problem.average_mesh) || ~islogical(problem.average_mesh)
-    fprintf('Using default value for cluster\nproblem.average_mesh = true\n\n');
-    problem.average_mesh = true;        % save pod results
+    fprintf('Using default value for cluster\nproblem.average_mesh = false\n\n');
+    problem.average_mesh = false;        % save pod results
 end
 
 % Default for save_figures

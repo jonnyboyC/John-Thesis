@@ -10,8 +10,6 @@ pod_vt      = plot_data.pod_vt;
 dimensions  = plot_data.dimensions;
 fft_window  = plot_data.fft_window;
 sample_freq = plot_data.sample_freq;
-u_scale     = plot_data.u_scale;
-l_scale     = plot_data.l_scale;
 id          = plot_data.id;
 type        = plot_data.type;
 plot_type   = plot_data.plot_type;
@@ -21,9 +19,6 @@ Mod         = plot_data.Mod;
 bnd_idx     = plot_data.bnd_idx;
 custom      = plot_data.custom;
 
-t_scale = u_scale/l_scale;
-sample_freq = sample_freq*t_scale;
-t = t/t_scale;
 use_stream = false;
 
 % If using Mod add a mode zero to make it work like Galerkin
@@ -38,7 +33,7 @@ if any(strcmp(plot_type, 'video stream'))
 end
 
 if any(strcmp(plot_type, 'video') | strcmp(plot_type, 'video stream'))
-    plot_prediction(pod_ut, pod_vt, pod_vort, x, y, bnd_idx, modal_amp, t, dimensions, use_stream, direct, custom, id)
+    plot_prediction(pod_ut, pod_vt, x, y, bnd_idx, modal_amp, t, dimensions, use_stream, direct, custom, id)
 end
 
 % Strip mean_u, mean_v
@@ -50,7 +45,7 @@ if any(strcmp(plot_type, 'amp'))
 end
 
 if any(strcmp(plot_type, 'energy'))
-    plot_energy(modal_amp, t, direct, type, custom, id);
+    plot_energy(modal_amp, t, id, direct, type, custom);
 end
 
 

@@ -48,7 +48,11 @@ function [res_pod, res_clust] = POD_Gen(varargin)
 % [x, y, u, v]
 %
 % problem.update_bnds = false;
-% If true launch gui modify boundaries
+% If true launch gui to modify boundaries
+%
+% problem.filter = false;
+% If true apply a guide filter to images, to attempt to minimize affect of
+% PIV artifacts
 %
 % problem.num_clusters = 10;
 % set the number of clusters that should be determined
@@ -65,7 +69,8 @@ fields = {  'num_images',   'load_raw',     'save_pod', ...
             'image_range',  'direct',       'l_scale', ...
             'u_scale_gen',  'save_figures', 'flip',...
             'update_bnds',  'num_clusters', 'exp_sampling_rate',...
-            'cluster',      'average_mesh'};
+            'cluster',      'average_mesh', 'filter', ...
+            'streamlines'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -89,6 +94,8 @@ flip        = problem.flip;
 update_bnds = problem.update_bnds;
 num_clusters= problem.num_clusters;
 cluster     = problem.cluster;
+filter      = problem.filter;
+streamlines = problem.streamlines;
 average_mesh= problem.average_mesh;
 exp_sampling_rate = problem.exp_sampling_rate;
 
@@ -99,15 +106,16 @@ if isempty(gcp('nocreate'));
     parpool('local');
 end
 
-%% Load and organize data
+%% Load and Preprocess Data
 
 % Load simulation data from raw .vc7 or .mat, or from processed .mat
 [x, y, u, v, u_scale, direct] = Velocity_Read_Save(num_images, load_raw, image_range, ...
-                            l_scale, u_scale_gen, flip, direct);
+                                    l_scale, u_scale_gen, flip, direct);
 
 % Check if mesh has even spacing
 uniform = check_mesh(x, y);
-                        
+
+% If request compress mesh by a factor of 2 in both directions
 if average_mesh && uniform
     [x, y, u, v] = compress_mesh(x, y, u, v);
 end
@@ -120,19 +128,26 @@ dimensions = size(x);
 % Determine the number of images actually in memory
 num_images = size(u,3);
 
-% Find fluxating velocity of flow
-flux_u = u - repmat(mean_u,1,1,num_images);
-flux_v = v - repmat(mean_v,1,1,num_images);
-
 % Determine resolution of velocity image
 data_points = numel(x);
 
 % Exactly define flow boundaries
-[bnd_x, bnd_y, bnd_idx, mean_u, mean_v, flux_u, flux_v] = ...
-    refine_bounds(x, y, mean_u, mean_v, flux_u, flux_v, direct, update_bnds);
+[bnd_x, bnd_y, bnd_idx] = refine_bounds(x, y, u, v, mean_u, mean_v, direct, update_bnds);
+
+% Filter raw images, to attempt to remove artifacts
+if filter
+    [u, v, mean_u, mean_v] = filter_images(u, v, bnd_idx, bnd_x, bnd_y);
+end
+
+% Find fluxating velocity of flow
+flux_u = u - repmat(mean_u,1,1,num_images);
+flux_v = v - repmat(mean_v,1,1,num_images);
+
+% Remove excess portions of flow no longer in use
+[mean_u, mean_v, flux_u, flux_v] = clip_bounds(bnd_idx, mean_u, mean_v, flux_u, flux_v);
 
 % Calculate volume elements of the mesh
-vol_frac = voln_piv2(x, y, bnd_idx);
+vol_frac = voln_piv_2D(x, y, bnd_idx);
     
 clear u v
 
@@ -146,12 +161,10 @@ vol_frac    = reshape(vol_frac, data_points, 1);
 %% Perform Proper Orthogonal Decomposition
 
 % Generate covariance matrix
-covariance = cal_covariance_mat2(flux_u, flux_v, vol_frac, bnd_idx);
+covariance = cal_covariance_mat_2D(flux_u, flux_v, vol_frac, bnd_idx);
 
 % Perform POD on fluctuating data
-[pod_u, pod_v, lambda, modal_amp, cutoff] =  ...
-    calc_eig_modes2(covariance, flux_u, flux_v); 
-
+[pod_u, pod_v, lambda, modal_amp, cutoff] = POD_2D(covariance, flux_u, flux_v); 
 
 % Figure out sign and apply flip
 for i = 1:cutoff
@@ -168,11 +181,16 @@ if cluster
 end
 
 % Calculate voritcity
-[pod_vor, mean_vor] = calc_pod_vor(pod_u, pod_v, mean_u, mean_v, dimensions, cutoff, bnd_idx, bnd_x, bnd_y, x, y);
-pod_vor = reshape(pod_vor, data_points, cutoff);
+[pod_vor, mean_vor] = calc_pod_vor(pod_u, pod_v, mean_u, mean_v, ...
+                            dimensions, cutoff, bnd_idx, bnd_x, bnd_y, x, y);
+                     
+% Create a stacked data matrix for vorticity values
+pod_vor  = reshape(pod_vor, data_points, cutoff);
 mean_vor = reshape(mean_vor, data_points, 1);
 
 %% Setup for Plotting and Plotting
+
+% setup plot limit
 if cutoff > 40
     num_plot = 40;
 else
@@ -188,7 +206,7 @@ if ~isempty(save_figures)
     data.bnd_idx = bnd_idx;
     
     % Plot vector field modes
-    plot_vector_modes(data, pod_u, pod_v, num_plot, dimensions, 'POD', lambda, direct, save_figures);
+    plot_vector_modes(data, pod_u, pod_v, num_plot, dimensions, 'POD', lambda, direct, save_figures, streamlines);
     
     % plot scalar field modes
     plot_scalar_modes(data, pod_u, num_plot, dimensions, 'u', lambda, direct, save_figures);

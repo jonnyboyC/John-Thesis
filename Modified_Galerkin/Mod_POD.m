@@ -60,7 +60,7 @@ clc;
 fields = {  'RD_nm',        'plot_type',    'save_mod', ...
             'init',         'line_range',   'direct' ,...
             'run_num',      'models',       'fft_window', ...
-            'tspan',        'OG_nm'};
+            'tspan',        'OG_nm'         'custom'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -82,6 +82,7 @@ run_num     = problem.run_num;
 models      = problem.models;
 fft_window  = problem.fft_window;
 tspan       = problem.tspan;
+custom      = problem.custom;
 
 % Check status of parrallel pool
 if isempty(gcp('nocreate'));
@@ -91,10 +92,10 @@ end
 % Handle File IO
 if strcmp(direct, '');
     [direct_POD, direct] = prompt_folder('POD', run_num);
-    [direct_Gal, direct] = prompt_folder('Galerkin', run_num, direct, OG_nm);
+    [direct_Gal, direct] = prompt_folder('Galerkin', run_num, direct, OG_nm, custom);
 else
     [direct_POD, direct] = prompt_folder('POD', run_num, direct);
-    [direct_Gal, direct] = prompt_folder('Galerkin', run_num, direct, OG_nm);
+    [direct_Gal, direct] = prompt_folder('Galerkin', run_num, direct, OG_nm, custom);
 end
 
 % Make sure folders are up to date and load collected data
@@ -118,16 +119,17 @@ x           = vars.results_pod.x;           % x coordinate
 y           = vars.results_pod.y;           % y coordinate
 bnd_idx     = vars.results_pod.bnd_idx;
 
-t_scale = u_scale/l_scale;  % time scale
-tspan = tspan*t_scale;      % non-dimensionalized timescale
-
-% determine sampling rate
+% Determine sampling frequency from provided tspan
 if length(tspan) > 2
     sample_freq = 1/(tspan(2) - tspan(1));
     fprintf('Detected Sampling Frequency %6.2f Hz\n\n', sample_freq);
 else
     error('must provide tspan with a range');
 end
+
+% Create non-dimensionalized timescale
+t_scale = u_scale/l_scale;  
+tspan = tspan*t_scale;      
 
 % vars = load(direct_POD, 'results_clust');
 %     
@@ -146,6 +148,11 @@ eddy_total  = vars.results_coef.eddy;
 vis         = vars.results_coef.vis;
 linear_models = vars.results_coef.linear_models;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    CHANGE      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+modes       = [2:OG_nm+1];
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    CHANGE      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 % Free memory
 clear vars
 
@@ -160,18 +167,19 @@ for i = 1:size(models, 2)
     
     % Set variables for model
     [C, L, Q, lambda, modal_amp] = term2order(l_total{models(i),1}, q_total{models(i),1}, ...
-                                   total_vis, lambda_OG, modal_amp);
+                                   total_vis, lambda_OG, modal_amp, modes);
     
     % Truncate POD
-    pod_ut = pod_u(:,1:OG_nm);
-    pod_vt = pod_v(:,1:OG_nm);
-    modal_ampt = modal_amp(:, 1:OG_nm);
+    pod_ut = pod_u(:,modes);
+    pod_vt = pod_v(:,modes);
+    modal_ampt = modal_amp(:, modes);
     
 
     % Creat line search problem
     line_problem.C = C;
     line_problem.L = L;
     line_problem.Q = Q;
+    line_problem.t_scale = t_scale;
     line_problem.tspan = tspan;
     line_problem.init = init;
     line_problem.OG_nm = OG_nm;
@@ -189,14 +197,14 @@ for i = 1:size(models, 2)
         'FunValCheck', 'on');
 
         [epsilon_final, ~, ~, OUTPUT] = fzero(@(epsilon) optimal_rotation...
-            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 64000), epsilon_range, options);
+            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, t_scale, tspan, init, 64000), epsilon_range, options);
         disp(OUTPUT);
     else
         disp('no sign flip detected');
         options = optimset('PlotFcns', {@optimplotx, @optimplotfval}, 'Display', 'iter', 'TolFun', 1e-10, 'TolX', 1e-6);
 
         [epsilon_final, ~, ~, OUTPUT] = fminbnd(@(epsilon) abs(optimal_rotation...
-            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 64000)), epsilon_low, epsilon_high, options);
+            (epsilon, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, t_scale, tspan, init, 64000)), epsilon_low, epsilon_high, options);
         disp(OUTPUT);
     end
     
@@ -206,7 +214,7 @@ for i = 1:size(models, 2)
     % Final calculation of transformation matrix and new constant linear and
     % quadratic terms
     [~, X, C_til, L_til, Q_til, modal_amp_til, t] = ...
-        optimal_rotation(epsilon_final, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, tspan, init, 64000);
+        optimal_rotation(epsilon_final, C, L, Q, OG_nm, RD_nm, lambda, modal_ampt, t_scale, tspan, init, 64000);
 
     [pod_u_til, pod_v_til, modal_amp_raw_til] = ...
         basis_transform(pod_ut, pod_vt, modal_ampt, RD_nm, X);

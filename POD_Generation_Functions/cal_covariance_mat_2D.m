@@ -1,4 +1,4 @@
-function covariance = cal_covariance_mat2(flux_u, flux_v, vol_frac, bnd_idx)
+function covariance = cal_covariance_mat_2D(flux_u, flux_v, vol_frac, bnd_idx)
 % Calculate covariance matrix of ensemble data
 %
 % CAL_COVARIANCE_MAT2(FLUX_U, FLUX_V, VOL_FRAC, BND_IDX) calculates

@@ -1,5 +1,9 @@
 function [x, y, u, v] = compress_mesh(x, y, u, v)
-% Perform an averaging of values over a 2x2 pixel range,
+% COMPRESS_MESH reduce a mesh by a factor of 2 in both directions
+%
+% [x, y, u, v] = COMPRESS_MESH(x, y, u, v) given raw PIV data provided by
+% x, y, u, v average the quanitites in a 2x2 grid into a new mesh of halve
+% the original resolution
 
 % calculate mean flow
 mean_u = mean(u,3);

@@ -1,5 +1,8 @@
-function plot_vector_modes(data, u, v, num_modes, dimensions, varname, lambda, direct, save_figures)
-% Plot vector modes of the velocity field
+function plot_vector_modes(data, u, v, num_modes, dimensions, varname, lambda, direct, save_figures, streamlines)
+% PLOT_VECTOR_MODES plot a set of vector fields modes
+%
+% PLOT_VECTOR_MODES(data, u, v, num_modes, dimensions, varname, lambda,
+% direct, save_figures, streamlines)
 
 % Determine energy content of each mode
 energy = lambda(1:num_modes)./sum(lambda)*100;
@@ -22,8 +25,12 @@ cmax = 1;
 cmin = 0;
 
 % Preallocate figure subplot handles
-h_surf_sub = gobjects(4, 1);
-h_quiver_sub = gobjects(4, 1);
+h_mag_sub = gobjects(4, 1);
+if streamlines 
+    h_dir_sub = cell(4, 1);
+else
+    h_dir_sub = gobjects(4,1);
+end
 ax_sub = gobjects(4, 1);
 plot_img_num = 1;
 
@@ -56,15 +63,15 @@ for i = 1:num_modes
     
     % plot individual plots
     if i <= 4
-        [h_surf_sub(i), h_quiver_sub(i), ax_sub(i)] = plot_vector_field(data);
+        [h_mag_sub(i), h_dir_sub(i), ax_sub(i)] = plot_vector_field(data, streamlines);
         ax_sub(plot_img_num).XLabel = xlabel('x/D', 'fontname','times new roman','fontsize',12);
         ax_sub(plot_img_num).YLabel = ylabel('y/D', 'fontname','times new roman','fontsize',12);
         ax_sub(plot_img_num).CLim = [cmin cmax];
         cax = colorbar('peer', ax_sub(plot_img_num));
         cax.Label.String = 'Free Stream Velocity U_{\infty}';
     else
-        [h_surf_sub(plot_img_num), h_quiver_sub(plot_img_num)] ...
-            = plot_vector_field(data, h_surf_sub(plot_img_num), h_quiver_sub(plot_img_num));
+        [h_mag_sub(plot_img_num), h_dir_sub(plot_img_num)] ...
+            = plot_vector_field(data, streamlines, h_mag_sub(plot_img_num), h_dir_sub(plot_img_num));
     end
     
     % update plot title

@@ -1,11 +1,15 @@
-function [handle, cax] = Plottec2(data, h)
-% Create pseudo color plot, for flow visualization with included boundaries
+function [h_magnitude, cax] = plot_scalar_field(data, h_mag)
+% PLOT_SCALAR_FIELD plot an individual scalar field with magnitude
+% indicated by color
+%
+% [h_magnitude, cax] = PLOT_SCALAR_FIELD(data, h_mag)
 
+% Create pseudo color plot, for flow visualization with included boundaries
 if nargin == 1 || all(isfield(data, {'bnd_x', 'bnd_y'}))
     ax = newplot;
-    h = surf(ax, data.x, data.y, zeros(size(data.x)), data.pod);
-    h.FaceColor = 'interp';
-    h.EdgeColor = 'none';
+    h_mag = surf(ax, data.x, data.y, zeros(size(data.x)), data.pod);
+    h_mag.FaceColor = 'interp';
+    h_mag.EdgeColor = 'none';
     if isfield(data, 'bnd_idx')
         % Get boundary index
         bnd_idx = data.bnd_idx;
@@ -62,15 +66,15 @@ if nargin == 1 || all(isfield(data, {'bnd_x', 'bnd_y'}))
     axis(ax, 'manual');
 else
     % If plot already present update values
-    h.CData = data.pod;
+    h_mag.CData = data.pod;
 end
 drawnow;
 
 % Return handles
 if nargout == 1
-    handle = h;
+    h_magnitude = h_mag;
 end
 if nargout == 2
-    handle = h;
+    h_magnitude = h_mag;
     cax = ax;
 end
