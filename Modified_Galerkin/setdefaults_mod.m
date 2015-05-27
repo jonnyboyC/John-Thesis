@@ -22,6 +22,12 @@ for i = 1:size(correct_members,2)
 end
 problem.plot_type = problem.plot_type(correct_members);
 
+% Default for save_coef
+if isempty(problem.custom) || ~islogical(problem.custom)
+    fprintf('Using default value for custom\nproblem.custom = false\n\n');
+    problem.custom = false;        % save projection values
+end
+
 % Default for fft_window
 if isempty(problem.fft_window) || (isnumeric(problem.fft_window) && ...
         size(problem.fft_window, 1) == 1 && size(problem.fft_window,2) == 2)

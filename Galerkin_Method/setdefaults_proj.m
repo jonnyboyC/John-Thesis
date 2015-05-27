@@ -7,6 +7,12 @@ if isempty(problem.num_modesG) || ~isnumeric(problem.num_modesG) && ~iscell(prob
     problem.num_modesG = 10;        % use 10 modes
 end
 
+% Default for save_coef
+if isempty(problem.classify_sim) || ~islogical(problem.classify_sim)
+    fprintf('Using default value for save_coef\nproblem.classify_sim = true\n\n');
+    problem.classify_sim = true;        % save projection values
+end
+
 if iscell(problem.num_modesG)
     idx = cellfun(@isnumeric, problem.num_modesG);
     problem.num_modesG(~idx) = [];

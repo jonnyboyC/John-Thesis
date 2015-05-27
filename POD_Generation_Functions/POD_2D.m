@@ -1,5 +1,13 @@
 function [pod_u, pod_v, lambda, modal_amp, cutoff] = ...
-    calc_eig_modes2(co_var, flux_u, flux_v)
+    POD_2D(co_var, flux_u, flux_v)
+% POD_2D perform Proper Orthogonal Decompostion on a data matrix decribed
+% in Sorvich's POD method of snapshots
+%
+% [pod_u, pod_v, lambda, modal_amp, cutoff] = POD_2D(co_var, flux_u,
+% flux_v) given the fluctuation components FLUX_U, FLUX_V, and covariance
+% matrix CO_VAR return POD modes, POD_U, POD_V eigenvalues LAMBDA,
+% modal_amplitudes MODAL_AMP, and modes to 99% CUTOFF
+
 %% Calculate pod modes, pod lambda values, and the left eigenvector
 num_images = size(co_var,1);
 

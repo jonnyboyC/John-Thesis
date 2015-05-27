@@ -1,7 +1,7 @@
 function [xi, yi, ui, vi, u_scale, direct] = Velocity_Read_Save(num_images, load_raw, image_range, ...
                                             l_scale, u_scale_gen, flip, direct)
-% VELOCITY_READ_PLOT_SAVE read num_images number of images from a selected
-% directory.
+% VELOCITY_READ_PLOT_SAVE read raw num_images number of images from a selected
+% directory in either .dat .vc7 or .mat formats
 %   [x, y, u, v, num_x, num_y] = VELOCITY_READ_PLOT_SAVE(num_images)
 % 
 

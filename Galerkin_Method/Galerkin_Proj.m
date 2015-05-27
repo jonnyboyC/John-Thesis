@@ -60,6 +60,9 @@ function [res_coef, res_int] = Galerkin_Proj(varargin)
 % problem.use_chunks = false
 % Set this to true if you are running out of memeory well write values of q
 % to disk 
+%
+% problem.classify_sim = true
+% Compared clustered results
 
 % Set format, clear figures, and set up correct directory
 format long g
@@ -71,7 +74,7 @@ fields = {  'num_modesG',   'plot_type',    'save_coef', ...
             'override_coef','tspan',        'init', ...
             'direct' ,      'Re0_gen',      'fft_window', ...
             'run_num',      'dissapation',  'time_int', ...
-            'use_chunks',   'calc_coef'};
+            'use_chunks',   'calc_coef',    'classify_sim'};
         
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -96,6 +99,7 @@ fft_window      = problem.fft_window;
 dissapation     = problem.dissapation;
 calc_coef       = problem.calc_coef;
 time_int        = problem.time_int;
+classify_sim    = problem.classify_sim;
 use_chunks      = problem.use_chunks;
 
 clear problem
@@ -144,7 +148,7 @@ end
 % Free memory
 clear vars
 
-if time_int
+if time_int && classify_sim
     % Load Cluster variables
     vars = load(direct_POD, 'results_clust');
     
@@ -159,16 +163,11 @@ if time_int
 end
 
 
-
-
 % Get Reynolds number 
 Re0 = Re0_gen(direct, u_scale, l_scale);  
 
 % Kinematic visocity Assume values have been non-dimensionalized
 vis = 1/Re0;
-
-t_scale = u_scale/l_scale;  % time scale
-tspan = tspan*t_scale;      % non-dimensionalized timescale
 
 % Determine sampling frequency from provided tspan
 if length(tspan) > 2
@@ -177,6 +176,10 @@ if length(tspan) > 2
 else
     error('must provide tspan with a range');
 end
+
+% Create non-dimensionalized timescale
+t_scale = u_scale/l_scale;  
+tspan = tspan*t_scale;      
 
 %% Calculate Coefficients
 
@@ -238,10 +241,15 @@ q       = cell(total_models,2,length(num_modesG));
 if time_int
     t               = cell(total_models,2,length(num_modesG));
     modal_amp_sim   = cell(total_models,2,length(num_modesG));
+end
+
+% initialize scores if clustering
+if classify_sim
     scores_km       = cell(total_models,2,length(num_modesG));
     scores_gm       = cell(total_models,2,length(num_modesG));
 end
 
+% perform calculation on each set of modes requested
 for i = 1:length(num_modesG)
     fprintf('\n');
     
@@ -353,23 +361,17 @@ for i = 1:length(num_modesG)
         options = odeset('RelTol', 1e-8, 'AbsTol', 1e-10);
         ao = modal_amp(init,[1 modes]);
         
-        %%%%%%%%%%%%%%%%%% Will potentially remove %%%%%%%%%%%%%%%%%%%%%%%
-        phase = angle(modal_amp(1,2) + modal_amp(1,3)*1i);
-%         ao(2) = 0.06165*sin(phase);
-%         ao(3) = 0.06165*cos(phase);
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
         % Perform final manipulation to prep integration
         [reduced_model_coeff] = integration_setup(eddy, vis, l, q, i, total_models, ...
             linear_models, num_modes);
         tic;
         [t, modal_amp_sim] = time_integration(reduced_model_coeff, eddy, vis, modal_TKE, ...
-            i, t, modal_amp_sim, ao, phase, tspan, total_models, linear_models, options);
+            i, t, modal_amp_sim, ao, t_scale, tspan, total_models, linear_models, options);
         toc;
 
 %% Plotting functions
 
-        if ~custom && num_modes <= 40
+        if classify_sim && num_modes <= 40
             idx = (cluster_range == num_modes-1);
             [scores_km(:,1,i), scores_gm(:,1,i)] = classify_Gal(centers{idx}, ...
                 gm_models{idx}, modal_amp_sim(:,:,i), direct, km_stoch{idx}, gm_stoch{idx});
@@ -409,11 +411,12 @@ for i = 1:length(num_modesG)
             end
         end
     end
-    
+        
     fprintf('Saving Galerkin Variables\n');
     
     % Include coefficent terms if requested
     if calc_coef
+        results_coef.modes = modes;
         results_coef.run_num = run_num;
         results_coef.num_modesG = num_modes-1;
         results_coef.sample_freq = sample_freq;

@@ -7,6 +7,7 @@ OG_nm       = problem.OG_nm;
 RD_nm       = problem.RD_nm;
 lambda      = problem.lambda;
 modal_amp   = problem.modal_amp;
+t_scale     = problem.t_scale;
 tspan       = problem.tspan;
 init        = problem.init;
 line_range  = problem.line_range;
@@ -19,7 +20,7 @@ transfer = zeros(line_range+1,1);
 epsilon(1) = epsilon_0;
 
 % Find initial value for line search and plot
-transfer(1) = optimal_rotation(epsilon_0, C, L, Q, OG_nm, RD_nm, lambda, modal_amp, tspan, init, 64000);
+transfer(1) = optimal_rotation(epsilon_0, C, L, Q, OG_nm, RD_nm, lambda, modal_amp, t_scale, tspan, init, 6000);
 
 % Brute force Line Search, rough pass parrallel loop. Idea is to quickly
 % sweep a large area to look for sign changes to use for a finer pass in
@@ -32,10 +33,10 @@ for i = 1:line_range
     else
         flip = -1;
     end
-    amp = floor(i+1/2)/16;
+    amp = floor(i+1/2)/128;
     epsilon(i+1) = epsilon_0*(1-amp*flip);
     parfeval_futures(i) = parfeval(@optimal_rotation, 1, epsilon(i+1), ...
-        C, L, Q, OG_nm, RD_nm, lambda, modal_amp, tspan, init, 64000);
+        C, L, Q, OG_nm, RD_nm, lambda, modal_amp, t_scale, tspan, init, 6000);
 end
 
 

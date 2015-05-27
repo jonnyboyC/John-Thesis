@@ -1,4 +1,4 @@
-function [file_loc, direct] = prompt_folder(data, run_num, direct, num_modes)
+function [file_loc, direct] = prompt_folder(data, run_num, direct, num_modes, custom)
 % TODO really change this
 % PROMPT_FOLDER Handles all the IO for selecting the correct data, can
 % either select data manually by selection or with additional input
@@ -30,6 +30,10 @@ if nargin < 4
     num_modes = 0;
 end
 
+if nargin < 5
+    custom = false;
+end
+
 % If only one one input given prompt for directory
 if nargin == 2    
     % Prompt the user for location of Test folder
@@ -38,10 +42,10 @@ if nargin == 2
 end
 
 % Get file(s) information
-file_loc = get_data(data_folder, data, direct, run_num, num_modes);
+file_loc = get_data(data_folder, data, direct, run_num, num_modes, custom);
 end
 
-function file_loc = get_data(data_folder, data, direct, run_num, num_modes)
+function file_loc = get_data(data_folder, data, direct, run_num, num_modes, custom)
 
 % Get .mat wildcard
 wildcard = get_wild(run_num, direct, data_folder, num_modes);
@@ -49,7 +53,11 @@ wildcard = get_wild(run_num, direct, data_folder, num_modes);
 % If num_modes requested, look in Galerkin folder for mode data
 full_path = [direct filesep data_folder];
 if num_modes > 0
-    full_path = [full_path filesep 'modes_' num2str(num_modes)];
+    if custom
+        full_path = [full_path filesep 'modes_' num2str(num_modes) '_custom'];
+    else
+        full_path = [full_path filesep 'modes_' num2str(num_modes)];
+    end
     if ~isdir(full_path)
         % Exit if mode folder isn't found
         error('Galerkin coefficients for %d modes have not been produced', ...

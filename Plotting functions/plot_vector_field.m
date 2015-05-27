@@ -1,4 +1,8 @@
-function [h_surf, h_quiver, cax] = plot_vector_field(data, h_s, h_q)
+function [h_magnitude, h_direction, cax] = plot_vector_field(data, streamlines, h_mag, h_dir)
+% PLOT_VECTOR_FIELD plot an individual vector field with quivers or
+% streamlines to indicate direction
+%
+% [h_magnitude, h_direction, cax] = PLOT_VECTOR_FIELD(data, streamlines, h_mag, h_dir)
 
 % If no magnitude value is provided calculate the value
 if ~isfield(data, 'pod') 
@@ -13,29 +17,42 @@ if any(~isfield(data, {'x', 'y'}))
 end
 
 % If a handle is provided simply update value instead of redrawling
-if nargin == 1
-    [h_s, ax] = plot_scalar_field(data);
+if nargin == 2
+    [h_mag, ax] = plot_scalar_field(data);
 else
-    h_s = plot_scalar_field(data, h_s);
+    h_mag = plot_scalar_field(data, h_mag);
 end
 
-% Get no more than 50 quiver arrows
-spacing_x = ceil(size(data.x, 1)/40);
-spacing_y = ceil(size(data.x, 2)/40);
-
-short_x = data.x(1:spacing_x:end, 1:spacing_y:end);
-short_y = data.y(1:spacing_x:end, 1:spacing_y:end);
-short_u = data.u(1:spacing_x:end, 1:spacing_y:end);
-short_v = data.v(1:spacing_x:end, 1:spacing_y:end);
-
-if nargin == 1 
-    hold(ax, 'on')
-    h_q = quiver(ax, short_x, short_y, short_u, short_v, 'color', [0 0 0]);
-    hold(ax, 'off')
+if streamlines
+    if nargin == 2
+        h_dir = streamslice(data.x', data.y', data.u', data.v');
+        set(h_dir,'Color','black')
+    else
+        delete(h_dir{1})
+        h_dir = streamslice(data.x', data.y', data.u', data.v');
+        set(h_dir,'Color','black')
+    end
+    h_dir = {h_dir};
 else
-    h_q.UData = short_u;
-    h_q.VData = short_v;
+    % Get no more than 50 quiver arrows
+    spacing_x = ceil(size(data.x, 1)/50);
+    spacing_y = ceil(size(data.x, 2)/50);
+
+    short_x = data.x(1:spacing_x:end, 1:spacing_y:end);
+    short_y = data.y(1:spacing_x:end, 1:spacing_y:end);
+    short_u = data.u(1:spacing_x:end, 1:spacing_y:end);
+    short_v = data.v(1:spacing_x:end, 1:spacing_y:end);
+
+    if nargin == 2 
+        hold(ax, 'on')
+        h_dir = quiver(ax, short_x, short_y, short_u, short_v, 'color', [0 0 0]);
+        hold(ax, 'off')
+    else
+        h_dir.UData = short_u;
+        h_dir.VData = short_v;
+    end
 end
+
 
 if isfield(data, 'format') && data.format == true
     ax.Title.String = 'Instanteous Flow Visualisation';
@@ -45,11 +62,11 @@ end
 
 % Return quiver and surface handles
 if nargout == 2
-    h_surf = h_s;
-    h_quiver = h_q;
+    h_magnitude = h_mag;
+    h_direction = h_dir;
 end
 if nargout == 3
-    h_surf = h_s;
-    h_quiver = h_q;
+    h_magnitude = h_mag;
+    h_direction = h_dir;
     cax = ax;
 end

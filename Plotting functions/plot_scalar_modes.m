@@ -1,5 +1,8 @@
 function plot_scalar_modes(data, u, num_modes, dimensions, varname, lambda, direct, save_figures)
-% Plot scalar modes of the velocity field
+% PLOT_SCALAR_MODES plot a set of scalar fields modes
+%
+% PLOT_SCALAR_MODES(data, u, v, num_modes, dimensions, varname, lambda,
+% direct, save_figures, streamlines)
 
 % Determine energy content of each mode
 energy = lambda(1:num_modes)./sum(lambda)*100;

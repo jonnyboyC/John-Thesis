@@ -1,5 +1,7 @@
 function [km_stoch, gm_stoch, gm_models, gm_groups, km_groups, centers] = ...
     cluster_POD(modal_amp, num_clusters, direct, save_figures)
+% CLUSTER_POD return clusters of the POD modal amplitudes by k-mean and
+% gaussian mixture model type edit to find list of imputs and outputs
 
 % Flag
 make_plot = true;

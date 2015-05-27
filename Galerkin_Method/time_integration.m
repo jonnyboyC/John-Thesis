@@ -1,4 +1,5 @@
-function [t, modal_amp] = time_integration(reduced_model_coeff, eddy, vis, modal_TKE, i, t, modal_amp, ao, phase, tspan, total_models, linear_models, options)
+function [t, modal_amp] = time_integration(reduced_model_coeff, eddy, vis, modal_TKE, i, ...
+                        t, modal_amp, ao, t_scale, tspan, total_models, linear_models, options)
 %#ok<*PFBNS>
 
 t_temp = cell(size(t,1),1);
@@ -9,7 +10,7 @@ parfeval_futures = parallel.FevalOnAllFuture;
 for j = 1:total_models
     % temp changed
     parfeval_futures(j) = parfeval(@integration, 3, reduced_model_coeff{j,1}, ...
-        eddy{j,1,i}, vis, modal_TKE, ao, phase, tspan, j, linear_models, options);
+        eddy{j,1,i}, vis, modal_TKE, ao, tspan, j, linear_models, options);
 end
 
 % Generate waiting bar
@@ -20,7 +21,7 @@ for j = 1:total_models
     % fetch results if it take over half an hour discard results
     [job_idx, t_job, modal_amp_job, time] = fetchNext(parfeval_futures, 3000);
     
-    t_temp(job_idx) = {t_job};
+    t_temp(job_idx) = {t_job/t_scale};
     modal_amp_temp(job_idx) = {modal_amp_job};
     
     % update wait bar
@@ -41,7 +42,7 @@ modal_amp(:,:,i)  = [modal_amp_temp, reduced_model_coeff(:,2)];
 
 end
 
-function [t_job, modal_amp_job, time] = integration(reduced_model_coeff, eddy, vis, modal_TKE, ao, phase, tspan, j, linear_models, options)
+function [t_job, modal_amp_job, time] = integration(reduced_model_coeff, eddy, vis, modal_TKE, ao, tspan, j, linear_models, options)
 if ~isempty(reduced_model_coeff); 
     if j <= linear_models
         % Time integration with linear eddy visocity

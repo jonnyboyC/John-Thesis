@@ -1,4 +1,4 @@
-function plot_prediction(pod_u, pod_v, x, y, bnd_idx, modal_amp, t, dimensions, pretty, direct, custom, id)
+function plot_prediction(pod_u, pod_v, x, y, bnd_idx, modal_amp, t, dimensions, streamlines, direct, custom, id)
 % Create a movie of the time response of the predicted Galerkin sytem
 max_plot = 500;
 if max_plot < size(modal_amp,1);  
@@ -85,10 +85,10 @@ open(writer);
 % Preallocate figure subplot handles
 h_surf = gobjects(2, 1);
 ax = gobjects(2, 1);
-if pretty 
-    h_stream = cell(2, 1);
+if streamlines 
+    h_dir = cell(2, 1);
 else
-    h_quiver = gobjects(2,1);
+    h_dir = gobjects(2, 1);
 end
 
 
@@ -108,13 +108,7 @@ for i = 1:size(plot_points,2)
         figure(h_parent);
         subplot(2,1,j);
         if i == 1
-            if pretty
-                [h_surf(j), ax(j)] = plot_scalar_field(data_temp);
-                h_stream{j} = streamslice(data_temp.x', data_temp.y', data_temp.u', data_temp.v');
-                set(h_stream{j},'Color','black')
-            else
-                [h_surf(j), h_quiver(j), ax(j)] = plot_vector_field(data_temp);
-            end
+            [h_surf(j), h_dir(j), ax(j)] = plot_vector_field(data_temp, streamlines);
             ax(j).Title = title(type{j}, 'fontname','times new roman','fontsize',14);
             ax(j).XLabel = xlabel('x/D', 'fontname','times new roman','fontsize',12);
             ax(j).YLabel = ylabel('y/D', 'fontname','times new roman','fontsize',12);
@@ -122,15 +116,7 @@ for i = 1:size(plot_points,2)
             ax(j).CLim = [cmin(j), cmax(j)];
             colorbar;
         else
-            if pretty
-                h_surf(j) = plot_scalar_field(data_temp, h_surf(j));
-                delete(h_stream{j})
-                h_stream{j} = streamslice(data_temp.x', data_temp.y', data_temp.u', data_temp.v');
-                set(h_stream{j},'Color','black')
-            else
-                [h_surf(j), h_quiver(j)] = plot_vector_field(data_temp, h_surf(j), h_quiver(j));
-            end
-
+            [h_surf(j), h_dir(j)] = plot_vector_field(data_temp, streamlines, h_surf(j), h_dir(j));
         end
     end
     frame = getframe(gcf);
