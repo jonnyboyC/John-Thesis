@@ -27,8 +27,8 @@ end
 
 % Default for average_mesh
 if isempty(problem.average_mesh) || ~islogical(problem.average_mesh)
-    fprintf('Using default value for cluster\nproblem.average_mesh = true\n\n');
-    problem.average_mesh = true;        % save pod results
+    fprintf('Using default value for cluster\nproblem.average_mesh = false\n\n');
+    problem.average_mesh = false;        % save pod results
 end
 
 % Default for save_figures

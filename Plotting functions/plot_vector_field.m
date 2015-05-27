@@ -20,8 +20,8 @@ else
 end
 
 % Get no more than 50 quiver arrows
-spacing_x = ceil(size(data.x, 1)/50);
-spacing_y = ceil(size(data.x, 2)/50);
+spacing_x = ceil(size(data.x, 1)/40);
+spacing_y = ceil(size(data.x, 2)/40);
 
 short_x = data.x(1:spacing_x:end, 1:spacing_y:end);
 short_y = data.y(1:spacing_x:end, 1:spacing_y:end);
