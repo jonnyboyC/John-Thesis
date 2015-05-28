@@ -1,4 +1,9 @@
-function l = visocity_coefficients_ws(coef_problem)
+function l = galerkin_coefficients_ws(coef_problem)
+% GALERKIN_COEFFICIENT_WS calculate the linear terms resultant from the
+% visocity term in the Navier Stoke equations using Green's Identiy
+%
+% l = GALERKIN_COEFFICIENT_WS(coef_problem)
+
 % Unpack Variables
 x           = coef_problem.x;
 y           = coef_problem.y;

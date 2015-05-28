@@ -1,4 +1,10 @@
 function [sX, sY] = generate_stencil(x, y, methodsX, methodsY, dimensions)
+% GENERATE_STENCIL generate the appropriate weights for each grid point
+% when evaulating the derivtives
+%
+% [sX, sY] = GENERATE_STENCIL(x, y, methodsX, methodsY, dimensions)
+% produces a size(x) by 9 matrix for sX sY determining the weight at each
+% point
 
 sX = zeros([dimensions, 9]);
 sY = zeros([dimensions(2), dimensions(1), 9]);

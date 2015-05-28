@@ -1,6 +1,11 @@
 function [methodsX, methodsY] = select_method(bnd_idx, bnd_x, bnd_y, dimensions, closed_bnd)
-% Derivative preprocessing step in deterimine which finite difference
-% method to use at each grid point, should provide large speedup
+% SELECT_METHOD Derivative preprocessing step in deterimine which 
+% finite difference method to use at each grid point, should provide 
+% large speedup if more than a 2 or 3 variables are calculated
+%
+% [methodsX, methodsY] = select_method(bnd_idx, bnd_x, bnd_y, dimensions,
+% closed_bnd), select the appropriate finite difference method based on the
+% flow boundaries
 
 % Key 
 % method 0: no derivative inside boundary

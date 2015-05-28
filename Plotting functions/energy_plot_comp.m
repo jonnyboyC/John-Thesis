@@ -37,6 +37,7 @@ plot(one_sec, -3*[std_emp_TKE, std_emp_TKE] + mean_emp_TKE, 'k-.');
 
 legend(ax, leg_names, 'Location', 'southoutside', 'Orientation', 'horizontal');
 ax.YScale = 'log';
+ax.XLim = [0 1];
 ax.YLabel = ylabel('System Energy', 'FontName', 'Time New Roman', 'FontSize', 14);
 ax.XLabel = xlabel('Time(s)', 'FontName', 'Time New Roman', 'FontSize', 14);
 ax.Title = title('Predicted Total Kinetic Energy', 'FontName', 'Time New Roman', 'FontSize', 14);
