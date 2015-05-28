@@ -3,62 +3,66 @@ function [res_pod, res_clust] = POD_Gen(varargin)
 % files, produces .mat files for processed vc7 files, and produced a
 % requested number of POD modes with some simulaition specifications
 %
-% POD_GEN() prompts user for vc7 file path will process up to 1000
-% images and producing figures of POD modes, without saving any information
+%   POD_GEN() prompts user for vc7 file path will process up to 1000
+%   images and producing figures of POD modes, without saving any 
+%   information
 % 
-% POD_GEN(problem) Using fields provided in the stucture PROBLEM sets up
-% simulation to specified by PROBLEM, all unfilled fields go to defaults
+%   POD_GEN(problem) Using fields provided in the stucture PROBLEM sets up
+%   simulation to specified by PROBLEM, all unfilled fields go to defaults
 %
-% problem has the following format with example values for default values
+%   problem has the following format with example values for default values
 %
-% problem.num_images = 1000 
-% Specify the number of vc7 images or .mat matrices to be processed
+%   problem.num_images = 1000 
+%   Specify the number of vc7 images or .mat matrices to be processed
 %
-% problem.load_raw = true 
-% Should the previous processed mat be overwritten
+%   problem.load_raw = true 
+%   Should the previous processed mat be overwritten
 %
-% problem.save_pod = true
-% Save the results of the simulation in POD.mat
+%   problem.save_pod = true
+%   Save the results of the simulation in POD.mat
 %
-% problem.save_figures = {'fig'}
-% Request figures be saved as .fig or .jpg provided in a cell array
+%   problem.save_figures = {'fig'}
+%   Request figures be saved as .fig or .jpg provided in a cell array
 %
-% problem.image_range = []
-% Specify pixel range of images to be analyzed, in a matrix of form 
-% [left, right, bottom, top]
+%   problem.image_range = []
+%   Specify pixel range of images to be analyzed, in a matrix of form 
+%   [left, right, bottom, top]
 %
-% problem.direct = ''
-% Specify absolute path of top of data directory. '' will prompt user for
-% location
+%   problem.direct = ''
+%   Specify absolute path of top of data directory. '' will prompt user for
+%   location
 % 
-% problem.cluster = true
-% Specify if you want to cluster results or not
+%   problem.cluster = true
+%   Specify if you want to cluster results or not
 %
-% problem.average_mesh = false
-% Specify if you would like to average raw data over 2x2 range
+%   problem.average_mesh = false
+%   Specify if you would like to average raw data over 2x2 range
 %
-% problem.l_scale = 1
-% Specify a scalar to be used as the length scale for the problem
+%   problem.l_scale = 1
+%   Specify a scalar to be used as the length scale for the problem
 %
-% problem.u_scale_gen = 1
-% Specify a scalar for function handle to calculate u_scale
+%   problem.u_scale_gen = 1
+%   Specify a scalar for function handle to calculate u_scale
 %
-% problem.flip = [false, false, false, false]
-% Specify which directions and velocities are inverted
-% [x, y, u, v]
+%   problem.flip = [false, false, false, false]
+%   Specify which directions and velocities are inverted
+%   [x, y, u, v]
 %
-% problem.update_bnds = false;
-% If true launch gui to modify boundaries
+%   problem.update_bnds = false;
+%   If true launch gui to modify boundaries
 %
-% problem.filter = false;
-% If true apply a guide filter to images, to attempt to minimize affect of
-% PIV artifacts
+%   problem.filter = false;
+%   If true apply a guide filter to images, to attempt to minimize affect of
+%   PIV artifacts
 %
-% problem.num_clusters = 10;
-% set the number of clusters that should be determined
+%   problem.num_clusters = 10;
+%   set the number of clusters that should be determined
 % 
-% problem.exp_sampling_rate = 5;
-% provide experimental sampling rate of the experiment, default is 5Hz
+%   problem.exp_sampling_rate = 5;
+%   provide experimental sampling rate of the experiment, default is 5Hz
+%
+%   problem.streamlines = false
+%   plot mode using streamline instead of quivers
 
 format long g
 close all
@@ -147,7 +151,7 @@ flux_v = v - repmat(mean_v,1,1,num_images);
 [mean_u, mean_v, flux_u, flux_v] = clip_bounds(bnd_idx, mean_u, mean_v, flux_u, flux_v);
 
 % Calculate volume elements of the mesh
-vol_frac = voln_piv_2D(x, y, bnd_idx);
+%vol_frac = voln_piv_2D(x, y, bnd_idx);
 vol_frac = voln_piv_2D2(x, y, bnd_idx, bnd_x, bnd_y);
     
 clear u v

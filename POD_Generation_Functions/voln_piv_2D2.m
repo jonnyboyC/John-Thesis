@@ -30,57 +30,66 @@ for i = 1:size(x,1)
             vol_frac(i,j) = 0;
             
         % Top boundary
-        elseif bnd_y(i,j) == 1 && bnd_y(i,j+1) == 0 && bnd_y(i,j-1) == 0 && bnd_idx(i-1,j) == 1
-            width = x_median(i,j) - x_median(i-1,j);
-            left_hand = y_median(i-1,j) - y(i,j);
-            right_hand = y_median(i,j) - y(i,j);
+        elseif bnd_y(i,j) == -1 && j > 1 && i > 1 && i < xlim && ...
+                bnd_y(i-1,j) == -1 && bnd_y(i+1,j) == -1 && bnd_idx(i,j-1) == 1
+            width = x_median(i,j-1)-x_median(i-1,j-1);
+            left_hand = y(i,j)-y_median(i-1,j-1);
+            right_hand = y(i,j)-y_median(i,j-1);
             vol_frac(i,j) = width*(right_hand + left_hand)/2;
             
         % Bottom boundary
-        elseif bnd_y(i,j) == -1 &&  bnd_y(i-1,j) == -1 && bnd_y(i+1,j) == -1 && bnd_idx(i,j+1) == 1
-            width = x_median(i,j-1) - x_median(i-1,j-1);
-            left_hand = y(i,j) - y_median(i-1,j-1);
-            right_hand = y(i,j) - y_median(i,j-1);
-            vol_frac(i,j) = width*(right_hand + left_hand)/2;
+        elseif bnd_y(i,j) == 1 && j < ylim && i > 1 && i < xlim && ...
+                bnd_y(i-1,j) == 1 && bnd_y(i+1,j) == 1 && bnd_idx(i,j+1) == 1
+            width = x_median(i,j)-x_median(i-1,j);
+            left_hand = y_median(i-1,j)-y(i,j);
+            right_hand = y_median(i,j)-y(i,j);
+            vol_frac(i,j) = (right_hand+left_hand)/2*width;
             
         % Left boundary
-        elseif bnd_x(i,j) == 1 &&  bnd_x(i,j-1) == 1 && bnd_x(i,j+1) == 1 && bnd_idx(i+1,j) == 1
+        elseif bnd_x(i,j) == 1 && i < xlim && j > 1 && j < ylim && ...
+                bnd_x(i,j-1) == 1 && bnd_x(i,j+1) == 1 && bnd_idx(i+1,j) == 1
             width = x_median(i,j) - x(i,j);
             left_hand = y_median(i,j) - y_median(i,j-1);
             vol_frac(i,j) = left_hand*width;
             
         % Right boundary
-        elseif bnd_x(i,j) == -1 &&  bnd_x(i,j-1) == -1 && bnd_x(i,j+1) == -1 && bnd_idx(i+1,j) == 1
+        elseif bnd_x(i,j) == -1 && i > 1 && j > 1 && j < ylim && ...
+                bnd_x(i,j-1) == -1 && bnd_x(i,j+1) == -1 && bnd_idx(i-1,j) == 1
             width = x(i,j) - x_median(i-1,j);
             left_hand = y_median(i-1,j) - y_median(i-1,j-1);
             vol_frac(i,j) = left_hand*width;
-        
+            
         % Upper Left Inside Corner
-        elseif bnd_x(i,j) == 1 && bnd_y(i,j) == 1 && bnd_x(i,j-1) == 1 && bnd_y(i+1,j) == 1 && bnd_idx(i+1,j-1) == 1
+        elseif bnd_x(i,j) == 1 && bnd_y(i,j) == -1 && i < xlim && j > 1 && ...
+                bnd_x(i,j-1) == 1 && bnd_y(i+1,j) == -1 && bnd_idx(i+1,j-1) == 1
             width = x_median(i,j-1) - x(i,j);
             left_hand = y(i,j) - y_median(i,j-1);
             vol_frac(i,j) = left_hand*width;
             
         % Upper Right Inside Corner
-        elseif bnd_x(i,j) == -1 && bnd_y(i,j) == 1 && bnd_x(i,j-1) == -1 && bnd_y(i-1,j) == 1 && bnd_idx(i-1,j-1) == 1
+        elseif bnd_x(i,j) == -1 && bnd_y(i,j) == -1 && i > 1 && j > 1 && ...
+                bnd_x(i,j-1) == -1 && bnd_y(i-1,j) == -1 && bnd_idx(i-1,j-1) == 1
             width = x(i,j) - x_median(i-1,j-1);
             left_hand = y(i,j) - y_median(i-1,j-1);
             vol_frac(i,j) = left_hand*width;
-        
+            
         % Lower Left Inside Corner
-        elseif bnd_x(i,j) == 1 && bnd_y(i,j) == -1 && bnd_x(i,j+1) == 1 && bnd_y(i+1,j) == -1  && bnd_idx(i+1,j+1) == 1
+        elseif bnd_x(i,j) == 1 && bnd_y(i,j) == 1 && i < xlim && j < ylim && ...
+                bnd_x(i,j+1) == 1 && bnd_y(i+1,j) == 1  && bnd_idx(i+1,j+1) == 1
             width = x_median(i,j) - x(i,j);
             left_hand = y_median(i,j) - y(i,j);
             vol_frac(i,j) = left_hand*width;
-            
+        
         % Lower Right Inside Corner
-        elseif bnd_x(i,j) == -1 && bnd_y(i,j) == -1 && bnd_x(i,j+1)== -1 && bnd_y(i-1,j)== -1 &&  bnd_idx(i-1,j+1) == 1
+        elseif bnd_x(i,j) == -1 && bnd_y(i,j) == 1 && i > xlim && j > 1 && ...
+                bnd_x(i,j+1) == -1 && bnd_y(i-1,j)== -1 &&  bnd_idx(i-1,j+1) == 1
             width = x(i,j) - x_median(i-1,j);
             left_hand = y_median(i-1,j) - y(i,j);
             vol_frac(i,j) = left_hand*width;
             
         % Upper Left Outside Corner
-        elseif bnd_x(i,j) == 1 && bnd_y(i,j) == 1 && bnd_x(i,j+1) == 1 && bnd_y(i-1,j) == 1 && bnd_idx(i+1,j-1) == 1
+        elseif bnd_x(i,j) == 1 && bnd_y(i,j) == -1 && i < xlim && j > 1 && i > 1 && j < ylim &&...
+                bnd_x(i,j+1) == 1 && bnd_y(i-1,j) == -1 && bnd_idx(i+1,j-1) == 1
             width = x_median(i,j) - x_median(i-1,j);
             left_hand = y_median(i-1,j) - y(i,j);
             right_hand = y_median(i,j) - y(i,j);
@@ -90,7 +99,8 @@ for i = 1:size(x,1)
             vol_frac(i,j) = vol_frac(i,j) + left_hand*width;
             
         % Upper Right Outside Corner
-        elseif bnd_x(i,j) == -1 && bnd_y(i,j) == 1 && bnd_x(i,j+1) == -1 && bnd_y(i+1,j) == 1 && bnd_idx(i-1,j-1) == 1
+        elseif bnd_x(i,j) == -1 && bnd_y(i,j) == -1 && i > 1 && j > 1 && i < xlim && j < ylim &&...
+                bnd_x(i,j+1) == -1 && bnd_y(i+1,j) == -1 && bnd_idx(i-1,j-1) == 1
             width = x_median(i,j) - x_median(i-1,j);
             left_hand = y_median(i-1,j) - y(i,j);
             right_hand = y_median(i,j) - y(i,j);
@@ -100,7 +110,8 @@ for i = 1:size(x,1)
             vol_frac(i,j) = vol_frac(i,j) + right_hand*width;
             
         % Lower Left Outside Corner
-        elseif bnd_x(i,j) == 1 && bnd_y(i,j) == -1 && bnd_x(i,j-1) == 1 && bnd_y(i-1,j) == -1  && bnd_idx(i+1,j+1) == 1
+        elseif bnd_x(i,j) == 1 && bnd_y(i,j) == 1 && i < xlim && j < ylim && j > 1 && i > 1 &&...
+                bnd_x(i,j-1) == 1 && bnd_y(i-1,j) == 1  && bnd_idx(i+1,j+1) == 1
             width = x_median(i,j-1) - x_median(i-1,j-1);
             left_hand = y(i,j) - y_median(i-1,j-1);
             right_hand = y(i,j) - y_median(i,j-1);
@@ -109,8 +120,9 @@ for i = 1:size(x,1)
             left_hand = y_median(i-1,j) - y(i,j);
             vol_frac(i,j) = vol_frac(i,j) + left_hand*width;
             
-        % Lower Right Inside Corner
-        elseif bnd_x(i,j) == -1 && bnd_y(i,j) == -1 && bnd_x(i,j-1)== -1 && bnd_y(i+1,j)== -1 &&  bnd_idx(i-1,j+1) == 1
+        % Lower Right Outside Corner
+        elseif bnd_x(i,j) == -1 && bnd_y(i,j) == 1 && i > xlim && j > 1 && i > 1 && j < ylim && ...
+                bnd_x(i,j-1)== -1 && bnd_y(i+1,j)== 1 &&  bnd_idx(i-1,j+1) == 1
             width = x_median(i,j-1) - x_median(i-1,j-1);
             left_hand = y(i,j) - y_median(i-1,j-1);
             right_hand = y(i,j) - y_median(i,j-1);
@@ -118,6 +130,8 @@ for i = 1:size(x,1)
             width = x_median(i,j)-x(i,j);
             right_hand = y_median(i,j)-y(i,j);
             vol_frac(i,j) = vol_frac(i,j)+right_hand*width;
+        else
+            vol_frac(i,j) = 0;
         end
     end
 end

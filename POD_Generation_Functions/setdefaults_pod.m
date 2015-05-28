@@ -46,12 +46,12 @@ end
 
 % Default for save_figures
 if  ~iscell(problem.save_figures)
-    fprintf('Using default value for save_figures\nproblem.save_figures = {}\n\n');
-    problem.save_figures = {};     % Save as figure
+    fprintf('Using default value for save_figures\nproblem.save_figures = {"fig", "png"}\n\n');
+    problem.save_figures = {'fig', 'png'};     % Save as figure
 end
 
 % Check to make sure incorrect strings are not passed
-correct = {'fig', 'jpg'};
+correct = {'fig', 'jpg', 'png'};
 correct_members = ismember(problem.save_figures, correct);
 for i = 1:size(correct_members,2)
     if ~correct_members(i)
