@@ -131,13 +131,13 @@ end
 t_scale = u_scale/l_scale;  
 tspan = tspan*t_scale;      
 
-% vars = load(direct_POD, 'results_clust');
-%     
-% centers         = vars.results_clust.centers;     % k-means cluster centers
-% km_stoch        = vars.results_clust.km_stoch;    % k-mean stochastic matrix
-% gm_stoch        = vars.results_clust.gm_stoch;    % gaussian mixture stochastic matrix
-% gm_models       = vars.results_clust.gm_models;   % gaussian mixture models
-% cluster_range   = vars.results_clust.cluster_range;    % number of variables in cluster
+vars = load(direct_POD, 'results_clust');
+    
+centers         = vars.results_clust.centers;     % k-means cluster centers
+km_stoch        = vars.results_clust.km_stoch;    % k-mean stochastic matrix
+gm_stoch        = vars.results_clust.gm_stoch;    % gaussian mixture stochastic matrix
+gm_models       = vars.results_clust.gm_models;   % gaussian mixture models
+cluster_range   = vars.results_clust.cluster_range;    % number of variables in cluster
 
 vars = load(direct_Gal, 'results_coef');
 
@@ -147,11 +147,6 @@ l_total     = vars.results_coef.l;
 eddy_total  = vars.results_coef.eddy;
 vis         = vars.results_coef.vis;
 linear_models = vars.results_coef.linear_models;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    CHANGE      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-modes       = [2:OG_nm+1];
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    CHANGE      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 
 % Free memory
 clear vars

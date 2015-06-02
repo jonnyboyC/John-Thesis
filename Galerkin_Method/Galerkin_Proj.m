@@ -265,7 +265,7 @@ for i = 1:length(num_modesG)
     end
     
     % Calculate empirical average TKE for selected modes
-    modal_TKE = mean(sum(1/2*modal_amp(:,modes).^2),1);
+    modal_TKE = mean(sum(1/2*modal_amp(:,modes).^2,2));
     
     % Created truncated pod basis
     pod_ut  = pod_u(:,[1, modes]);
@@ -442,7 +442,7 @@ for i = 1:length(num_modesG)
     
     % Save relavent coefficients
     if save_coef == true
-        futures = save_coef(direct, custom, time_int, calc_coef, i, ...
+        futures = save_galerkin(direct, custom, time_int, calc_coef, i, ...
             futures, results_coef, results_int);
     end
 end

@@ -1,4 +1,4 @@
-function futures = save_coef(direct, custom, time_int, calc_coef, i, futures, results_coef, results_int)
+function futures = save_galerkin(direct, custom, time_int, calc_coef, i, futures, results_coef, results_int)
 % SAVE_COEF save all coefficients from the request computation, saves all
 % values on a separate thread so system isn't bottlenecked by harddrive
 %
