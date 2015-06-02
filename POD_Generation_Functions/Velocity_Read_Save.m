@@ -1,5 +1,5 @@
 function [xi, yi, ui, vi, u_scale, direct] = Velocity_Read_Save(num_images, load_raw, image_range, ...
-                                            l_scale, u_scale_gen, flip, direct)
+                                            l_scale, u_scale_gen, non_dim, xy_units, flip, direct)
 % VELOCITY_READ_PLOT_SAVE read raw num_images number of images from a selected
 % directory in either .dat .vc7 or .mat formats
 %   [x, y, u, v, num_x, num_y] = VELOCITY_READ_PLOT_SAVE(num_images)
@@ -38,20 +38,24 @@ if num_images < num_files
     num_files = num_images;
 end
 
+% Load variables using appropriate method
 if strcmpi(file_type, '.mat')
-    [xi, yi, ui, vi, u_scale] = load_mat(img_files, num_files, num_images, image_range, l_scale, u_scale_gen, flip, direct);
+    [xi, yi, ui, vi, u_scale] = load_mat(img_files, num_files, num_images, ...
+        image_range, l_scale, u_scale_gen, non_dim, xy_units, flip, direct);
 elseif any(strcmpi(file_type, {'.vc7', '.VC7', '.im7', '.IM7'}))
-    [xi, yi, ui, vi, u_scale] = load_vc7(img_files, num_files, num_images, image_range, l_scale, u_scale_gen, flip, direct);
+    [xi, yi, ui, vi, u_scale] = load_vc7(img_files, num_files, num_images, ...
+        image_range, l_scale, u_scale_gen, non_dim, xy_units, flip, direct);
 else
-    [xi, yi, ui, vi, u_scale] = load_dat(img_files, num_files, num_images, image_range, l_scale, u_scale_gen, flip, direct);
+    [xi, yi, ui, vi, u_scale] = load_dat(img_files, num_files, num_images, ...
+        image_range, l_scale, u_scale_gen, non_dim, xy_units, flip, direct);
 end
 end
 
-%% Load Functions
+%% Load / Helper Functions
 
 % Function to load files of .mat format
 function [xi, yi, ui, vi, u_scale] = load_mat(img_files, num_files, num_images, image_range, ...
-                                    l_scale, u_scale_gen, flip, direct)
+                                    l_scale, u_scale_gen, non_dim, xy_units, flip, direct)
 
 % Get dimensions of image
 load([direct filesep 'Raw Data' filesep img_files(1).name], 'x', 'y');
@@ -93,8 +97,8 @@ for i = 1:num_files
 end
 
 % Apply any scaling that is present and translate x/y
-[xi, yi, ui, vi, u_scale] = apply_scales(xi, yi, ui, vi, l_scale, u_scale_gen, direct);
-[xi, yi] = correct_dims(xi, yi);
+[xi, yi, ui, vi, u_scale] = apply_scales(xi, yi, ui, vi, l_scale, u_scale_gen, ...
+    non_dim, xy_units, direct);
 
 % Save Data to processed folder
 num_processed = num_images;
@@ -103,7 +107,7 @@ end
 
 % Function to load files of the .vc7/.im7 format
 function [xi, yi, ui, vi, u_scale] = load_vc7(img_files, num_files, num_images, image_range, ...
-                                    l_scale, u_scale_gen, flip, direct)
+                                    l_scale, u_scale_gen, non_dim, xy_units, flip, direct)
 
 % Get dimensions of image
 lavdata = readimx([direct filesep 'Raw Data' filesep img_files(1).name]);
@@ -125,9 +129,6 @@ xi = zeros(num_x, num_y);
 yi = zeros(num_x, num_y);
 ui = zeros(num_x, num_y, num_files);
 vi = zeros(num_x, num_y, num_files);
-
-% TODO original file was able to process multiple folders of data, will
-% potentially want to add back in
 
 % Load images
 for i = 1:num_files
@@ -154,17 +155,22 @@ for i = 1:num_files
 end
 
 % Apply any scaling that is present and translate x/y
-[xi, yi, ui, vi, u_scale] = apply_scales(xi, yi, ui, vi, l_scale, u_scale_gen, direct);
+[xi, yi, ui, vi, u_scale] = apply_scales(xi, yi, ui, vi, l_scale, u_scale_gen, ...
+    non_dim, xy_units, direct);
+
+
+%%%%%%%%%%%%%%%%%%%%%%%
 [xi, yi] = correct_dims(xi, yi);
+%%%%%%%%%%%%%%%%%%%%%%%
 
 % Save Data to processed folder
 num_processed = num_images;
 save([direct filesep 'Processed Data' filesep 'Processed.mat'], 'xi', 'yi', 'ui', 'vi', 'num_x', 'num_y', 'u_scale', 'num_processed', '-v7.3');
 end
 
-%TODO currently stub 
+% Function to load files of the .dat in the format of cavity flow
 function [xi, yi, ui, vi, u_scale] = load_dat(img_files, num_files, num_images, image_range, ...
-                                    l_scale, u_scale_gen, flip, direct)
+                                    l_scale, u_scale_gen, non_dim, xy_units, flip, direct)
 
 data_file = fopen([direct filesep 'Raw Data' filesep img_files(1).name]);
 
@@ -228,8 +234,8 @@ for i = 1:num_files
 end   
 
 % Apply any scaling that is present and translate x/y
-[xi, yi, ui, vi, u_scale] = apply_scales(xi, yi, ui, vi, l_scale, u_scale_gen, direct);
-[xi, yi] = correct_dims(xi, yi);
+[xi, yi, ui, vi, u_scale] = apply_scales(xi, yi, ui, vi, l_scale, u_scale_gen, ...
+    non_dim, xy_units, direct);
 
 % Save Data to processed folder
 num_processed = num_images;
@@ -237,10 +243,9 @@ save([direct filesep 'Processed Data' filesep 'Processed.mat'], 'xi', 'yi', 'ui'
 
 end
 
-%% Helper Functions
-
 % Apply supplied scales
-function [xi, yi, ui, vi, u_scale] = apply_scales(xi, yi, ui, vi, l_scale, u_scale_gen, direct)
+function [xi, yi, ui, vi, u_scale] = apply_scales(xi, yi, ui, vi, l_scale, ...
+    u_scale_gen, non_dim, xy_units, direct)
 
 % Scale velocity by the inlet fast side streamwise velocity
 if isa(u_scale_gen, 'function_handle')
@@ -249,19 +254,30 @@ else
     u_scale = u_scale_gen;
 end
 
-ui = ui./u_scale;
-vi = vi./u_scale;
+% if requested make values non-dimensionalized by u_scale l_scale
+if non_dim
+    ui = ui./u_scale;
+    vi = vi./u_scale;
 
-% Change x & y from mm to meters
-xi = xi/(1000*l_scale);
-yi = yi/(1000*l_scale);
+    % Change x & y from mm to meters
+    xi = xi/(l_scale);
+    yi = yi/(l_scale);
+end
+
+% if coordinates are in millimeters convert to meters
+if strcmp(xy_units, 'mm')
+    xi = xi/1000;
+    yi = yi/1000;
+end
 
 end
 
+%%%%%%%%%%%%%%%%%%%%%
 function [xi, yi] = correct_dims(xi, yi)
 xi = xi + abs(min(min(xi)));
 yi = yi + abs(min(min(yi)));
 end
+%%%%%%%%%%%%%%%%%%%%%
 
 % extract file name and number print current file
 function [file_name, img_num] = update_progress(img_file)

@@ -4,7 +4,6 @@ function mod_coeff = ode_coefficients(num_modes, Gal_coeff, MOD)
 % ODE_COEFFICENTS(NUM_MODES, FCUH) created a row vector of coefficients for
 % every mode in FCUH for NUM_MODES modes.
 
-
 if MOD
     % Prefill array, copy linear terms, create offsets for quadratic terms
     mod_coeff = zeros(num_modes, num_modes+1 + (num_modes)*(num_modes+1)/2);
