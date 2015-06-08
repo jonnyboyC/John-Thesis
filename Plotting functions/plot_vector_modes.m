@@ -64,8 +64,8 @@ for i = 1:num_modes
     % plot individual plots
     if i <= 4
         [h_mag_sub(i), h_dir_sub(i), ax_sub(i)] = plot_vector_field(data, streamlines);
-        ax_sub(plot_img_num).XLabel = xlabel('x/D', 'fontname','times new roman','fontsize',12);
-        ax_sub(plot_img_num).YLabel = ylabel('y/D', 'fontname','times new roman','fontsize',12);
+        ax_sub(plot_img_num).XLabel = xlabel('x/D', 'fontname','times new roman','fontsize',14);
+        ax_sub(plot_img_num).YLabel = ylabel('y/D', 'fontname','times new roman','fontsize',14);
         ax_sub(plot_img_num).CLim = [cmin cmax];
         cax = colorbar('peer', ax_sub(plot_img_num));
     else
@@ -74,7 +74,7 @@ for i = 1:num_modes
     end
     
     % update plot title
-    ax_sub(plot_img_num).Title = title([varname ': mode ' num2str(i) ' (' num2str((energy(i)),3) ' %)'], 'fontname','times new roman','fontsize', 14);
+    ax_sub(plot_img_num).Title = title([varname ': mode ' num2str(i) ' (' num2str((energy(i)),3) ' %)'], 'fontname','times new roman','fontsize', 16);
 
     % update plot position
     plot_img_num=plot_img_num+1;

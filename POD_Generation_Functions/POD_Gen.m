@@ -22,7 +22,7 @@ function [res_pod, res_clust] = POD_Gen(varargin)
 %   Save the results of the simulation in POD.mat
 %
 %   problem.save_figures = {'fig'}
-%   Request figures be saved as .fig or .jpg or .png provided in a cell array
+%   Request figures be saved as .fig, .jpg or .png provided in a cell array
 %
 %   problem.image_range = []
 %   Specify pixel range of images to be analyzed, in a matrix of form 
@@ -63,9 +63,16 @@ function [res_pod, res_clust] = POD_Gen(varargin)
 %
 %   problem.streamlines = false
 %   plot mode using streamline instead of quivers
+%
+%   problem.non_dim = false
+%   non-dimensionalize the units by u/u_scale x/l_scale
+%
+%   problem.xy_units = 'mm'
+%   specify the units the x and y coordinate are in currently accepts 'm'
+%   for meters and 'mm' for millimeters
 
 format long g
-close all
+%close all
 clc
 
 % List of fields that will be checked
@@ -74,7 +81,7 @@ fields = {  'num_images',   'load_raw',     'save_pod', ...
             'u_scale_gen',  'save_figures', 'flip',...
             'update_bnds',  'num_clusters', 'exp_sampling_rate',...
             'cluster',      'average_mesh', 'filter', ...
-            'streamlines'};
+            'streamlines',  'non_dim',      'xy_units',};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -101,6 +108,8 @@ cluster     = problem.cluster;
 filter      = problem.filter;
 streamlines = problem.streamlines;
 average_mesh= problem.average_mesh;
+non_dim     = problem.non_dim;
+xy_units    = problem.xy_units;
 exp_sampling_rate = problem.exp_sampling_rate;
 
 clear problem
@@ -114,7 +123,7 @@ end
 
 % Load simulation data from raw .vc7 or .mat, or from processed .mat
 [x, y, u, v, u_scale, direct] = Velocity_Read_Save(num_images, load_raw, image_range, ...
-                                    l_scale, u_scale_gen, flip, direct);
+                                    l_scale, u_scale_gen, non_dim, xy_units, flip, direct);
 
 % Check if mesh has even spacing
 uniform = check_mesh(x, y);

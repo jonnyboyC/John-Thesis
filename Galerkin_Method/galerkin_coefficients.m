@@ -1,4 +1,10 @@
-function [l, q] = visocity_coefficients(coef_problem)
+function [l, q] = galerkin_coefficients(coef_problem)
+% GALERKIN_COEFFICIENT calculate the linear terms resultant from the
+% visocity term and the quadractic terms resultant from the convection term
+% in the Navier Stoke equations 
+%
+% [l, q]= GALERKIN_COEFFICENT(coef_problem)
+ 
 % Unpack Variables
 x           = coef_problem.x;
 y           = coef_problem.y;
@@ -46,7 +52,7 @@ end
 clear x y dimensions bnd_idx z mean_u mean_v
 h = waitbar(0, 'Calculating quadratic terms');
 
-% If Problem has over 400 modes need to break problem into chunks
+% If problem has over 400 modes need to break problem into chunks
 if use_chunks == false
     
     if num_modes > 700

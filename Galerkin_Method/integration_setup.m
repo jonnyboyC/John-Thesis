@@ -1,4 +1,10 @@
 function [reduced_model_coeff] = integration_setup(eddy, vis, l, q, idx, total_models, linear_models, num_modes)
+% INTEGRATION_SETUP convert the system coefficients from thier logical form
+% to that used by the system solve TIME_INTEGRATION
+%
+%   [reduced_model_coeff] = integration_setup(eddy, vis, l, q, i,
+%       total_models, linear_models, num_modes);
+
 
 reduced_model_coeff = cell(total_models,2);
 Gal_coeff   = cell(total_models,2);

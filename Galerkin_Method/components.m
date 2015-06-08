@@ -1,5 +1,9 @@
 function [pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac, l] = ...
     components(x, y, pod_u, pod_v, dimensions, vol_frac, num_modes, num_elem, bnd_idx, bnd_x, bnd_y)
+% COMPONENT, calculate the derivative terms needed to calculate the
+% galerkin coefficients
+% 
+% type edit COMPONENT for input details
 
 % Calculate coefficients for for pod_u's & pod_v's derivatives
 [pod_udx, pod_udy, pod_ud2x, pod_ud2y] = derivatives(pod_u, bnd_idx, bnd_x, ...

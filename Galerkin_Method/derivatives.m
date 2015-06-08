@@ -1,5 +1,14 @@
 function [dx, dy, d2x, d2y] = derivatives(var, bnd_idx, bnd_x, bnd_y, x, y, dimensions)
-% Find derivatives of variable var
+% DERIVATIVES take the first and 2nd derivatives of a set of variables
+% using a nonuniform mesh 4th order finite difference method. DERIVATIVES
+% selected the appropriate finite different method based on the boundaries
+% defined in bnd_idx, bnd_x, and bnd_y
+%
+% [dx, dy] derivatives(var, bnd_idx, bnd_x, bnd_y, x, y, dimensions)
+% calculate the first order derivatives
+%
+% [dx, dy, d2x, d2y] = derivative(var, bnd_idx, bnd_x, bnd_y, x, y,
+% dimensions) calculate the first and 2nd order derivatives
 
 % Figure out how many loops are needed
 number2calc = size(var, 2);

@@ -24,7 +24,7 @@ function [res_coef, res_int] = Galerkin_Proj(varargin)
 %
 % problem.override_coef = false
 % Overwrite previous coefficients for the same run number, if the run
-% numbers are different new coefficients will be calculated
+% numbers are different new coefficients will be calcfinteulated
 %
 % problem.tspan = 0:0.0001:1
 % Specify time span for time integration
@@ -179,9 +179,10 @@ end
 
 % Create non-dimensionalized timescale
 t_scale = u_scale/l_scale;  
-tspan = tspan*t_scale;      
+tspan = tspan*t_scale;  
+futures = 0;
 
-%% Calculate Coefficients
+%% Setup variables to Coefficient Calculations
 
 if calc_coef 
     
@@ -213,12 +214,12 @@ if calc_coef
         fprintf('Generating coefficients for unresolved modes using %d modes\n', cutoff);
         
         % Calculate for traditional Galerkin Projection
-        [lc{1,1}, qc{1,1}] = visocity_coefficients(coef_problem);
+        [lc{1,1}, qc{1,1}] = galerkin_coefficients(coef_problem);
         lc{1,2}  = 'Base cutoff';
         qc{1,2}  = 'Base cutoff';
         
         % Calculate for weak formulation Galerkin Projection
-        lc{2,1}  = visocity_coefficients_ws(coef_problem);
+        lc{2,1}  = galerkin_coefficients_ws(coef_problem);
         lc{2,2}  = 'Weak cutoff';
         qc{2,1}  = qc{1,1};
         qc{2,2}  = 'Weak cutoff';
@@ -231,43 +232,40 @@ base_models     = 2;
 linear_models   = 8;
 total_models    = linear_models*2-base_models;
 
-% initialize coefficeints
+% Initialize coefficeints
 eddy    = cell(total_models,2,length(num_modesG));
 l       = cell(total_models,2,length(num_modesG));
 q       = cell(total_models,2,length(num_modesG));
 
-
-% initialize if time integration is being performed
+% Initialize if time integration is being performed
 if time_int
     t               = cell(total_models,2,length(num_modesG));
     modal_amp_sim   = cell(total_models,2,length(num_modesG));
 end
 
-% initialize scores if clustering
+% Initialize scores if clustering
 if classify_sim
     scores_km       = cell(total_models,2,length(num_modesG));
     scores_gm       = cell(total_models,2,length(num_modesG));
 end
 
-% perform calculation on each set of modes requested
+% Perform calculation on each set of modes requested
 for i = 1:length(num_modesG)
     fprintf('\n');
     
-    % Pull current number of modes to be investigated
+    % Determine if custom modes have been used, and setup appropriately 
     if iscell(num_modesG)
         custom = true;
-    else
-        custom = false;
-    end
-    
-    if custom
         num_modes = length(num_modesG{i})+1;
         modes = num_modesG{i}+1;
     else
+        custom = false;
         num_modes = num_modesG(i)+1;
         modes = 2:num_modes;
     end
-    modal_TKE = sum(1/2*mean(modal_amp(:,modes).^2,1));
+    
+    % Calculate empirical average TKE for selected modes
+    modal_TKE = mean(sum(1/2*modal_amp(:,modes).^2,2));
     
     % Created truncated pod basis
     pod_ut  = pod_u(:,[1, modes]);
@@ -287,20 +285,20 @@ for i = 1:length(num_modesG)
             fprintf('Generating coefficients for resolved modes using %d modes\n', num_modes);
         end
         
-        [l{1,1,i}, q{1,1,i}] = visocity_coefficients(coef_problem);
+        [l{1,1,i}, q{1,1,i}] = galerkin_coefficients(coef_problem);
         l{1,2,i} = 'Base Coeff';
         q{1,2,i} = 'Base Coeff';
         
-        l{2,1,i} = visocity_coefficients_ws(coef_problem);
+        l{2,1,i} = galerkin_coefficients_ws(coef_problem);
         l{2,2,i} = 'Weak Coeff';
         q{2,1,i} = q{1,1,i};
         q{2,2,i} = 'Weak Coeff';
         
-        % duplicate
+        % Duplicate base galerkin projection terms to all models
         l(:,:,i) = repmat(l(1:2,:,i), total_models/2, 1, 1);
         q(:,:,i) = repmat(q(1:2,:,i), total_models/2, 1, 1);
     
-%% Modified coefficients 
+        %_____ Modified coefficients ______%
 
         % Attempt to estimate the neglected energy transfer with viscous
         fprintf('Calculating viscous dissapation terms\n');
@@ -326,7 +324,7 @@ for i = 1:length(num_modesG)
         eddy{7,2,i} = 'Modal Weak Noack';
         eddy{8,2,i} = 'Global Weak Noack';
 
-        % duplicate TODO name this better
+        % Duplicate TODO name this better
         eddy(linear_models+1:total_models,1,i) = eddy(base_models+1:linear_models,1,i);
         for j = base_models+1:linear_models
             if ~isempty(eddy{j,2,i}) 
@@ -339,38 +337,34 @@ for i = 1:length(num_modesG)
         q(:,2,i) = eddy(:,2,i);
     end
     
-    %% Time integration
+    %_____ Time integration _____%
     if time_int    
+        
+        % Load coefficient if only time integration was selected 
         if ~calc_coef 
-            if custom
-                vars = load([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(num_modes-1) '_custom' ...
-                    filesep 'Coefficients_run_' num2str(run_num) '.mat'], 'results_coef');
-            else
-                vars = load([direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(num_modes-1) ...
-                    filesep 'Coefficients_run_' num2str(run_num) '.mat'], 'results_coef');
-            end
-            l(:,:,i) = vars.results_coef.l;
-            q(:,:,i) = vars.results_coef.q;
-            eddy(:,:,i) = vars.results_coef.eddy;
-            vis = vars.results_coef.vis;
-            
-            clear vars;
+            [l(:,:,i), q(:,:,i), eddy(:,:,i), vis] = load_coef(direct, run_num, custom);            
         end
         
-        % intial conditions and integration options
+        % Intial conditions and integration options
         options = odeset('RelTol', 1e-8, 'AbsTol', 1e-10);
         ao = modal_amp(init,[1 modes]);
         
         % Perform final manipulation to prep integration
         [reduced_model_coeff] = integration_setup(eddy, vis, l, q, i, total_models, ...
             linear_models, num_modes);
-        tic;
-        [t, modal_amp_sim] = time_integration(reduced_model_coeff, eddy, vis, modal_TKE, ...
+        
+        % Perform time integration
+        [t, modal_amp_sim, time] = time_integration(reduced_model_coeff, eddy, vis, modal_TKE, ...
             i, t, modal_amp_sim, ao, t_scale, tspan, total_models, linear_models, options);
-        toc;
+        disp(time);
+        
+        % Get correct model names
+        t(:,2,i) = eddy(:,2,i);
+        modal_amp_sim(:,2,i) = eddy(:,2,i);
+        
+        %____ Plotting functions ____%
 
-%% Plotting functions
-
+        % Classify simulation to to empirical clusters
         if classify_sim && num_modes <= 40
             idx = (cluster_range == num_modes-1);
             [scores_km(:,1,i), scores_gm(:,1,i)] = classify_Gal(centers{idx}, ...
@@ -401,6 +395,7 @@ for i = 1:length(num_modesG)
         all_modal_amps =  modal_amp_sim(:,1,i)';
 
         close all
+        
         % Cycle through and plot all requested figures
         for j = 1:total_models;
             if ~isempty(all_ids{j})
@@ -413,6 +408,10 @@ for i = 1:length(num_modesG)
     end
         
     fprintf('Saving Galerkin Variables\n');
+    
+    % generate empty results structures
+    results_coef = struct;
+    results_int = struct;
     
     % Include coefficent terms if requested
     if calc_coef
@@ -443,18 +442,8 @@ for i = 1:length(num_modesG)
     
     % Save relavent coefficients
     if save_coef == true
-        if i ~= 1
-            wait(futures)
-        end
-        pool = gcp;
-        if time_int && calc_coef
-            futures = parfeval(pool, @save_results, 0, direct, true, custom, results_coef, ...
-                results_int);
-        elseif time_int
-            futures = parfeval(pool, @save_results, 0, direct, false, custom, results_int);
-        else
-            futures = parfeval(pool, @save_results, 0, direct, true, custom, results_coef);
-        end
+        futures = save_galerkin(direct, custom, time_int, calc_coef, i, ...
+            futures, results_coef, results_int);
     end
 end
 
@@ -469,37 +458,5 @@ end
 
 % return format
 format short g
-end
-
-% Save Galerkin system for each mode
-function save_results(direct, coef, custom, varargin)
-% check if folder exist create if empty
-if custom
-    direct_ext = [direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(varargin{1}.num_modesG) '_custom'];
-else
-    direct_ext = [direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(varargin{1}.num_modesG)];
-end
-
-if ~exist(direct_ext, 'dir')
-    mkdir(direct_ext);
-end
-
-% file name for mat file
-filename = [direct_ext filesep 'Coefficients_run_' num2str(varargin{1}.run_num) '.mat'];
-
-% allow direct access to file
-file = matfile(filename, 'Writable', true);
-
-% if only results_coef was passed only save those
-if nargin == 4
-    if coef
-        file.results_coef = varargin{1};
-    else
-        file.results_int = varargin{1};
-    end
-else
-    file.results_coef = varargin{1};
-    file.results_int = varargin{2};
-end
 end
 

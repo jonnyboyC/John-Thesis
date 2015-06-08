@@ -4,50 +4,56 @@ function problem = setdefaults_pod(problem)
 % Default for num_images 
 if isempty(problem.num_images) || ~isscalar(problem.num_images)
     fprintf('Using default value for num_images\nproblem.num_images = 2000\n\n');
-    problem.num_images = 2000;  % use 2000 images
+    problem.num_images = 2000;          % use 2000 images
 end
 
 % Default for load_raw
 if isempty(problem.load_raw) || ~islogical(problem.load_raw)
     fprintf('Using default value for load_raw\nproblem.load_raw = true\n\n');
-    problem.load_raw = true;        % read raw data
+    problem.load_raw = true;            % read raw data
 end
 
 % Default for load_raw
 if isempty(problem.streamlines) || ~islogical(problem.streamlines)
     fprintf('Using default value for streamlines\nproblem.streamlines = false\n\n');
-    problem.streamlines = false;        % read raw data
+    problem.streamlines = false;        % plot pod modes with quivers
 end
 
 
 % Default for save_pod
 if isempty(problem.save_pod) || ~islogical(problem.save_pod)
     fprintf('Using default value for save_pod\nproblem.save_pod = true\n\n');
-    problem.save_pod = true;        % save pod results
+    problem.save_pod = true;            % save pod results
 end
 
 % Default for cluster
 if isempty(problem.cluster) || ~islogical(problem.cluster)
     fprintf('Using default value for cluster\nproblem.cluster = true\n\n');
-    problem.cluster = true;        % save pod results
+    problem.cluster = true;             % cluster modal amplitudes
 end
 
 % Default for filter
 if isempty(problem.filter) || ~islogical(problem.filter)
     fprintf('Using default value for cluster\nproblem.filter = false\n\n');
-    problem.filter = false;        % save pod results
+    problem.filter = false;             % filter using a guide filter
 end
 
 % Default for average_mesh
 if isempty(problem.average_mesh) || ~islogical(problem.average_mesh)
     fprintf('Using default value for cluster\nproblem.average_mesh = false\n\n');
-    problem.average_mesh = false;        % save pod results
+    problem.average_mesh = false;       % condense mesh using 2x2 pixels
+end
+
+% Default for non_dim
+if isempty(problem.non_dim) || ~islogical(problem.non_dim)
+    fprintf('Using default value for cluster\nproblem.non_dim = false\n\n');
+    problem.non_dim = false;            % non-dimensionalize
 end
 
 % Default for save_figures
 if  ~iscell(problem.save_figures)
     fprintf('Using default value for save_figures\nproblem.save_figures = {"fig", "png"}\n\n');
-    problem.save_figures = {'fig', 'png'};     % Save as figure
+    problem.save_figures = {'fig', 'png'};     % Save figures as .fig and .png
 end
 
 % Check to make sure incorrect strings are not passed
@@ -60,34 +66,47 @@ for i = 1:size(correct_members,2)
 end
 problem.save_figures = problem.save_figures(correct_members);
 
+% Default for xy_units
+if isempty(problem.xy_units) || ~ischar(problem.xy_units)
+    fprintf('Using default values for direct\nproblem.xy_units = "mm"\n\n');
+    problem.xy_units = 'mm';            % assume data is in millimeters
+end
+
+% Correct if invalid unit is given
+correct = {'mm', 'm'};
+found = strcmp(problem.xy_units, correct);
+if isempty(found)
+    problem.xy_units = 'mm';
+end
+
 % Default for direct
 if isempty(problem.direct) || ~ischar(problem.direct)
     fprintf('Using default values for direct\nproblem.direct = ""\n\n');
-    problem.direct = '';
+    problem.direct = '';                % prompt user for directory
 end
 
 % Default for l_scale
 if isempty(problem.l_scale) || ~isscalar(problem.l_scale)
     fprintf('Using default values for l_scale\nproblem.l_scale = 1\n\n');
-    problem.l_scale = 1;    % Length Scale for problem
+    problem.l_scale = 1;                % assume characteristic length of 1
 end
 
 % Default for u_scale_gen
 if isempty(problem.u_scale_gen) || (~isscalar(problem.u_scale_gen) && ~isa(problem.u_scale_gen, 'function_handle'))
     fprintf('Using default values for u_scale_gen\nproblem.u_scale_gen = 1\n\n');
-    problem.u_scale_gen = 1;  	% Length scale for problem
+    problem.u_scale_gen = 1;            % assume characteristic velocity of 1
 end
 
 % Default for flip
 if isempty(problem.flip) || ~isequal(size(problem.flip), [1, 4]) || ~all(arrayfun(@islogical, problem.flip)) 
     fprintf('Using default value for flip\nproblem.flip = [false, false, false, false]\n\n');
-    problem.flip = [false, false, false, false];        % save pod results
+    problem.flip = [false, false, false, false];    % don't flip any coordinates
 end
 
 % Default for update_bnds
 if isempty(problem.update_bnds) || ~islogical(problem.update_bnds)
     fprintf('Using default value for new_mask\nproblem.update_bnds = false\n\n');
-    problem.update_bnds = false;        % save pod results
+    problem.update_bnds = false;        % update flow boundaries
 end
 
 % Default for num_clusters
@@ -96,7 +115,7 @@ if isempty(problem.num_clusters) || ~isscalar(problem.num_clusters)
     problem.num_clusters = 10;  	% Length scale for problem
 end
 
-% Default for num_clusters
+% Default for experimental sampling rate
 if isempty(problem.exp_sampling_rate) || ~isscalar(problem.exp_sampling_rate)
     fprintf('Using default values for exp_sampling_rate\nproblem.exp_sampling_rate = 5\n\n');
     problem.exp_sampling_rate = 5;  	% Length scale for problem

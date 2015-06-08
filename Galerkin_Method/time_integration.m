@@ -1,7 +1,7 @@
-function [t, modal_amp] = time_integration(reduced_model_coeff, eddy, vis, modal_TKE, i, ...
+function [t, modal_amp, time] = time_integration(reduced_model_coeff, eddy, vis, modal_TKE, i, ...
                         t, modal_amp, ao, t_scale, tspan, total_models, linear_models, options)
 %#ok<*PFBNS>
-
+tic;
 t_temp = cell(size(t,1),1);
 modal_amp_temp = cell(size(modal_amp,1),1);
 
@@ -40,6 +40,7 @@ close(h);
 t(:,:,i) = [t_temp, reduced_model_coeff(:,2)];
 modal_amp(:,:,i)  = [modal_amp_temp, reduced_model_coeff(:,2)];
 
+time = toc;
 end
 
 function [t_job, modal_amp_job, time] = integration(reduced_model_coeff, eddy, vis, modal_TKE, ao, tspan, j, linear_models, options)
