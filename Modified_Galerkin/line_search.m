@@ -1,4 +1,9 @@
 function [epsilon_low, epsilon_high, transfer, flip] = line_search(problem)
+% LINE_SEARCH brute force sweep of an area around the initial condition
+% suggested by balajawecz.
+%
+% [epsilon_low, epsilon_high, transfer, flip] = LINE_SEARCH(problem) edit
+% line_search for input details
 
 C           = problem.C;
 L           = problem.L;
@@ -26,6 +31,9 @@ transfer(1) = optimal_rotation(epsilon_0, C, L, Q, OG_nm, RD_nm, lambda, modal_a
 % sweep a large area to look for sign changes to use for a finer pass in
 % fzero
 
+
+% prepare asynounous jobs to run since the number of iterations may vary
+% notably
 parfeval_futures = parallel.FevalOnAllFuture;
 for i = 1:line_range
     if mod(i,2) 
@@ -81,62 +89,4 @@ elseif idx == 1
 else
     epsilon_low = epsilon(end-1);
     epsilon_high = epsilon(end);
-end
-
-% 
-% search_space = 1:20:line_range;
-% exclusion_list = [];
-% for i = 1:length(search_space)-1
-%     range        = search_space(i+1) - search_space(i);
-%     search_range = search_space(i):search_space(i+1)-1;
-%     
-%     epsilon_temp  = zeros(range, 1);
-%     transfer_temp = zeros(range, 1);
-%     parfor j = 1:20
-%         search = search_range(j)
-%         if mod(j, 2)
-%             flip = 1;
-%         else 
-%             flip = -1;
-%         end
-%         amp = floor((search)/2)/16;
-%         epsilon_temp(j) = epsilon_0*(1-amp*flip);
-%         transfer_temp(j) = optimal_rotation(epsilon_temp(j), C, L, Q, OG_nm, RD_nm, lambda, modal_amp, tspan, init, 64000);
-%     end
-% 
-%     epsilon       = [epsilon; epsilon_temp];
-%     transfer      = [transfer; transfer_temp];
-% 
-%     % Get sorted list of epsilon and unresolved transfer terms to try to find
-%     % and interval of sign change
-%     [epsilon, idx] = sort(epsilon);
-%     transfer = transfer(idx);
-%     sign_t = sign(transfer);
-%     
-%     % Update search progress
-%     if i == 1
-%         ax = mod_prog(epsilon, transfer);
-%     else
-%         ax = mod_prog(epsilon, transfer, ax);
-%     end
-% 
-% 
-%     % Find suspect zeros perform more interations of optimal_rotation to more assuredly
-%     % find bounds
-%     for k = 1:length(sign_t)-1
-%         if sign_t(k)*sign_t(k+1) < 0 && ~any(exclusion_list == k)
-%             transfer1 = optimal_rotation(epsilon(k), C, L, Q, OG_nm, RD_nm, lambda, modal_amp, tspan, init, 64000);
-%             transfer2 = optimal_rotation(epsilon(k+1), C, L, Q, OG_nm, RD_nm, lambda, modal_amp, tspan, init, 64000);
-%             % if higher accuracy produces bounded solutions exit and
-%             % indicate flip location
-%             if transfer1*transfer2 < 0 
-%                 flip_idx = k;
-%                 return;
-%             % Otherwise add point to exclusion list
-%             else
-%                 exclusion_list = [exclusion_list, k];
-%             end
-%         end
-%     end
-% end
 end

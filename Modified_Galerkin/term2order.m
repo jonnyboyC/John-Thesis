@@ -1,5 +1,9 @@
 function [C, L, Q, lambda, modal_amp] = term2order(l, q, vis, lambda, modal_amp, modes)
-% Convert from dissapative and convective form to interaction order
+% TERM2ORDER convert from the the notation in terms of viscous and
+% convective terms to traditional POD form 
+%
+% {C, L, Q, lambda, modal_amp] = TERM2ORDER(l, q, vis, lambda, modal_amp,
+% modes)
 q = regroup_q(q);
 l = repmat(vis, 1, size(l,1)).*l;
 lambda = lambda(modes);

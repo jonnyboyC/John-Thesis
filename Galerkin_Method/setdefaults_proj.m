@@ -74,12 +74,12 @@ end
 
 % Default for dissapation
 if isempty(problem.dissapation) || ~iscell(problem.dissapation);
-    fprintf('Using default value for dissapation\nproblem.dissapation = {"Noack", "Couplet"}\n\n');
-    problem.dissapation = {'Noack', 'Couplet'};      % plot types to be used
+    fprintf('Using default value for dissapation\nproblem.dissapation = {"Least Squares", "Averaged"}\n\n');
+    problem.dissapation = {'Least Squares', 'Averaged'};      % plot types to be used
 end
 
 % Check to make sure incorrect strings are not passed
-correct = {'Noack', 'Couplet'};
+correct = {'Least Squares', 'Averaged'};
 problem.dissapation = list_check(problem.dissapation, correct, 'dissapation');
 
 % Default for run_num

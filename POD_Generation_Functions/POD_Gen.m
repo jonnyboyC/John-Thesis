@@ -121,9 +121,21 @@ end
 
 %% Load and Preprocess Data
 
+% Prompt the user for location of folder if not provided
+fprintf(1, 'Please choose test data directory\n');
+if strcmp(direct, '')
+    direct = uigetdir('', 'Choose Source Image Directory');
+end
+
+% Update folder to correct format
+update_folders(direct);
+
 % Load simulation data from raw .vc7 or .mat, or from processed .mat
-[x, y, u, v, u_scale, direct] = Velocity_Read_Save(num_images, load_raw, image_range, ...
-                                    l_scale, u_scale_gen, non_dim, xy_units, flip, direct);
+[x, y, u, v] = Velocity_Read_Save(num_images, load_raw, image_range, flip, direct);  
+
+% Apply scaling to flow variables
+[x, y, u, v, u_scale, l_scale] = apply_scales(x, y, u, v, l_scale, u_scale_gen, ...
+                                            non_dim, xy_units, direct);
 
 % Check if mesh has even spacing
 uniform = check_mesh(x, y);
@@ -144,8 +156,17 @@ num_images = size(u,3);
 % Determine resolution of velocity image
 data_points = numel(x);
 
+% determine units to be displayed in plots
+if strcmp(xy_units, 'mm')
+    x_dis = x*1000;
+    y_dis = y*1000;
+else
+    x_dis = x;
+    y_dis = y;
+end
+
 % Exactly define flow boundaries
-[bnd_x, bnd_y, bnd_idx] = refine_bounds(x, y, u, v, mean_u, mean_v, direct, update_bnds);
+[bnd_x, bnd_y, bnd_idx] = refine_bounds(x_dis, y_dis, u, v, mean_u, mean_v, direct, update_bnds);
 
 % Filter raw images, to attempt to remove artifacts
 if filter
@@ -160,8 +181,7 @@ flux_v = v - repmat(mean_v,1,1,num_images);
 [mean_u, mean_v, flux_u, flux_v] = clip_bounds(bnd_idx, mean_u, mean_v, flux_u, flux_v);
 
 % Calculate volume elements of the mesh
-%vol_frac = voln_piv_2D(x, y, bnd_idx);
-vol_frac = voln_piv_2D2(x, y, bnd_idx, bnd_x, bnd_y);
+vol_frac = voln_piv_2D(x, y, bnd_idx, bnd_x, bnd_y);
     
 clear u v
 
@@ -215,8 +235,8 @@ end
 if ~isempty(save_figures)
     
     % setup data structure
-    data.x      = x;
-    data.y      = y;
+    data.x      = x_dis;
+    data.y      = y_dis;
     data.bnd_idx = bnd_idx;
     
     % Plot vector field modes
@@ -242,6 +262,8 @@ results_pod.exp_sampling_rate = exp_sampling_rate;
 % mesh information
 results_pod.x = x;
 results_pod.y = y;
+results_pod.x_dis = x_dis;
+results_pod.y_dis = y_dis;
 results_pod.dimensions = dimensions;
 results_pod.bnd_idx = bnd_idx;
 results_pod.bnd_x = bnd_x;
@@ -270,6 +292,7 @@ results_pod.cutoff = cutoff;
 % scaling factoring
 results_pod.l_scale = l_scale;
 results_pod.u_scale = u_scale;
+results_pod.non_dim = non_dim;
 
 if cluster
     % k-mean clustering data

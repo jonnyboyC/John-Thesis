@@ -3,54 +3,57 @@ function Mod_POD(varargin)
 % that is transformed such that it minimizing the energy decrease compared
 % to the original system. will show results of new system via graphing
 %
-% MOD_POD() prompt user for analysis folder for a given test run, will use
-% all defaultes detailed below
+%   MOD_POD() prompt user for analysis folder for a given test run, will use
+%   all defaultes detailed below
 % 
-% MOD_POD(problem) Using fields provided in the structure PROBLEM sets up
-% analysis specified by PROBLEM. all unfilled fields go to defaults
+%   MOD_POD(problem) Using fields provided in the structure PROBLEM sets up
+%   analysis specified by PROBLEM. all unfilled fields go to defaults
 %
-% problem.RD_nm = 10
-% Specify the number of modes that will be calculated the basis
-% transformation
+%   problem.RD_nm = 10
+%   Specify the number of modes that will be calculated the basis
+%   transformation
 %
-% problem.OG_nm = 'double'
-% Specify the basis that you want the reduced model to be constructed from
-% by default a basis of 2*RD_nm is selected
+%   problem.OG_nm = 'double'
+%   Specify the basis that you want the reduced model to be constructed 
+%   from by default a basis of 2*RD_nm is selected
 %
-% problem.plot_type = {'amp', 'fft', 'energy'}
-% Specify which outout graphes are desired, current options are modal
-% amplitude 'amp', fourier fast transform 'fft', and 'video which produces
-% a video of the simulated flow
+%   problem.plot_type = {'amp', 'fft', 'energy'}
+%   Specify which outout graphes are desired, current options are modal
+%   amplitude 'amp', fourier fast transform 'fft', and 'video which produces
+%   a video of the simulated flow
 %
-% problem.save_mod = true
-% Save relvant values to a .mat file
+%   problem.save_mod = true
+%   Save relvant values to a .mat file
 %
-% problem.init = 1
-% Specify which image will constitute the initial conditions
+%   problem.init = 1
+%   Specify which image will constitute the initial conditions
 %
-% problem.tspan = 0:0.0001:1
-% Specify for how long integration will be performed will be sampled at
-% sampling frequency of base data
+%   problem.tspan = 0:0.0001:1
+%   Specify for how long integration will be performed will be sampled at
+%   sampling frequency of base data
 %
-% problem.line_range = 100
-% Specify a relatively range of epsilon values to search to be course
-% searched in order to generate a transformation matrix which produces an
-% energy balanced system
+%   problem.line_range = 100
+%   Specify a relatively range of epsilon values to search to be course
+%   searched in order to generate a transformation matrix which produces an
+%   energy balanced system
 %
-% problem.direct = ''
-% Specify directory that will be searched for POD data, default is to
-% prompt user
+%   problem.direct = ''
+%   Specify directory that will be searched for POD data, default is to
+%   prompt user
 %
-% problem.run_num = 'first'
-% Specify which run this Galerkn Projection should be based from, default
-% is to use the most recent
+%   problem.run_num = 'first'
+%   Specify which run this Galerkn Projection should be based from, default
+%   is to use the most recent
 %
-% problem.models = 1:8
-% Specify which Galerkin Models from GALKERKIN_PROJ are corrected with a
-% basis transform. 
+%   problem.models = 1:8
+%   Specify which Galerkin Models from GALKERKIN_PROJ are corrected with a
+%   basis transform. 
 %
-% problem.fft_window = [0 2000]
-% Specify the hertz range that the fft plot should capture
+%   problem.fft_window = [0 2000]
+%   Specify the hertz range that the fft plot should capture
+%
+%   problem.classify_sim = true
+%   Classify simulated results to emprical data
 
 format long g
 close all
@@ -60,7 +63,8 @@ clc;
 fields = {  'RD_nm',        'plot_type',    'save_mod', ...
             'init',         'line_range',   'direct' ,...
             'run_num',      'models',       'fft_window', ...
-            'tspan',        'OG_nm'         'custom'};
+            'tspan',        'OG_nm'         'custom', ...
+            'classify_sim'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -83,6 +87,8 @@ models      = problem.models;
 fft_window  = problem.fft_window;
 tspan       = problem.tspan;
 custom      = problem.custom;
+classify_sim = problem.classify_sim;
+
 
 % Check status of parrallel pool
 if isempty(gcp('nocreate'));
@@ -131,13 +137,19 @@ end
 t_scale = u_scale/l_scale;  
 tspan = tspan*t_scale;      
 
-vars = load(direct_POD, 'results_clust');
+% If requested load cluster data
+if classify_sim
     
-centers         = vars.results_clust.centers;     % k-means cluster centers
-km_stoch        = vars.results_clust.km_stoch;    % k-mean stochastic matrix
-gm_stoch        = vars.results_clust.gm_stoch;    % gaussian mixture stochastic matrix
-gm_models       = vars.results_clust.gm_models;   % gaussian mixture models
-cluster_range   = vars.results_clust.cluster_range;    % number of variables in cluster
+    % Load Cluster variables
+    vars = load(direct_POD, 'results_clust');
+    
+    centers         = vars.results_clust.centers;     % k-means cluster centers
+    km_stoch        = vars.results_clust.km_stoch;    % k-mean stochastic matrix
+    gm_stoch        = vars.results_clust.gm_stoch;    % gaussian mixture stochastic matrix
+    gm_models       = vars.results_clust.gm_models;   % gaussian mixture models
+    cluster_range   = vars.results_clust.cluster_range;    % number of variables in cluster
+    
+end
 
 vars = load(direct_Gal, 'results_coef');
 
@@ -214,10 +226,12 @@ for i = 1:size(models, 2)
     [pod_u_til, pod_v_til, modal_amp_raw_til] = ...
         basis_transform(pod_ut, pod_vt, modal_ampt, RD_nm, X);
     
-%     idx = (cluster_range == RD_nm);
-%     [scores_km, scores_gm] = classify_Gal(centers{idx}, ...
-%         gm_models{idx}, modal_amp_til, direct, km_stoch{idx}, gm_stoch{idx});
-
+    if classify_sim
+        idx = (cluster_range == RD_nm);
+        [scores_km, scores_gm] = classify_Gal(centers{idx}, ...
+            gm_models{idx}, modal_amp_til, direct, km_stoch{idx}, gm_stoch{idx});
+    end
+    
     % Prepare data
     plot_data.num_modes     = RD_nm;
     plot_data.direct        = direct;
@@ -256,8 +270,8 @@ for i = 1:size(models, 2)
     
     results_mod_int.t = t;
     results_mod_int.modal_amp_til = modal_amp_til;
-%     results.scores_km       = scores_km;
-%     results.scores_gm       = scores_gm;
+    results.scores_km       = scores_km;
+    results.scores_gm       = scores_gm;
     
     % Save important coefficients
     if save_mod == true

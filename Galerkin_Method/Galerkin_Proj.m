@@ -47,7 +47,7 @@ function [res_coef, res_int] = Galerkin_Proj(varargin)
 % Specify which run this Galerkn Projection should be based from, default
 % is to use the most recent
 %
-% problem.dissapation = {'Noack', 'Couplet'}
+% problem.dissapation = {'Least Squares', 'Averaged'}
 % Specify which viscious dissapation method(s) to use
 %
 % problem.time_int = true
@@ -62,7 +62,7 @@ function [res_coef, res_int] = Galerkin_Proj(varargin)
 % to disk 
 %
 % problem.classify_sim = true
-% Compared clustered results
+% Classify simulated results to emprical data
 
 % Set format, clear figures, and set up correct directory
 format long g
@@ -135,6 +135,7 @@ pod_vor     = vars.results_pod.pod_vor;     % vorticity pod modes
 lambda      = vars.results_pod.lambda;      % eigenvalues of modes
 dimensions  = vars.results_pod.dimensions;  % dimensions of mesh
 bnd_idx     = vars.results_pod.bnd_idx;     % location of boundaries
+non_dim     = vars.results_pod.non_dim;     % was the result non_dimensionalized
 run_num     = vars.results_pod.run_num;     % POD run numbers
 cutoff      = vars.results_pod.cutoff;      % number of modes at cutoff
 modal_amp   = vars.results_pod.modal_amp;   % modal amplitude  from raw data
@@ -163,11 +164,11 @@ if time_int && classify_sim
 end
 
 
-% Get Reynolds number 
-Re0 = Re0_gen(direct, u_scale, l_scale);  
+% Determine Reynolds number 
+Re0 = Re0_gen(direct);  
 
-% Kinematic visocity Assume values have been non-dimensionalized
-vis = 1/Re0;
+% Determine kinematic visocity
+vis = calc_vis(u_scale, l_scale, Re0, non_dim);
 
 % Determine sampling frequency from provided tspan
 if length(tspan) > 2
@@ -177,9 +178,10 @@ else
     error('must provide tspan with a range');
 end
 
-% Create non-dimensionalized timescale
-t_scale = u_scale/l_scale;  
-tspan = tspan*t_scale;  
+% Create modify time scale if non-dimenionalized
+[t_scale, tspan] = calc_t_scale(u_scale, l_scale, non_dim, tspan);
+
+% Preallocate for future save function
 futures = 0;
 
 %% Setup variables to Coefficient Calculations
@@ -210,7 +212,7 @@ if calc_coef
     qc = cell(2,2);
     
     % Generate values up to cutoff to be used for Couplet viscous dissipation
-    if ismember('Couplet', dissapation);
+    if ismember('Least Squares', dissapation);
         fprintf('Generating coefficients for unresolved modes using %d modes\n', cutoff);
         
         % Calculate for traditional Galerkin Projection
@@ -307,7 +309,7 @@ for i = 1:length(num_modesG)
         eddy(2,:,i) = {zeros(num_modes,1), 'Weak Original'};
 
         % calculate coefficients detailed by Couplet
-        if ismember('Couplet', dissapation);
+        if ismember('Least Squares', dissapation);
             eddy{3,1,i} = viscous_dis_couplet(modal_amp, num_modes, modes, lc{1,1}, qc{1,1}, vis);
             eddy{3,2,i} = 'Modal Base Couplet';
 
@@ -315,14 +317,16 @@ for i = 1:length(num_modesG)
             eddy{4,2,i} = 'Modal Weak Couplet';
         end
 
-        % Calculate coefficeints detailed by Noack
-        [eddy{5,1,i}, eddy{6,1,i}] = viscous_dis(modal_amp, num_modes, lambda, l{1,1,i}, q{1,1,i}, vis);
-        eddy{5,2,i} = 'Modal Base Noack';
-        eddy{6,2,i} = 'Global Base Noack';
+        if ismember('Averaged', dissapation);
+            % Calculate coefficeints detailed by Noack
+            [eddy{5,1,i}, eddy{6,1,i}] = viscous_dis(modal_amp, num_modes, lambda, l{1,1,i}, q{1,1,i}, vis);
+            eddy{5,2,i} = 'Modal Base Noack';
+            eddy{6,2,i} = 'Global Base Noack';
 
-        [eddy{7,1,i}, eddy{8,1,i}] = viscous_dis(modal_amp, num_modes, lambda, l{2,1,i}, q{2,1,i}, vis);
-        eddy{7,2,i} = 'Modal Weak Noack';
-        eddy{8,2,i} = 'Global Weak Noack';
+            [eddy{7,1,i}, eddy{8,1,i}] = viscous_dis(modal_amp, num_modes, lambda, l{2,1,i}, q{2,1,i}, vis);
+            eddy{7,2,i} = 'Modal Weak Noack';
+            eddy{8,2,i} = 'Global Weak Noack';
+        end
 
         % Duplicate TODO name this better
         eddy(linear_models+1:total_models,1,i) = eddy(base_models+1:linear_models,1,i);

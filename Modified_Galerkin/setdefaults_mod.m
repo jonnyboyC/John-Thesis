@@ -12,6 +12,12 @@ if isempty(problem.plot_type) || ~ischar(problem.plot_type) || iscell(problem.pl
     problem.plot_type = {'amp', 'fft', 'energy'};      % plot_types to be used
 end
 
+% Default for save_coef
+if isempty(problem.classify_sim) || ~islogical(problem.classify_sim)
+    fprintf('Using default value for save_coef\nproblem.classify_sim = true\n\n');
+    problem.classify_sim = true;        % save projection values
+end
+
 % Check to make sure incorrect strings are not passed
 correct = {'fft', 'amp', 'energy', 'video'};
 correct_members = ismember(problem.plot_type, correct);
