@@ -49,7 +49,7 @@ for i = 1:num_modes
     % After Originally generating 4 plots, update values
     if plot_img_num > 4 
         % Save images in requested format
-        if any(ismember({'fig', 'jpg'}, save_figures))
+        if any(ismember({'fig', 'jpg', 'png'}, save_figures))
             for j = 1:size(save_figures,2)
                 saveas(h, [direct filesep 'Figures' filesep 'POD' filesep ...
                     'Modes' filesep varname '_modes_' num2str(i-4) '_' num2str(i-1)], save_figures{j});

@@ -6,6 +6,10 @@ function [km_stoch, gm_stoch, gm_models, gm_groups, km_groups, centers] = ...
 % Flag
 make_plot = true;
 
+% k-means replicate
+k_replicate = 50;
+gm_replicate = 10;
+
 % Cluster dimensions of clusters
 cluster_range = 2:40;
 cluster_modes = [1,2];
@@ -31,11 +35,11 @@ h_stoch2= figure;
 for i = 1:length(cluster_range);
     % Cluster based on k-mean
     [km_groups, centers{i}] = kmeans(modal_amp(:,1:cluster_range(i)), ...
-        num_clusters, 'Replicates', num_clusters, 'Options', options);
+        num_clusters, 'Replicates', k_replicate, 'Options', options);
     
     % Create gaussian mixture model
     gm_models{i} = fitgmdist(modal_amp(:,1:cluster_range(i)), num_clusters, ...
-        'Replicates', num_clusters, 'SharedCov', true, 'Options', gm_options);
+        'Replicates', gm_replicate, 'SharedCov', true, 'Options', gm_options);
     
     % Cluster based on gaussian mixture model
     gm_groups{i} = cluster(gm_models{i}, modal_amp(:,1:cluster_range(i)));

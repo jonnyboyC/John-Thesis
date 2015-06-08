@@ -22,7 +22,7 @@ function [res_pod, res_clust] = POD_Gen(varargin)
 %   Save the results of the simulation in POD.mat
 %
 %   problem.save_figures = {'fig'}
-%   Request figures be saved as .fig or .jpg provided in a cell array
+%   Request figures be saved as .fig or .jpg or .png provided in a cell array
 %
 %   problem.image_range = []
 %   Specify pixel range of images to be analyzed, in a matrix of form 
