@@ -1,5 +1,11 @@
-function [x, y] = load_grid_dat(direct, l_scale)
+function [x, y, z, num_zones] = load_grid_dat(direct)
+% LOAD_GRID_DAT load grid data an apply length scale for old jet data
+%
+%   [x, y] = load_grid_dat(direct, l_scale)
+%#ok<*AGROW>
 
+% convert from ft to meters
+ft2meters = 0.3048;
 
 % Currently hard coded may change
 grid_file = fopen([direct filesep 'Raw Data' filesep 'grid.dat']);
@@ -25,20 +31,24 @@ offset = 0;
 
 x = [];
 y = [];
+z = [];
 
 for i = 1:num_zones
-    x_temp = reshape(grid([1:prod(dimensions)+offset), dimensions);
+    x_temp = reshape(grid(1:prod(dimensions)+offset), dimensions);
     offset = offset + prod(dimensions); % offset x
     
-    y_temp = reshape(grid([1:prod(dimensions)+offset), dimensions);
+    y_temp = reshape(grid(1:prod(dimensions)+offset), dimensions);
     offset = offset + prod(dimensions); % offset y
+    
+    z_temp = reshape(grid(1:prod(dimensions)+offset), dimensions);
     offset = offset + prod(dimensions); % offset z
 
-    % Add together concatinate matrices
-    x = [x; x_temp];
+    %  concatinate matrices
+    x = [x; x_temp]; 
     y = [y; y_temp];
+    z = [z; z_temp];
 end
 
-x = x*l_scale;
-y = y*l_scale;
+x = x*ft2meters;
+y = y*ft2meters;
 end

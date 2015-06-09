@@ -91,6 +91,12 @@ if isempty(problem.l_scale) || ~isscalar(problem.l_scale)
     problem.l_scale = 1;                % assume characteristic length of 1
 end
 
+% Default for load_handle
+if isempty(problem.load_handle) || ~isa(problem.load_handle, 'function_handle')
+    fprintf('Using default values for u_scale_gen\nproblem.load_handle = @load_LaVision\n\n');
+    problem.load_handle = @load_LaVision;   % Assume the more recent laVision format
+end
+
 % Default for u_scale_gen
 if isempty(problem.u_scale_gen) || (~isscalar(problem.u_scale_gen) && ~isa(problem.u_scale_gen, 'function_handle'))
     fprintf('Using default values for u_scale_gen\nproblem.u_scale_gen = 1\n\n');

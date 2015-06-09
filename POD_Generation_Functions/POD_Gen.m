@@ -81,7 +81,8 @@ fields = {  'num_images',   'load_raw',     'save_pod', ...
             'u_scale_gen',  'save_figures', 'flip',...
             'update_bnds',  'num_clusters', 'exp_sampling_rate',...
             'cluster',      'average_mesh', 'filter', ...
-            'streamlines',  'non_dim',      'xy_units',};
+            'streamlines',  'non_dim',      'xy_units', ...
+            'load_handle'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -95,6 +96,7 @@ end
 % Create more readable names
 num_images  = problem.num_images;
 load_raw    = problem.load_raw;
+load_handle = problem.load_handle
 save_pod    = problem.save_pod;
 image_range = problem.image_range;
 direct      = problem.direct;
@@ -131,11 +133,11 @@ end
 update_folders(direct);
 
 % Load simulation data from raw .vc7 or .mat, or from processed .mat
-[x, y, u, v] = Velocity_Read_Save(num_images, load_raw, image_range, flip, direct);  
+[x, y, u, v] = Velocity_Read_Save(num_images, load_raw, load_handle, direct);  
 
 % Apply scaling to flow variables
-[x, y, u, v, u_scale, l_scale] = apply_scales(x, y, u, v, l_scale, u_scale_gen, ...
-                                            non_dim, xy_units, direct);
+[x, y, u, v, u_scale, l_scale] = preprocess_raw_data(x, y, u, v, l_scale, u_scale_gen, ...
+                                            non_dim, xy_units, flip, image_range, direct);
 
 % Check if mesh has even spacing
 uniform = check_mesh(x, y);
