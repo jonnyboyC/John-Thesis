@@ -1,4 +1,4 @@
-function bnd_idx = flow_boundaries(u, v)
+function bnd_idx = flow_boundaries(u, v, open_flow)
 % FLOW_BOUNDARIES determine flow boundaries
 %
 % bnd_idx = FLOW_BOUNDARIES(u,v) given raw flow data u and v, return
@@ -7,6 +7,10 @@ function bnd_idx = flow_boundaries(u, v)
 
 % Intially set all to in flow
 bnd_idx = ones(size(u(:,:,1)));
+
+if open_flow
+    return;
+end
 
 % Make all images with a pixel out of flow as part of boundary
 for i = 1:size(u,3)

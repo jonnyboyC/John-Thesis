@@ -1,4 +1,4 @@
-function [bnd_x, bnd_y, bnd_idx] = mask_gen(data, bnd_x, bnd_y, u, v, streamlines)
+function [bnd_x, bnd_y, bnd_idx] = mask_gen(data, bnd_x, bnd_y, u, v, open_flow, streamlines)
 % MASK_GEN generate a mask for the raw PIV data
 % [bnd_x, bnd_y, bnd_idx] = MASK_GEN(data, bnd_x, bnd_y, u, v) open a 
 % GUI to exclude sections of the flow images that may be causing problems
@@ -65,7 +65,7 @@ htable2 = uitable(f, 'Data', table_data, ...
                     'ColumnEditable', true(1,4), ...
                     'RowName', [], ...
                     'Position', [500, 130, 310, 100]);
-haxes = axes('Units','pixels','Position',[50,50,400,400]);
+axes('Units','pixels','Position',[50,50,400,400]);
 
 % Initialize the GUI.
 % Change units to normalized so components resize automatically.
@@ -89,7 +89,7 @@ bnd_y_temp = bnd_y;
 bnd_idx_temp = data.bnd_idx;
 
 % Generate a plot of the mean flow
-[~, ~, haxes] = plot_vector_field(data, streamlines);
+plot_vector_field(data, streamlines);
 colorbar;
 
 % Assign the GUI a name to appear in the window title.
@@ -126,13 +126,15 @@ uiwait(f);
         % Intially set all to in flow
         bnd_idx_temp = ones(size(bnd_idx));
         
-        % Make all images with a pixel out of flow as part of boundary
-        for i = 1:size(u,3)
-            bnd_idx_temp = bnd_idx_temp + double((u(:,:,i) + v(:,:,i) == 0));
+        if ~open_flow            
+            % Make all images with a pixel out of flow as part of boundary
+            for i = 1:size(u,3)
+                bnd_idx_temp = bnd_idx_temp + double((u(:,:,i) + v(:,:,i) == 0));
+            end
+            
+            % Set all points with at least one image not captured as in boundary
+            bnd_idx_temp(bnd_idx_temp ~= 1) = -1;
         end
-        
-        % Set all points with at least one image not captured as in boundary
-        bnd_idx_temp(bnd_idx_temp ~= 1) = -1;
 
         % Check that a full row has been filled in 
         if any(~all(cellfun('isempty', flow_bounds)'))
@@ -169,11 +171,13 @@ uiwait(f);
                 cellfun(@num2str, num2cell((filters)), 'UniformOutput', false);
         end
         
-        % Use built in edge detection to boundary points change points to 0
-        bnd_idx_temp(edge(bnd_idx_temp, 'canny')) = 0;
-        
-        % manually change edge points on image edge
-        bnd_idx_temp = manual_edge(bnd_idx_temp);
+        if ~open_flow
+            % Use built in edge detection to boundary points change points to 0
+            bnd_idx_temp(edge(bnd_idx_temp, 'canny')) = 0;
+            
+            % manually change edge points on image edge
+            bnd_idx_temp = manual_edge(bnd_idx_temp);
+        end
         
         % Determine potential flow boundaries
         [bnd_x_temp, bnd_y_temp] = edge_boundaries(bnd_idx_temp);

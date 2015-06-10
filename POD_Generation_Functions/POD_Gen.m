@@ -61,7 +61,7 @@ function [res_pod, res_clust] = POD_Gen(varargin)
 %   problem.exp_sampling_rate = 5;
 %   provide experimental sampling rate of the experiment, default is 5Hz
 %
-%   problem.streamlines = false
+%   problem.streamlines = true
 %   plot mode using streamline instead of quivers
 %
 %   problem.non_dim = false
@@ -82,7 +82,7 @@ fields = {  'num_images',   'load_raw',     'save_pod', ...
             'update_bnds',  'num_clusters', 'exp_sampling_rate',...
             'cluster',      'average_mesh', 'filter', ...
             'streamlines',  'non_dim',      'xy_units', ...
-            'load_handle'};
+            'load_handle',  'open_flow'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -112,6 +112,7 @@ streamlines = problem.streamlines;
 average_mesh= problem.average_mesh;
 non_dim     = problem.non_dim;
 xy_units    = problem.xy_units;
+open_flow   = problem.open_flow;
 exp_sampling_rate = problem.exp_sampling_rate;
 
 clear problem
@@ -133,10 +134,10 @@ end
 update_folders(direct);
 
 % Load simulation data from raw .vc7 or .mat, or from processed .mat
-[x, y, u, v] = Velocity_Read_Save(num_images, load_raw, load_handle, direct);  
+[X, U] = Velocity_Read_Save(num_images, load_raw, load_handle, direct);  
 
 % Apply scaling to flow variables
-[x, y, u, v, u_scale, l_scale] = preprocess_raw_data(x, y, u, v, l_scale, u_scale_gen, ...
+[X, U, u_scale, l_scale] = preprocess_raw_data(X, U, l_scale, u_scale_gen, ...
                                             non_dim, xy_units, flip, image_range, direct);
 
 % Check if mesh has even spacing
@@ -172,7 +173,7 @@ else
 end
 
 % Exactly define flow boundaries
-[bnd_x, bnd_y, bnd_idx] = refine_bounds(x_dis, y_dis, u, v, mean_u, mean_v, direct, streamlines, update_bnds);
+[bnd_x, bnd_y, bnd_idx] = refine_bounds(x_dis, y_dis, u, v, mean_u, mean_v, direct, streamlines, open_flow, update_bnds);
 
 % Filter raw images, to attempt to remove artifacts
 if filter
@@ -213,6 +214,8 @@ for i = 1:cutoff
     pod_v(:,i) = pod_v(:,i)*sign_flip;
     modal_amp(:,i) = modal_amp(:,i)*sign_flip;
 end
+
+close all
 
 % Cluster resulting POD modes
 if cluster

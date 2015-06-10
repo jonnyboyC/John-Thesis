@@ -1,4 +1,4 @@
-function [u, v, w] = load_velocity_dat(direct, num_images, num_zones)
+function U = load_velocity_dat(direct, num_images, num_zones)
 % TODO make this not the worst code ever, why are we using random numbers
 % to read a file??
  %#ok<*AGROW>
@@ -67,13 +67,17 @@ fclose(velocity_file);
 % Stack data hopefully the correct way
 for zone = 1:num_zones
     if zone ~= 1
-        u = [u; -u_zones{zone}];
-        v = [v; -v_zones{zone}];  
-        w = [w; -w_zones{zone}];
+        u = [fliplr(u_zones{zone}), u];
+        v = [fliplr(v_zones{zone}), v];  
+        w = [fliplr(w_zones{zone}), w];
     else
-        u = [u; u_zones{zone}];
-        v = [v; v_zones{zone}];  
-        w = [w; w_zones{zone}];
+        u = [u_zones{zone}, u];
+        v = [v_zones{zone}, v];  
+        w = [w_zones{zone}, w];
     end
 end
+
+U.u = u;
+U.v = v;
+U.z = z;
 end

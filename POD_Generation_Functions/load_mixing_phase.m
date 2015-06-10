@@ -1,4 +1,4 @@
-function [x, y, u, v, num_processed] = load_mixing_phase(num_images, direct)
+function [X, U, num_processed] = load_mixing_phase(num_images, direct)
 % LOAD_MIXING_PHASE load phase locked data from mat files into matlab, only
 % used for data given by docter little, currently not used
 %
@@ -38,4 +38,10 @@ for i = 1:num_processed
     u(:,:,i) = velocity.u;
     v(:,:,i) = velocity.v;
 end
+
+X.x = x;
+X.y = y;
+
+U.u = u;
+U.v = v;
 end

@@ -1,4 +1,4 @@
-function [x, y, u, v, num_processed] = load_cavity_dat(num_images, direct)
+function [X, U, num_processed] = load_cavity_dat(num_images, direct)
 % LOAD_CAVITY_DAT load dat files in the format of the cavity into matlab 
 %
 %   [x, y, u, v] = LOAD_CAVITY_DAT(img_files, num_processed, num_images,
@@ -62,4 +62,10 @@ for i = 1:num_processed
     u(:,:,i) = reshape(data(3,:), num_x_org, num_y_org);
     v(:,:,i) = reshape(data(4,:), num_x_org, num_y_org);  
 end   
+
+X.x = x;
+X.y = y;
+
+U.u = u;
+U.v = v;
 end

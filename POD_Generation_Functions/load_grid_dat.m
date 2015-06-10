@@ -1,4 +1,4 @@
-function [x, y, z, num_zones] = load_grid_dat(direct)
+function [X, num_zones] = load_grid_dat(direct)
 % LOAD_GRID_DAT load grid data an apply length scale for old jet data
 %
 %   [x, y] = load_grid_dat(direct, l_scale)
@@ -46,16 +46,17 @@ for zone = 1:num_zones
 
     %  concatinate matrices
     if zone ~= 1
-        x = [x; -x_temp];
-        y = [y; -y_temp];
-        z = [z; -z_temp];
+        x = [fliplr(x_temp), x];
+        y = [fliplr(y_temp), y];
+        z = [fliplr(z_temp), z];
     else
-        x = [x; x_temp];
-        y = [y; y_temp];
-        z = [z; z_temp];
+        x = [x_temp, x];
+        y = [y_temp, y];
+        z = [z_temp, z];
     end
 end
 
-x = x*ft2meters;
-y = y*ft2meters;
+X.x = x*ft2meters;
+X.y = y*ft2meters;
+X.z = z*ft2meters;
 end

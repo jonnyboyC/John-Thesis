@@ -1,4 +1,4 @@
-function [x, y, u, v] = Velocity_Read_Save(num_images, load_raw, load_handle, direct)
+function [X, U] = Velocity_Read_Save(num_images, load_raw, load_handle, direct)
 % VELOCITY_READ_PLOT_SAVE read raw num_images number of images from a selected
 % directory in either .dat .vc7 or .mat formats
 %
@@ -10,16 +10,16 @@ if exist([direct filesep 'Processed Data' filesep 'Processed.mat'], 'file') == 2
     data = load([direct filesep 'Processed Data' filesep 'Processed.mat'], 'num_processed');
     num_processed = data.num_processed;
     if (load_raw == false && num_processed == num_images)
-        load([direct filesep 'Processed Data' filesep 'Processed.mat'], 'x', 'y', 'u', 'v');
+        load([direct filesep 'Processed Data' filesep 'Processed.mat'], 'X', 'U');
         return;
     end
 end
 
 % Load variables using appropriate method provided by the function handle
-[x, y, u, v, num_processed] = load_handle(num_images, direct);
+[X, U, num_processed] = load_handle(num_images, direct);
 
 % Save Data to processed folder
-save([direct filesep 'Processed Data' filesep 'Processed.mat'], 'x', 'y', 'u', 'v', 'num_processed', '-v7.3');
+save([direct filesep 'Processed Data' filesep 'Processed.mat'], 'X', 'U', 'num_processed', '-v7.3');
 end
 
 

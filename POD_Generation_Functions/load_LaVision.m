@@ -1,4 +1,4 @@
-function [x, y, u, v, num_processed] = load_LaVision(num_images, direct)
+function [X, U, num_processed] = load_LaVision(num_images, direct)
 % LOAD_LAVISION load 2D .vc7 .im7 files into matlab, currently used for 
 % mixing layer and airfoil data
 %
@@ -40,4 +40,10 @@ for i = 1:num_processed
     lavdata = readimx([direct filesep 'Raw Data' filesep file_name]);
     [x, y, u(:,:,i), v(:,:,i)] = showimx_mod(lavdata);
 end
+
+X.x = x;
+X.y = y;
+
+U.u = u;
+U.v = v;
 end

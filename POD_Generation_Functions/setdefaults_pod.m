@@ -7,6 +7,12 @@ if isempty(problem.num_images) || ~isscalar(problem.num_images)
     problem.num_images = 2000;          % use 2000 images
 end
 
+% Default for open flow
+if isempty(problem.open_flow) || ~islogical(problem.open_flow)
+    fprintf('Using default value for open_flow\nproblem.open_flow = false\n\n');
+    problem.open_flow = false;
+end
+
 % Default for load_raw
 if isempty(problem.load_raw) || ~islogical(problem.load_raw)
     fprintf('Using default value for load_raw\nproblem.load_raw = true\n\n');
@@ -16,7 +22,7 @@ end
 % Default for load_raw
 if isempty(problem.streamlines) || ~islogical(problem.streamlines)
     fprintf('Using default value for streamlines\nproblem.streamlines = false\n\n');
-    problem.streamlines = false;        % plot pod modes with quivers
+    problem.streamlines = true;        % plot pod modes with quivers
 end
 
 
