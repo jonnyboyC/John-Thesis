@@ -50,17 +50,17 @@ if nargin == 1 || all(isfield(data, {'bnd_x', 'bnd_y'}))
     end
     
     % Determine boundaries of image
-    minx = min(min(data.x));
-    maxx = max(max(data.x));
-    miny = min(min(data.y));
-    maxy = max(max(data.y));
+%     minx = min(min(data.x));
+%     maxx = max(max(data.x));
+%     miny = min(min(data.y));
+%     maxy = max(max(data.y));
     
     % Modify viewing
     ax.View = [0 90];
     ax.Box = 'on';
     ax.NextPlot = 'replacechildren';
     colormap(ax, 'jet');
-    axis(ax, [minx maxx miny maxy]);
+%     axis(ax, [minx maxx miny maxy]);
     axis(ax, 'equal')
     axis(ax, 'tight');
     axis(ax, 'manual');

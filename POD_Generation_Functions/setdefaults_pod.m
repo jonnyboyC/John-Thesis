@@ -93,7 +93,7 @@ end
 
 % Default for load_handle
 if isempty(problem.load_handle) || ~isa(problem.load_handle, 'function_handle')
-    fprintf('Using default values for u_scale_gen\nproblem.load_handle = @load_LaVision\n\n');
+    fprintf('Using default values for load_handle\nproblem.load_handle = @load_LaVision\n\n');
     problem.load_handle = @load_LaVision;   % Assume the more recent laVision format
 end
 

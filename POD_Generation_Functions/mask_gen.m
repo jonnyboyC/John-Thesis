@@ -1,4 +1,4 @@
-function [bnd_x, bnd_y, bnd_idx] = mask_gen(data, bnd_x, bnd_y, u, v)
+function [bnd_x, bnd_y, bnd_idx] = mask_gen(data, bnd_x, bnd_y, u, v, streamlines)
 % MASK_GEN generate a mask for the raw PIV data
 % [bnd_x, bnd_y, bnd_idx] = MASK_GEN(data, bnd_x, bnd_y, u, v) open a 
 % GUI to exclude sections of the flow images that may be causing problems
@@ -87,9 +87,6 @@ htext3.Units = 'normalized';
 bnd_x_temp = bnd_x;
 bnd_y_temp = bnd_y;
 bnd_idx_temp = data.bnd_idx;
-
-% Plot with streamlines
-streamlines = true;
 
 % Generate a plot of the mean flow
 [~, ~, haxes] = plot_vector_field(data, streamlines);

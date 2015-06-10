@@ -6,8 +6,11 @@ images = size(u,3);
 
 % Apply any flips to get the images in the correct orientation
 for i = 1:images
-    [x, y, u(:,:,i), v(:,:,i)] = image_rotation(x, y, u(:,:,i), v(:,:,i), flip);
+    [x_temp, y_temp, u(:,:,i), v(:,:,i)] = image_rotation(x, y, u(:,:,i), v(:,:,i), flip);
 end
+
+x = x_temp;
+y = y_temp;
 
 % Crop images if requested
 if ~isempty(image_range)

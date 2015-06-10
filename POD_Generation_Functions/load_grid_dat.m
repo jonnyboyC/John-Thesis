@@ -12,15 +12,16 @@ grid_file = fopen([direct filesep 'Raw Data' filesep 'grid.dat']);
 
 % Grid files are organized as one column
 grid = fscanf(grid_file, '%g');
+fclose(grid_file);
 
 % File entry is number of zones
 num_zones = grid(1);    
 
 % Get the size of each zone
-zones_dims = reshape(grid(2:2*num_zones+1), 2, num_zones);  
+zones_dims = reshape(grid(2:2*num_zones+1), 2, num_zones)';  
 
 if isequal(zones_dims, circshift(zones_dims, 1, 1))
-    dimensions = zones_dims(:,1);
+    dimensions = zones_dims(1,:);
 else
     error('load_grid_dat assumes that zones are of equal size');
 end
@@ -33,20 +34,26 @@ x = [];
 y = [];
 z = [];
 
-for i = 1:num_zones
-    x_temp = reshape(grid(1:prod(dimensions)+offset), dimensions);
+for zone = 1:num_zones
+    x_temp = reshape(grid((1:prod(dimensions))+offset), dimensions);
     offset = offset + prod(dimensions); % offset x
     
-    y_temp = reshape(grid(1:prod(dimensions)+offset), dimensions);
+    y_temp = reshape(grid((1:prod(dimensions))+offset), dimensions);
     offset = offset + prod(dimensions); % offset y
     
-    z_temp = reshape(grid(1:prod(dimensions)+offset), dimensions);
+    z_temp = reshape(grid((1:prod(dimensions))+offset), dimensions);
     offset = offset + prod(dimensions); % offset z
 
     %  concatinate matrices
-    x = [x; x_temp]; 
-    y = [y; y_temp];
-    z = [z; z_temp];
+    if zone ~= 1
+        x = [x; -x_temp];
+        y = [y; -y_temp];
+        z = [z; -z_temp];
+    else
+        x = [x; x_temp];
+        y = [y; y_temp];
+        z = [z; z_temp];
+    end
 end
 
 x = x*ft2meters;

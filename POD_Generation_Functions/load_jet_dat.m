@@ -1,4 +1,4 @@
-function [x, y, u, v] = load_jet_dat(num_images, direct)
+function [x, y, u, v, num_processed] = load_jet_dat(num_images, direct)
 % LOAD_JET_DAT load required dat files to run the DNS simulated axysmetric
 % data
 %
@@ -7,4 +7,5 @@ function [x, y, u, v] = load_jet_dat(num_images, direct)
 
 [x, y, ~, num_zones] = load_grid_dat(direct);
 [u, v, ~] = load_velocity_dat(direct, num_images, num_zones);
+num_processed = num_images;
 end

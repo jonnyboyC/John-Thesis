@@ -96,7 +96,7 @@ end
 % Create more readable names
 num_images  = problem.num_images;
 load_raw    = problem.load_raw;
-load_handle = problem.load_handle
+load_handle = problem.load_handle;
 save_pod    = problem.save_pod;
 image_range = problem.image_range;
 direct      = problem.direct;
@@ -142,6 +142,10 @@ update_folders(direct);
 % Check if mesh has even spacing
 uniform = check_mesh(x, y);
 
+if uniform == false
+    streamlines = false;
+end
+
 % If request compress mesh by a factor of 2 in both directions
 if average_mesh && uniform
     [x, y, u, v] = compress_mesh(x, y, u, v);
@@ -168,7 +172,7 @@ else
 end
 
 % Exactly define flow boundaries
-[bnd_x, bnd_y, bnd_idx] = refine_bounds(x_dis, y_dis, u, v, mean_u, mean_v, direct, update_bnds);
+[bnd_x, bnd_y, bnd_idx] = refine_bounds(x_dis, y_dis, u, v, mean_u, mean_v, direct, streamlines, update_bnds);
 
 % Filter raw images, to attempt to remove artifacts
 if filter
