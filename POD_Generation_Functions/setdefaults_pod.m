@@ -56,8 +56,14 @@ if isempty(problem.non_dim) || ~islogical(problem.non_dim)
     problem.non_dim = false;            % non-dimensionalize
 end
 
+% Default for image_range
+if ~iscell(problem.image_range) || any(~cellfun(@isvector, problem.image_range))
+     fprintf('Using default value for image_range\nproblem.image_range = {}\n\n');
+     problem.image_range = {};     % perform no cropping of image
+end
+
 % Default for save_figures
-if  ~iscell(problem.save_figures)
+if ~iscell(problem.save_figures)
     fprintf('Using default value for save_figures\nproblem.save_figures = {"fig", "png"}\n\n');
     problem.save_figures = {'fig', 'png'};     % Save figures as .fig and .png
 end
@@ -109,11 +115,23 @@ if isempty(problem.u_scale_gen) || (~isscalar(problem.u_scale_gen) && ~isa(probl
     problem.u_scale_gen = 1;            % assume characteristic velocity of 1
 end
 
-% Default for flip
-if isempty(problem.flip) || ~isequal(size(problem.flip), [1, 4]) || ~all(arrayfun(@islogical, problem.flip)) 
-    fprintf('Using default value for flip\nproblem.flip = [false, false, false, false]\n\n');
-    problem.flip = [false, false, false, false];    % don't flip any coordinates
+% Default for flow_flip
+if  ~iscell(problem.flow_flip)
+    fprintf('Using default value for flow_flip\nproblem.flow_flip = {}\n\n');
+    problem.flow_flip = {};     % Save figures as .fig and .png
 end
+
+% TODO check that this is good
+
+% Check to make sure incorrect strings are not passed
+correct = {'x', 'y', 'z', 'u', 'v', 'w'};
+correct_members = ismember(problem.flow_flip, correct);
+for i = 1:size(correct_members,2)
+    if ~correct_members(i)
+        fprintf('%s is not a correct input\n', problem.flow_flip{i});
+    end
+end
+problem.flow_flip = problem.flow_flip(correct_members);
 
 % Default for update_bnds
 if isempty(problem.update_bnds) || ~islogical(problem.update_bnds)

@@ -44,9 +44,9 @@ function [res_pod, res_clust] = POD_Gen(varargin)
 %   problem.u_scale_gen = 1
 %   Specify a scalar for function handle to calculate u_scale
 %
-%   problem.flip = [false, false, false, false]
-%   Specify which directions and velocities are inverted
-%   [x, y, u, v]
+%   problem.flip = {}
+%   Specify which directions and velocities are inverted as a cell array
+%   such as {'u', 'w', 'y'}
 %
 %   problem.update_bnds = false;
 %   If true launch gui to modify boundaries
@@ -78,7 +78,7 @@ clc
 % List of fields that will be checked
 fields = {  'num_images',   'load_raw',     'save_pod', ...
             'image_range',  'direct',       'l_scale', ...
-            'u_scale_gen',  'save_figures', 'flip',...
+            'u_scale_gen',  'save_figures', 'flow_flip',...
             'update_bnds',  'num_clusters', 'exp_sampling_rate',...
             'cluster',      'average_mesh', 'filter', ...
             'streamlines',  'non_dim',      'xy_units', ...
@@ -103,7 +103,7 @@ direct      = problem.direct;
 l_scale     = problem.l_scale;
 u_scale_gen = problem.u_scale_gen;
 save_figures= problem.save_figures;
-flip        = problem.flip;
+flow_flip   = problem.flow_flip;
 update_bnds = problem.update_bnds;
 num_clusters= problem.num_clusters;
 cluster     = problem.cluster;
@@ -138,10 +138,10 @@ update_folders(direct);
 
 % Apply scaling to flow variables
 [X, U, u_scale, l_scale] = preprocess_raw_data(X, U, l_scale, u_scale_gen, ...
-                                            non_dim, xy_units, flip, image_range, direct);
+                                            non_dim, xy_units, flow_flip, image_range, direct);
 
 % Check if mesh has even spacing
-uniform = check_mesh(x, y);
+uniform = check_mesh(X);
 
 if uniform == false
     streamlines = false;
@@ -149,7 +149,7 @@ end
 
 % If request compress mesh by a factor of 2 in both directions
 if average_mesh && uniform
-    [x, y, u, v] = compress_mesh(x, y, u, v);
+    [X, U] = compress_mesh(X, U);
 end
 
 % mean velocities and picture dimensions

@@ -1,43 +1,36 @@
-function [Xn, Un] = image_rotation(X, U, flip)
+function [X, U] = image_rotation(X, U, flow_flip)
 %% Rotation PIV images, if data is originally presented in a flipped format
 
-% Prefil with original orientation
-Xn = X;
-Un = U;
+% Get fields
+[x, u] = flow_comps(X, U);
 
-% create vector of indexes to avoid loops
-x_idx = 1:size(x,1);
-y_idx = 1:size(y,2);
+% Flip all variables request, assums flip if a cell of strings with strings
+% such as 'x', 'u' etc
+for i = 1:length(flow_flip)
+    if isfield(X, flow_flip{i})
+        X.(flow_flip{i}) = -X.(flow_flip{i});
+    end
+    if isfield(U, flow_flip{i})
+        U.(flow_flip{i}) = -U.(flow_flip{i});
+    end
+    
+    % if it is not found in either display to prompt
+    if ~isfield(X, flow_flip{i}) && ~isfield(U, flow_flip{i})
+        fprintf('%s was not found in data, check to make sure it way typed correctly', flow_flip{i});
+    end
+end
 
-% Flip x and y if requested
-if flip(1) 
-    x = -x; 
-end
-if flip(2)
-    y = -y;
-end
-if flip(3)
-    u = -u;
-end
-if flip(4)
-    v = -y;
-end
+% TODO need to confirm this works
 
 % perform flips
-if x(1,1) > x(end,1) && y(1,1) > y(1,end)
-    xn(x_idx, y_idx) = x(size(x,1) - x_idx + 1, size(x,2) - y_idx + 1);
-    yn(x_idx, y_idx) = y(size(y,1) - x_idx + 1, size(y,2) - y_idx + 1);
-    un(x_idx, y_idx) = u(size(u,1) - x_idx + 1, size(u,2) - y_idx + 1);
-    vn(x_idx, y_idx) = v(size(v,1) - x_idx + 1, size(v,2) - y_idx + 1);
-elseif x(1,1) > x(end,1) && y(1,1) < y(1, end)
-    xn(x_idx,:) = x(size(x,1)-x_idx+1,:);
-    yn(x_idx,:) = y(size(y,1)-x_idx+1,:);
-    un(x_idx,:) = u(size(u,1)-x_idx+1,:);
-    vn(x_idx,:) = v(size(v,1)-x_idx+1,:);
-elseif x(1,1) < x(end,1) && y(1,1) > y(1,end)
-    xn(:,y_idx) = x(:,size(x,2)-y_idx+1);
-    yn(:,y_idx) = y(:,size(y,2)-y_idx+1);
-    un(:,y_idx) = u(:,size(u,2)-y_idx+1);
-    vn(:,y_idx) = v(:,size(v,2)-y_idx+1);
+for i = 1:flow_ncomps(X)
+    if X.(x{i})(1) > X.(x{i})(end)
+        % Flip all components about inversed component
+        for j = 1:flow_ncomps(X)
+            X.(x{j}) = flip(X.(x{j}), i);
+            U.(u{j}) = flip(U.(u{j}), i);
+        end
+    end
 end
+
 end

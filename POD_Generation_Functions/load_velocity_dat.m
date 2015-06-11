@@ -1,6 +1,8 @@
 function U = load_velocity_dat(direct, num_images, num_zones)
-% TODO make this not the worst code ever, why are we using random numbers
-% to read a file??
+% LOAD_VELOCITY_DAT load dns jet data u, v, and w and place into structure
+% flow velocity structure U
+%
+%   U = LOW_VELOCITY_DAT(direct, num_images, num_zones)
  %#ok<*AGROW>
 
 u = [];
@@ -79,5 +81,5 @@ end
 
 U.u = u;
 U.v = v;
-U.z = z;
+U.w = w;
 end

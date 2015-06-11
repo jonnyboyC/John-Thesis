@@ -1,4 +1,4 @@
-function [x, y, u, v] = compress_mesh(x, y, u, v)
+function [X, U] = compress_mesh(X, U, open_flow)
 % COMPRESS_MESH reduce a mesh by a factor of 2 in both directions
 %
 % [x, y, u, v] = COMPRESS_MESH(x, y, u, v) given raw PIV data provided by
@@ -6,10 +6,9 @@ function [x, y, u, v] = compress_mesh(x, y, u, v)
 % the original resolution
 
 % calculate mean flow
-mean_u = mean(u,3);
-mean_v = mean(v,3);
+mean_U = mean_comps(U, 3);
 
-bnd_idx = flow_boundaries(mean_u, mean_v);
+bnd_idx = flow_boundaries(U, open_flow);
 bnd_idx = double(bnd_idx <= 0);
 
 % determine new range of image

@@ -1,4 +1,4 @@
-function bnd_idx = flow_boundaries(u, v, open_flow)
+function bnd_idx = flow_boundaries(U, open_flow)
 % FLOW_BOUNDARIES determine flow boundaries
 %
 % bnd_idx = FLOW_BOUNDARIES(u,v) given raw flow data u and v, return
