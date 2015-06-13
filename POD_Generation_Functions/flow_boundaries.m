@@ -5,16 +5,27 @@ function bnd_idx = flow_boundaries(U, open_flow)
 % bnd_idx represented the different flow regions. 1 represents in flow, -1
 % represents uncaptured space, and 0 represented boundaries between the two
 
+u = flow_comps_ns(U);
+dims = flow_dims(U);
+images = size(U.(u{1}), dims);
+
+idx = struct_index({[1 1]}, dims(end), U);
+
 % Intially set all to in flow
-bnd_idx = ones(size(u(:,:,1)));
+bnd_idx = ones(size(squeeze(U.(u{1})(idx{:}))));
 
 if open_flow
     return;
 end
 
 % Make all images with a pixel out of flow as part of boundary
-for i = 1:size(u,3)
-    bnd_idx = bnd_idx + double((u(:,:,i) + v(:,:,i) == 0));
+for i = 1:images
+    temp = zeros(size(bnd_idx));
+    for j = 1:dims
+        idx{end} = i;
+        temp = temp + U.(u{j})(idx{:});
+    end
+    bnd_idx = bnd_idx + double(temp == 0);
 end
 
 % Set all points with at least one image not captured as in boundary

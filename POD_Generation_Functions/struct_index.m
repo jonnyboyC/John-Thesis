@@ -55,8 +55,8 @@ for i = 1:length(varargin)
             if indices{idx}(1) <= 0
                 indices{idx}(1) = full_dims(j) + indices{idx}(1);
             end
-            if indices{idx}(2) <= 0
-                indices{idx}(2) = full_dims(j) + indices{idx}(2);
+            if indices{idx}(end) <= 0
+                indices{idx}(end) = full_dims(j) + indices{idx}(2);
             end
             
             % Check that we're actually in the dimension bounds
@@ -64,13 +64,18 @@ for i = 1:length(varargin)
                 error(['You have provided a set of indices out of bounds in indices %d' ...
                     'where you provided %d value with dimension length %d'], idx, indices{idx}(1), full_dims(j));
             end
-            if indices{idx}(2) < 0 || indices{idx}(2) > full_dims(j)
+            if indices{idx}(end) < 0 || indices{idx}(end) > full_dims(j)
                 error(['You have provided a set of indices out of bounds in indices %d' ...
-                    'where you provided %d value with dimension length %d'], idx, indices{idx}(1), full_dims(j));
+                    'where you provided %d value with dimension length %d'], idx, indices{idx}(end), full_dims(j));
             end
             
-            % Add dimensions
-            varargout{i}{j} = indices{idx}(1):indices{idx}(2);
+            % If third parameter is requested use requested interval
+            if length(indices{idx}) == 3 && indices{idx}(2) < abs(indices{idx}(1) - indices{idx}(end))
+                varargout{i}{j} = indices{idx}(1):indices{idx}(2):indices{idx}(end);
+            else
+                % Add dimensions
+                varargout{i}{j} = indices{idx}(1):indices{idx}(2);
+            end
         else
             % Equivalent to 1:end
             varargout{i}{j} = 1:full_dims(j);

@@ -149,7 +149,7 @@ end
 
 % If request compress mesh by a factor of 2 in both directions
 if average_mesh && uniform
-    [X, U] = compress_mesh(X, U);
+    [X, U] = compress_mesh(X, U, open_flow);
 end
 
 % mean velocities and picture dimensions

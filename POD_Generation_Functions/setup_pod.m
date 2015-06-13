@@ -36,6 +36,7 @@ problem_jet.load_handle = @load_jet_dat;
 problem_jet.save_pod = true;
 problem_jet.xy_units = 'm';
 problem_jet.non_dim = true;
+problem_jet.open_flow = true;
 problem_jet.save_figures = {'fig', 'jpg'};
 problem_jet.u_scale_gen = 3.280839;
 problem_jet.l_scale = 1/0.3048;
