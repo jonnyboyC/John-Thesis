@@ -149,31 +149,39 @@ end
 
 % If request compress mesh by a factor of 2 in both directions
 if average_mesh && uniform
+    % TODO finish this
     [X, U] = compress_mesh(X, U);
 end
 
+% get flow components and get the dimension the ensemble resides
+[x, u] = flow_comps(X, U);
+comps = flow_ncomps(X);
+ensemble_dim = flow_dims(U);
+
 % mean velocities and picture dimensions
-mean_u = mean(u,3);
-mean_v = mean(v,3);
-dimensions = size(x);  
+mean_U = mean_coms(varargin, ensemble_dim);
+
+% Get flow dimensions
+dimensions = size(X.(x{1}));  
 
 % Determine the number of images actually in memory
-num_images = size(u,3);
+num_images = size(U.(u{1}), ensemble_dim);
 
 % Determine resolution of velocity image
-data_points = numel(x);
+data_points = numel(X.(x{1}));
 
 % determine units to be displayed in plots
 if strcmp(xy_units, 'mm')
-    x_dis = x*1000;
-    y_dis = y*1000;
+    % if units in millimeters scale display coordinates by 1000
+    for i = 1:comps
+        X_dis.(x{i}) = X.(x{i})*1000;
+    end
 else
-    x_dis = x;
-    y_dis = y;
+    X_dis = X;
 end
 
 % Exactly define flow boundaries
-[bnd_x, bnd_y, bnd_idx] = refine_bounds(x_dis, y_dis, u, v, mean_u, mean_v, direct, streamlines, open_flow, update_bnds);
+[bnd_X, bnd_idx] = refine_bounds(X_dis, U, mean_U, direct, streamlines, open_flow, update_bnds);
 
 % Filter raw images, to attempt to remove artifacts
 if filter

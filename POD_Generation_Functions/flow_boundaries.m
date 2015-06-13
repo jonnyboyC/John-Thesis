@@ -6,14 +6,18 @@ function bnd_idx = flow_boundaries(U, open_flow)
 % represents uncaptured space, and 0 represented boundaries between the two
 
 % Intially set all to in flow
-bnd_idx = ones(size(u(:,:,1)));
+ensemble_dim = flow_dims(U);
+snapshot = struct_index([1 1], ensemble_dim, U);
+u = flow_comps(U);
+
+bnd_idx = ones(size(U.(u{1})(snapshot{:})));
 
 if open_flow
     return;
 end
 
 % Make all images with a pixel out of flow as part of boundary
-for i = 1:size(u,3)
+for i = 1:size(U.(u{1}),ensemble_dim)
     bnd_idx = bnd_idx + double((u(:,:,i) + v(:,:,i) == 0));
 end
 

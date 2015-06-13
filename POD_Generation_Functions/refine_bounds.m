@@ -1,5 +1,5 @@
-function [bnd_x, bnd_y, bnd_idx] = ...
-    refine_bounds(x, y, u, v, mean_u, mean_v, direct, streamlines, open_flow, update_bnds)
+function [bnd_X, bnd_idx] = refine_bounds(X, U, mean_U, direct, streamlines, ...
+                                open_flow, update_bnds)
 % REFINE_BOUNDS determine the location of various boundaries in the flow
 %
 % [bnd_x, bnd_y, bnd_idx] = REFINE_BOUNDS(x, y, u, v, mean_u, mean_v,
@@ -8,10 +8,10 @@ function [bnd_x, bnd_y, bnd_idx] = ...
 
 % Load boundaries if already determined
 if exist([direct filesep 'Processed Data' filesep 'Mask' filesep 'Mask.mat'], 'file') && ~update_bnds
-    load([direct filesep 'Processed Data' filesep 'Mask' filesep 'Mask.mat'], 'bnd_idx', 'bnd_x', 'bnd_y');
+    load([direct filesep 'Processed Data' filesep 'Mask' filesep 'Mask.mat'], 'bnd_idx', 'bnd_X');
 else
     % Determine flow boundaries
-    bnd_idx = flow_boundaries(u, v, open_flow);
+    bnd_idx = flow_boundaries(U, open_flow);
     
     % Determine potential flow boundaries
     [bnd_x, bnd_y] = edge_boundaries(bnd_idx);
@@ -29,6 +29,6 @@ else
     [bnd_x, bnd_y, bnd_idx] = mask_gen(data, bnd_x, bnd_y, u, v, open_flow, streamlines);
     
     % Save values
-    save([direct filesep 'Processed Data' filesep 'Mask' filesep 'Mask.mat'], 'bnd_idx', 'bnd_x', 'bnd_y', '-v7.3');
+    save([direct filesep 'Processed Data' filesep 'Mask' filesep 'Mask.mat'], 'bnd_idx', 'bnd_X', '-v7.3');
 end
 
