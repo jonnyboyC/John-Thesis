@@ -1,7 +1,7 @@
-function [X, U, num_processed] = load_cavity_dat(num_images, direct)
+function [X, U] = load_cavity_dat(num_images, direct)
 % LOAD_CAVITY_DAT load dat files in the format of the cavity into matlab 
 %
-%   [x, y, u, v] = LOAD_CAVITY_DAT(img_files, num_processed, num_images,
+%   [x, y, u, v] = LOAD_CAVITY_DAT(img_files, num_found, num_images,
 %   image_range, flip, direct) see help POD_GEN for information
 
 % Check the now set up folders for data
@@ -9,10 +9,10 @@ img_files = dir([direct filesep 'Raw Data' filesep '*']);
 
 % Remove any directories from results
 img_files = img_files([img_files.isdir]==0);
-num_processed = length(img_files);
+num_found = length(img_files);
 
-if num_images < num_processed
-    num_processed = num_images;
+if num_images < num_found
+    num_found = num_images;
 end
 
 data_file = fopen([direct filesep 'Raw Data' filesep img_files(1).name]);
@@ -28,24 +28,14 @@ num_y = num_y_org;
 
 fclose(data_file);
 
-
-if ~isempty(image_range)
-    if image_range(2) < num_x && image_range(1) >= 0
-        num_x = image_range(2)-image_range(1)+1;
-    end
-    if image_range(4) < num_y && image_range(3) >= 0
-        num_y = image_range(4)-image_range(3)+1;
-    end
-end
-
 % Preallocate matrices 
 x = zeros(num_x, num_y);  
 y = zeros(num_x, num_y);
-u = zeros(num_x, num_y, num_processed);
-v = zeros(num_x, num_y, num_processed);
+u = zeros(num_x, num_y, num_found);
+v = zeros(num_x, num_y, num_found);
 
 % Load images
-for i = 1:num_processed
+for i = 1:num_found
     % Show current progress
     file_name = update_progress(img_files(i));
     data_file = fopen([direct filesep 'Raw Data' filesep file_name]);

@@ -16,7 +16,8 @@ if exist([direct filesep 'Processed Data' filesep 'Processed.mat'], 'file') == 2
 end
 
 % Load variables using appropriate method provided by the function handle
-[X, U, num_processed] = load_handle(num_images, direct);
+[X, U] = load_handle(num_images, direct);
+num_processed = num_images;
 
 % Save Data to processed folder
 save([direct filesep 'Processed Data' filesep 'Processed.mat'], 'X', 'U', 'num_processed', '-v7.3');

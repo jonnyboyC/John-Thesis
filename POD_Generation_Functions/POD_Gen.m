@@ -149,8 +149,7 @@ end
 
 % If request compress mesh by a factor of 2 in both directions
 if average_mesh && uniform
-    % TODO finish this
-    [X, U] = compress_mesh(X, U);
+    [X, U] = compress_mesh(X, U, open_flow);
 end
 
 % get flow components and get the dimension the ensemble resides
@@ -159,7 +158,7 @@ comps = flow_ncomps(X);
 ensemble_dim = flow_dims(U);
 
 % mean velocities and picture dimensions
-mean_U = mean_coms(varargin, ensemble_dim);
+mean_U = mean_comps(U, ensemble_dim);
 
 % Get flow dimensions
 dimensions = size(X.(x{1}));  
@@ -172,7 +171,6 @@ data_points = numel(X.(x{1}));
 
 % determine units to be displayed in plots
 if strcmp(xy_units, 'mm')
-    % if units in millimeters scale display coordinates by 1000
     for i = 1:comps
         X_dis.(x{i}) = X.(x{i})*1000;
     end
@@ -185,7 +183,7 @@ end
 
 % Filter raw images, to attempt to remove artifacts
 if filter
-    [u, v, mean_u, mean_v] = filter_images(u, v, bnd_idx, bnd_x, bnd_y);
+    [u, v, mean_u, mean_v] = filter_images(U, bnd_idx, bnd_X);
 end
 
 % Find fluxating velocity of flow

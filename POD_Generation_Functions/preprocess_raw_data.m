@@ -21,7 +21,7 @@ if ~isempty(image_range)
     end
     
     % Get index range
-    [X_idx, U_idx] = struct_index(image_range, 1:length(image_range), X, U);
+    [X_idx, U_idx] = flow_index(image_range, 1:length(image_range), X, U);
     
     % Perform crops
     for i = 1:comps

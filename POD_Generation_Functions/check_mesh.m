@@ -19,8 +19,8 @@ std_step = zeros(dims,1);
 % create shifted matrices then take the difference and std-dev in
 % difference
 for i = 1:dims
-    idx1 = struct_index({[1, -1]},i,X);
-    idx2 = struct_index({[2, 0]},i,X);
+    idx1 = flow_index({[1, -1]},i,X);
+    idx2 = flow_index({[2, 0]},i,X);
     mean_step(i) = mean(mean(X.(x{i})(idx1{:}),i) - mean(X.(x{i})(idx2{:}),i));
     std_step(i) = std(mean(X.(x{i})(idx1{:}),i) - mean(X.(x{i})(idx2{:}),i));
 end

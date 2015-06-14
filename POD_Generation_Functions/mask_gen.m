@@ -1,4 +1,4 @@
-function [bnd_x, bnd_y, bnd_idx] = mask_gen(data, bnd_x, bnd_y, u, v, open_flow, streamlines)
+function [bnd_X, bnd_idx] = mask_gen(data, U, open_flow, streamlines)
 % MASK_GEN generate a mask for the raw PIV data
 % [bnd_x, bnd_y, bnd_idx] = MASK_GEN(data, bnd_x, bnd_y, u, v) open a 
 % GUI to exclude sections of the flow images that may be causing problems
@@ -36,6 +36,8 @@ hcheck4     = uicontrol('Style', 'checkbox', ...
                 'Value', 1, ... 
                 'Position', [740, 420, 60, 20]);
    
+x = flow_comps_ns(data.X);
+            
 % Construct textboxes
 htext1   = uicontrol('Style', 'text', ...
                     'String', 'Flow Boundary Exclusion Zones', ...
@@ -46,7 +48,7 @@ htext2   = uicontrol('Style', 'text', ...
                     'FontSize', 16, ...
                     'Position', [570, 250, 160, 50]);
 htext3   = uicontrol('Style', 'text', ...
-                    'String', ['Boundaries Image ' num2str(size(data.x,1)) ' x ' num2str(size(data.x,2))], ...
+                    'String', ['Boundaries Image ' num2str(size(data.X.(x{1}),1)) ' x ' num2str(size(data.X.(x{1}),2))], ...
                     'FontSize', 16, ...
                     'Position', [80, 440, 300, 50]);
          
@@ -84,13 +86,17 @@ htext2.Units = 'normalized';
 htext3.Units = 'normalized';
 
 % Create a temporary copy of the intially calculated values
-bnd_x_temp = bnd_x;
-bnd_y_temp = bnd_y;
+bnd_X_temp = data.bnd_X;
 bnd_idx_temp = data.bnd_idx;
 
 % Generate a plot of the mean flow
 plot_vector_field(data, streamlines);
 colorbar;
+
+[u, x] = flow_comps(U, data.X);
+dims = flow_dims(U);
+images = size(U.(u{1}), dims);
+dimensions = size(data.X.(x{1}));
 
 % Assign the GUI a name to appear in the window title.
 f.Name = 'Open Flow Boundary Refinement';
@@ -106,8 +112,7 @@ uiwait(f);
         % Save values and resume execution
         
         % Set the temp values as the new values
-        bnd_x = bnd_x_temp;
-        bnd_y = bnd_y_temp;
+        bnd_X = bnd_X_temp;
         bnd_idx = bnd_idx_temp;
         
         % Resume execution and close plot
@@ -122,18 +127,27 @@ uiwait(f);
         bnd_bounds = htable1.Data;
         flow_bounds = htable2.Data;
         
-        
         % Intially set all to in flow
-        bnd_idx_temp = ones(size(bnd_idx));
+        bnd_idx_temp = ones(dimensions);
         
-        if ~open_flow            
+        if ~open_flow
+            
+            idx = struct_index({[1 1]}, dims(end), U);
+            comps = flow_ncomps(U);
+            
             % Make all images with a pixel out of flow as part of boundary
-            for i = 1:size(u,3)
-                bnd_idx_temp = bnd_idx_temp + double((u(:,:,i) + v(:,:,i) == 0));
+            for i = 1:images
+                temp = zeros(dimensions);
+                for j = 1:comps
+                    idx{end} = i;
+                    temp = temp + U.(u{j})(idx{:});
+                end
+                bnd_idx_temp = bnd_idx_temp + double(temp == 0);
             end
             
             % Set all points with at least one image not captured as in boundary
-            bnd_idx_temp(bnd_idx_temp ~= 1) = -1;
+            bnd_idx_temp(bnd_idx_temp > images/100) = -1;
+            bnd_idx_temp(bnd_idx_temp > 1) = 1;
         end
 
         % Check that a full row has been filled in 
@@ -149,8 +163,8 @@ uiwait(f);
                 if filters(i,1) <= 0
                     filters(i,1) = 1;
                 end
-                if filters(i,2) > size(data.x,1)
-                    filters(i,2) = size(data.x,1);
+                if filters(i,2) > dimensions(1)
+                    filters(i,2) = dimensions(1);
                 end
                 if filters(i,1) >= filters(i,2)
                     filters(i,2) = filters(i,1) + 1;
@@ -158,8 +172,8 @@ uiwait(f);
                 if filters(i,3) <= 0
                     filters(i,3) = 1;
                 end
-                if filters(i,4) > size(data.x,2)
-                    filters(i,4) = size(data.x,2);
+                if filters(i,4) > dimensions(2)
+                    filters(i,4) = dimensions(2);
                 end
                 if filters(i,3) >= filters(i,4)
                     filters(i,4) = filters(i,3) + 1;
@@ -180,20 +194,20 @@ uiwait(f);
         end
         
         % Determine potential flow boundaries
-        [bnd_x_temp, bnd_y_temp] = edge_boundaries(bnd_idx_temp);
+        bnd_X_temp = edge_boundaries(bnd_idx_temp, data.X);
         
         % Apply checkboxes
         if ~hcheck1.Value
-            bnd_y_temp(bnd_y_temp > 0) = 0;
+            bnd_X_temp.(x{1})(bnd_X_temp.(x{1}) > 0) = 0;
         end
         if ~hcheck2.Value
-            bnd_y_temp(bnd_y_temp < 0) = 0;
+            bnd_X_temp.(x{1})(bnd_X_temp.(x{1}) < 0) = 0;
         end
         if ~hcheck3.Value
-            bnd_x_temp(bnd_x_temp > 0) = 0;
+            bnd_X_temp.(x{2})(bnd_X_temp.(x{2}) > 0) = 0;
         end
         if ~hcheck4.Value
-            bnd_x_temp(bnd_x_temp < 0) = 0;
+            bnd_X_temp.(x{2})(bnd_X_temp.(x{2}) > 0) = 0;
         end
         
         % Check that a full row has been filled in 
@@ -209,8 +223,8 @@ uiwait(f);
                 if filters(i,1) <= 0
                     filters(i,1) = 1;
                 end
-                if filters(i,2) > size(data.x,1)
-                    filters(i,2) = size(data.x,1);
+                if filters(i,2) > dimensions(1)
+                    filters(i,2) = dimensions(1);
                 end
                 if filters(i,1) >= filters(i,2)
                     filters(i,2) = filters(i,1) + 1;
@@ -218,26 +232,25 @@ uiwait(f);
                 if filters(i,3) <= 0
                     filters(i,3) = 1;
                 end
-                if filters(i,4) > size(data.x,2)
-                    filters(i,4) = size(data.x,2);
+                if filters(i,4) > dimensions(2)
+                    filters(i,4) = dimensions(2);
                 end
                 if filters(i,3) >= filters(i,4)
                     filters(i,4) = filters(i,3) + 1;
                 end
                 % Set filtered areas to 0 to indicate it is not an open
                 % flow boundary
-                bnd_x_temp(filters(i,1):filters(i,2), filters(i,3):filters(i,4)) = 0;
-                bnd_y_temp(filters(i,1):filters(i,2), filters(i,3):filters(i,4)) = 0;
+                bnd_X_temp.(x{1})(filters(i,1):filters(i,2), filters(i,3):filters(i,4)) = 0;
+                bnd_X_temp.(x{1})(filters(i,1):filters(i,2), filters(i,3):filters(i,4)) = 0;
             end
             htable1.Data(1:size(filters,1),:) = ...
                 cellfun(@num2str, num2cell((filters)), 'UniformOutput', false);
         end
-        data.bnd_x = bnd_x_temp;
-        data.bnd_y = bnd_y_temp;
+        data.bnd_X = bnd_X_temp;
         data.bnd_idx = bnd_idx_temp;
         
         % Re-plot
-        plot_vector_field(data);
+        plot_vector_field(data, streamlines);
         colorbar;
     end
 
@@ -245,8 +258,7 @@ uiwait(f);
         % Clear values from table 
         htable1.Data = cell(4, 4);
         htable2.Data = cell(4, 4);
-        data.bnd_x = bnd_x;
-        data.bnd_y = bnd_y;
+        data.bnd_X = data.bnd_X;
         data.bnd_idx = data.bnd_idx;
         
         % Re-plot

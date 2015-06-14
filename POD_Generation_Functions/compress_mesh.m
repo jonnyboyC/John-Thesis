@@ -5,24 +5,31 @@ function [X, U] = compress_mesh(X, U, open_flow)
 % x, y, u, v average the quanitites in a 2x2 grid into a new mesh of halve
 % the original resolution
 
-% calculate mean flow
-mean_U = mean_comps(U, 3);
+[x, u] = flow_comps(X, U);
+comps = flow_ncomps(X);
+dims = flow_dims(X);
 
 bnd_idx = flow_boundaries(U, open_flow);
 bnd_idx = double(bnd_idx <= 0);
 
-% determine new range of image
-range_x = 2*floor(size(x,1)/2);
-range_y = 2*floor(size(x,2)/2);
+ranges = zeros(comps,1);
 
-% compressed dimensions
-comp_dims = [range_x/2, range_y/2];
+% determine new range of image, i.e make even grid size 
+for i = 1:comps
+    ranges(i) = 2*flor(size(X.(x{i}),i)/2);
+end
 
-% Generate masks needed to determine new compressed data
-mask1 = zeros(size(x));
-mask2 = zeros(size(x));
-mask3 = zeros(size(x));
-mask4 = zeros(size(x));
+% Compressed dimensions
+comp_dims = ranges./2;
+
+% Preallocate masks fil with zeros
+masks = cell(pow2(dims), 2);
+masks = {zeros(size(X.(x{1})))};
+
+for i = 1:dims
+    mask{i,1}(struct_index({[1, 2, -1],[2, 2, 0]},[1,2], X)) = 1;
+    mask{i,1}(struct_index({[1, 2, -1],[2, 2, 0]},[1,2], X)) = 1;
+end
 
 mask1(1:2:range_x, 1:2:range_y) = 1;
 mask2(2:2:range_x, 1:2:range_y) = 1;

@@ -14,19 +14,16 @@ else
     bnd_idx = flow_boundaries(U, open_flow);
     
     % Determine potential flow boundaries
-    [bnd_x, bnd_y] = edge_boundaries(bnd_idx);
+    bnd_X = edge_boundaries(bnd_idx, X);
     
     % Set up data for plotting
-    data.x = x;
-    data.y = y;
+    data.X = X;
     data.bnd_idx = bnd_idx;
-    data.bnd_x = bnd_x;
-    data.bnd_y = bnd_y;
-    data.u = mean_u;
-    data.v = mean_v;
+    data.bnd_X = bnd_X;
+    data.U = mean_U;
     
     % Open GUI
-    [bnd_x, bnd_y, bnd_idx] = mask_gen(data, bnd_x, bnd_y, u, v, open_flow, streamlines);
+    [bnd_X, bnd_idx] = mask_gen(data, U, open_flow, streamlines);
     
     % Save values
     save([direct filesep 'Processed Data' filesep 'Mask' filesep 'Mask.mat'], 'bnd_idx', 'bnd_X', '-v7.3');

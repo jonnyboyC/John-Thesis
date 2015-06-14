@@ -3,17 +3,32 @@ function [h_magnitude, h_direction, cax] = plot_vector_field(data, streamlines, 
 % streamlines to indicate direction
 %
 % [h_magnitude, h_direction, cax] = PLOT_VECTOR_FIELD(data, streamlines, h_mag, h_dir)
+x = flow_comps_ns(data.X);
+dims = flow_dims(data.X);
 
+if isfield(data, {'U'}) && flow_ncomps(data.U) >= 2
+    u = flow_comps_ip(data.U, data.X);
+end
+
+if dims ~= 2
+    error('This function currently can only handle 2D meshes, need to revise for 3D mesh');
+end
+    
 % If no magnitude value is provided calculate the value
-if ~isfield(data, 'pod') 
-    if all(isfield(data, {'u', 'v'}))
-        data.pod = sqrt(data.u.^2 + data.v.^2);
+if ~isfield(data, 'pod')
+    
+    %  Check that at least two components were passed in
+    if isfield(data, {'U'}) && flow_ncomps(data.U) >= 2
+        
+        % Find the components that are in the plane of the image
+        mag = 0;
+        for i = 1:dims
+            mag = mag + data.U.(u{i}).^2;
+        end
+        data.pod = sqrt(mag);
     else
         error('Must provide structure DATA with either u and v fields or pod field');
     end
-end
-if any(~isfield(data, {'x', 'y'}))
-    error('Must provided structure DATA with both x and y fields');
 end
 
 % If a handle is provided simply update value instead of redrawling
@@ -23,33 +38,39 @@ else
     h_mag = plot_scalar_field(data, h_mag);
 end
 
+% TODO STILL NEED TO CHECK ABOUT 3D MESH CASE HERE WE'RE JUST ASSUMING A 2D
+% MESH
+
 if streamlines
-    if nargin == 2
-        h_dir = streamslice(data.x', data.y', data.u', data.v');
+    if nargin == 2 
+        h_dir = streamslice(data.X.(x{1})', data.X.(x{2})', data.U.(u{1})', data.U.(u{2})');
         set(h_dir,'Color','black')
     else
         delete(h_dir{1})
-        h_dir = streamslice(data.x', data.y', data.u', data.v');
+        h_dir = streamslice(data.X.(x{1})', data.X.(x{2})', data.U.(u{1})', data.U.(u{2})');
         set(h_dir,'Color','black')
     end
     h_dir = {h_dir};
 else
     % Get no more than 50 quiver arrows
-    spacing_x = ceil(size(data.x, 1)/50);
-    spacing_y = ceil(size(data.x, 2)/50);
-
-    short_x = data.x(1:spacing_x:end, 1:spacing_y:end);
-    short_y = data.y(1:spacing_x:end, 1:spacing_y:end);
-    short_u = data.u(1:spacing_x:end, 1:spacing_y:end);
-    short_v = data.v(1:spacing_x:end, 1:spacing_y:end);
+    spacing_x = ceil(size(data.X.(x{1}), 1)/50);
+    spacing_y = ceil(size(data.X.(x{1}), 2)/50);
+    
+    short_idx = flow_index({[1 spacing_x 0], [1 spacing_y 0]}, [1, 2], data.X);
+    
+    for i = 1:dims
+        short_X.(x{i}) = data.X.(x{i})(short_idx{:});
+        short_U.(u{i}) = data.U.(u{i})(short_idx{:});
+    end
 
     if nargin == 2 
         hold(ax, 'on')
-        h_dir = quiver(ax, short_x, short_y, short_u, short_v, 'color', [0 0 0]);
+        h_dir = quiver(ax, short_X.(x{1}), short_X.(x{2}),  short_U.(x{1}),  ...
+            short_U.(x{2}), 'color', [0 0 0]);
         hold(ax, 'off')
     else
-        h_dir.UData = short_u;
-        h_dir.VData = short_v;
+        h_dir.UData = short_U.(u{1});
+        h_dir.VData = short_U.(u{2});
     end
 end
 

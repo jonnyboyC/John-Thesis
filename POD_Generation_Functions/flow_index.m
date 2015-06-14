@@ -1,4 +1,4 @@
-function varargout = struct_index(indices, dims, varargin)
+function varargout = flow_index(indices, dims, varargin)
 % STRUCT_INDEX Index the structured values X, U, and POD
 %
 %   indices = STRUCT_INDEX(indices, dims, X) 

@@ -9,7 +9,7 @@ function varargout = mean_comps(varargin)
 
 % check that proper inputs were provided
 for i = 1:length(varargin)
-    if ~isscalar(varargin{i}) || ~isstruct(varargin{i})
+    if ~isscalar(varargin{i}) && ~isstruct(varargin{i})
         error('Most provide component structs or dimension scalar');
     end
 end
@@ -17,14 +17,14 @@ end
 % Parse inputs into components and dim
 if isscalar(varargin{end})
     dim = varargin{end};
-    components = varargin{1:end-1};
+    components = varargin(1:end-1);
 else
     dim = 1;
-    components = varargin{:};
+    components = varargin(:);
 end
 
 % preallocate
-varargout = cell(length(components,1));
+varargout = cell(length(components),1);
 
 % for each set of components provided
 for i = 1:length(components)
@@ -38,6 +38,6 @@ for i = 1:length(components)
     
     % take the mean
     for j = 1:comps
-        varargout{i}.(x{j}) = mean(components.(x{j}), dim);
+        varargout{i}.(x{j}) = mean(components{i}.(x{j}), dim);
     end
 end
