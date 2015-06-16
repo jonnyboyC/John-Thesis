@@ -1,5 +1,4 @@
-function [pod_u, pod_v, lambda, modal_amp, cutoff] = ...
-    POD_2D(co_var, flux_u, flux_v)
+function [pod_U, lambda, modal_amp, cutoff] = POD(co_var, flux_U)
 % POD_2D perform Proper Orthogonal Decompostion on a data matrix decribed
 % in Sorvich's POD method of snapshots
 %
@@ -18,9 +17,12 @@ num_images = size(co_var,1);
 % Calculate singular value of data matrix
 sigma = sqrt(lambda*num_images);
 
-% Produce pod modes
-pod_u = (flux_u*modal_amp)/sigma';
-pod_v = (flux_v*modal_amp)/sigma';  
+comps = flow_ncomps(flux_U);
+u = flow_comps(flux_U);
+
+for i = 1:comps
+    pod_U.(u{i}) = (flux_U.(u{i})*modal_amp) /sigma';
+end
 
 % Normalize
 modal_amp = modal_amp*sigma;
@@ -37,6 +39,7 @@ fprintf('\nCutoff for Couplet Viscous Dissapation is %d mode at %3.4f percent to
     cutoff, sum_mode_energy(cutoff));
 
 % Return truncated pod modes
-pod_u = pod_u(:,1:cutoff);
-pod_v = pod_v(:,1:cutoff);
+for i = 1:comps
+    pod_U.(u{i}) = pod_U.(u{i})(:,1:cutoff);
+end
 end

@@ -3,12 +3,8 @@ function [h_magnitude, h_direction, cax] = plot_vector_field(data, streamlines, 
 % streamlines to indicate direction
 %
 % [h_magnitude, h_direction, cax] = PLOT_VECTOR_FIELD(data, streamlines, h_mag, h_dir)
-x = flow_comps_ns(data.X);
+[x, u] = flow_comps_ip(data.X, data.U);
 dims = flow_dims(data.X);
-
-if isfield(data, {'U'}) && flow_ncomps(data.U) >= 2
-    u = flow_comps_ip(data.U, data.X);
-end
 
 if dims ~= 2
     error('This function currently can only handle 2D meshes, need to revise for 3D mesh');
@@ -65,8 +61,8 @@ else
 
     if nargin == 2 
         hold(ax, 'on')
-        h_dir = quiver(ax, short_X.(x{1}), short_X.(x{2}),  short_U.(x{1}),  ...
-            short_U.(x{2}), 'color', [0 0 0]);
+        h_dir = quiver(ax, short_X.(x{1}), short_X.(x{2}),  short_U.(u{1}),  ...
+            short_U.(u{2}), 'color', [0 0 0]);
         hold(ax, 'off')
     else
         h_dir.UData = short_U.(u{1});
@@ -74,11 +70,10 @@ else
     end
 end
 
-
 if isfield(data, 'format') && data.format == true
     ax.Title.String = 'Instanteous Flow Visualisation';
-    ax.XLabel.String = 'x/D';
-    ax.YLabel.String = 'y/D';
+    ax.XLabel.String = x(1);
+    ax.YLabel.String = x(2);
 end
 
 % Return quiver and surface handles

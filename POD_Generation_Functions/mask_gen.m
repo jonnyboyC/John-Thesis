@@ -1,4 +1,4 @@
-function [bnd_X, bnd_idx] = mask_gen(data, U, open_flow, streamlines)
+function [bnd_X, bnd_idx] = mask_gen(data, U, streamlines)
 % MASK_GEN generate a mask for the raw PIV data
 % [bnd_x, bnd_y, bnd_idx] = MASK_GEN(data, bnd_x, bnd_y, u, v) open a 
 % GUI to exclude sections of the flow images that may be causing problems
@@ -129,26 +129,24 @@ uiwait(f);
         
         % Intially set all to in flow
         bnd_idx_temp = ones(dimensions);
+                    
+        idx = struct_index({[1 1]}, dims(end), U);
+        comps = flow_ncomps(U);
         
-        if ~open_flow
-            
-            idx = struct_index({[1 1]}, dims(end), U);
-            comps = flow_ncomps(U);
-            
-            % Make all images with a pixel out of flow as part of boundary
-            for i = 1:images
-                temp = zeros(dimensions);
-                for j = 1:comps
-                    idx{end} = i;
-                    temp = temp + U.(u{j})(idx{:});
-                end
-                bnd_idx_temp = bnd_idx_temp + double(temp == 0);
+        % Make all images with a pixel out of flow as part of boundary
+        for i = 1:images
+            temp = zeros(dimensions);
+            for j = 1:comps
+                idx{end} = i;
+                temp = temp + U.(u{j})(idx{:});
             end
-            
-            % Set all points with at least one image not captured as in boundary
-            bnd_idx_temp(bnd_idx_temp > images/100) = -1;
-            bnd_idx_temp(bnd_idx_temp > 1) = 1;
+            bnd_idx_temp = bnd_idx_temp + double(temp == 0);
         end
+        
+        % Set all points with at least one image not captured as in boundary
+        bnd_idx_temp(bnd_idx_temp > images/100) = -1;
+        bnd_idx_temp(bnd_idx_temp > 1) = 1;
+        
 
         % Check that a full row has been filled in 
         if any(~all(cellfun('isempty', flow_bounds)'))
@@ -187,7 +185,7 @@ uiwait(f);
         
         if ~open_flow
             % Use built in edge detection to boundary points change points to 0
-            bnd_idx_temp(edge(bnd_idx_temp, 'canny')) = 0;
+            bnd_idx_temp(edge(bnd_idx_temp, 'sobel')) = 0;
             
             % manually change edge points on image edge
             bnd_idx_temp = manual_edge(bnd_idx_temp);

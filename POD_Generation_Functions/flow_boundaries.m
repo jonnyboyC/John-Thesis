@@ -1,4 +1,4 @@
-function bnd_idx = flow_boundaries(U, open_flow)
+function bnd_idx = flow_boundaries(U)
 % FLOW_BOUNDARIES determine flow boundaries
 %
 % bnd_idx = FLOW_BOUNDARIES(u,v) given raw flow data u and v, return
@@ -11,14 +11,10 @@ dims = flow_dims(U);
 comps = flow_ncomps(U);
 images = size(U.(u{1}), dims);
 
-idx = struct_index({[1 1]}, dims(end), U);
+idx = flow_index({[1 1]}, dims(end), U);
 
 % Intially set all to in flow
 bnd_idx = ones(size(squeeze(U.(u{1})(idx{:}))));
-
-if open_flow
-    return;
-end
 
 if ~ismatrix(bnd_idx)
     error(['Error currently bnd_idx has [only had a partial conversion to full 3d' ...
@@ -43,8 +39,9 @@ end
 bnd_idx(bnd_idx > images/100) = -1;
 bnd_idx(bnd_idx > 1) = 1;
 
+% TODO another point where this needs to be updated to work for full 3D
 % Use built in edge detection to boundary points change edge points to 0
-bnd_idx(edge(bnd_idx, 'canny')) = 0;
+bnd_idx(edge(bnd_idx, 'sobel')) = 0;
 
 % Manual edge detection on image boundary
 bnd_idx = manual_edge(bnd_idx);

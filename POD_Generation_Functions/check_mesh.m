@@ -13,16 +13,18 @@ dims = flow_dims(X);
 x = flow_comps_ns(X);
 
 % preallocate
-mean_step = zeros(dims,1);
-std_step = zeros(dims,1);
+mean_step = zeros(dims);
+std_step = zeros(dims);
 
 % create shifted matrices then take the difference and std-dev in
 % difference
 for i = 1:dims
-    idx1 = flow_index({[1, -1]},i,X);
-    idx2 = flow_index({[2, 0]},i,X);
-    mean_step(i) = mean(mean(X.(x{i})(idx1{:}),i) - mean(X.(x{i})(idx2{:}),i));
-    std_step(i) = std(mean(X.(x{i})(idx1{:}),i) - mean(X.(x{i})(idx2{:}),i));
+    for j = 1:dims
+        idx1 = flow_index({[1, -1]},i,X);
+        idx2 = flow_index({[2, 0]},i,X);
+        mean_step(i,j) = mean(mean(X.(x{j})(idx1{:}),i) - mean(X.(x{j})(idx2{:}),i));
+        std_step(i,j) = std(mean(X.(x{j})(idx1{:}),i) - mean(X.(x{j})(idx2{:}),i));
+    end
 end
 
 % if ration between mean and std_dev is small assume mesh is uniform

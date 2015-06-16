@@ -1,16 +1,28 @@
-function [u, v, mean_u, mean_v] = filter_images(u, v, bnd_idx, bnd_x, bnd_y)
-for i = 1:size(u,3)
-    u_temp = u(:,:,i);
-    v_temp = v(:,:,i);
-    u_gauss = imgaussfilt(u_temp);
-    v_gauss = imgaussfilt(v_temp);
-    u_gauss = imgaussfilt(u_gauss);
-    v_gauss = imgaussfilt(v_gauss);
-    u_gauss(bnd_idx == 1) = u_temp(bnd_idx == 1);
-    v_gauss(bnd_idx == 1) = v_temp(bnd_idx == 1);
-    u(:,:,i) = imguidedfilter(u_gauss);
-    v(:,:,i) = imguidedfilter(v_gauss);
+function [U, mean_U] = filter_images(U, bnd_idx, num_images, ensemble_dim)
+% FILTER_IMAGES apply guided filter to the flow images, currently is not
+% ideal because of some smooth at the boundary, could use some rework
+%
+%   [U, mean_U] = FILTER_IMAGES(U, bnd_idx, num_images, ensemble_dim)
+
+% Get flow information
+comps = flow_ncomps(U);
+dims = flow_dims(U);
+u = flow_comps(U);
+
+% Generate index
+idx = flow_index({1 1}, dims(end), U);
+
+% Perform filtering
+for i = 1:num_images
+    for j = 1:comps
+        idx{end} = i;
+        U_temp = U.(u{j})(idx{:});
+        U_gauss= imgaussfilt(U_temp);
+        U_gauss = imgaussfilt(U_gauss);
+        U_gauss(bnd_idx == 1) = U_temp(bnd_idx == 1);
+        U.(u{j})(idx{:}) = imguidedfilter(U_gauss);
+    end
 end
 
-mean_u = mean(u,3);
-mean_v = mean(v,3);
+% Update mean values
+mean_U = mean_comps(U, ensemble_dim);

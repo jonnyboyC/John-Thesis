@@ -32,7 +32,7 @@ end
 
 % Keep format consistent
 if ~iscell(indices) && isvector(indices) 
-    if all(size(indices) == [1, 2]) || all(size(indices) == [1, 2])
+    if all(size(indices) == [1, 2]) || all(size(indices) == [1, 3])
         indices = {indices};
     else
         error('If a matrix is supplied for indices, must be a 2 or 3 element row vector');
@@ -69,7 +69,7 @@ for i = 1:length(varargin)
                 indices{idx}(1) = full_dims(j) + indices{idx}(1);
             end
             if indices{idx}(end) <= 0
-                indices{idx}(end) = full_dims(j) + indices{idx}(2);
+                indices{idx}(end) = full_dims(j) + indices{idx}(end);
             end
             
             % Check that we're actually in the dimension bounds
@@ -79,7 +79,7 @@ for i = 1:length(varargin)
             end
             if indices{idx}(end) < 0 || indices{idx}(end) > full_dims(j)
                 error(['You have provided a set of indices out of bounds in indices %d' ...
-                    'where you provided %d value with dimension length %d'], idx, indices{idx}(end), full_dims(j));
+                    ' where you provided %d value with dimension length %d'], idx, indices{idx}(end), full_dims(j));
             end
             
             % If third parameter is requested use requested interval

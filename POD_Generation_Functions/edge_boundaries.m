@@ -51,19 +51,36 @@ for i = 1:comps
 end
 
 
-% generate a comps dimension matrix with true on the exterior
+% Generate a comps dimension matrix with true on the exterior
 exterior = false(size(bnd_idx));
 
 for i = 1:comps
     idx_1 = struct_index([1, 1], i, exterior);
     idx_end = struct_index([0, 0], i, exterior);
     
+    % Set exterior of mesh to true
     exterior(idx_1{:}) = true;
     exterior(idx_end{:}) = true;
+    
+    % If radial grid revert any connected location
+    if all(structfun(@(x) isequal(x(idx_1{:}), x(idx_end{:})), X))
+        exterior(idx_1{:}) = false;
+        exterior(idx_end{:}) = false;
+    end
+    if all(structfun(@(x) range(x(idx_1{:})) == 0, X))
+        exterior(idx_1{:}) = false;
+    end
+    if all(structfun(@(x) range(x(idx_end{:})) == 0, X))
+        exterior(idx_end{:}) = false;
+    end
 end
 
 % Remove all points that are listed in the flow and not on the exterior
 for i = 1:comps
     bnd_X.(x{i})(bnd_idx == 1 & ~exterior) = 0;
 end
+
+% Check to make sure we are not working with a polar coordinate field
+
+
 end

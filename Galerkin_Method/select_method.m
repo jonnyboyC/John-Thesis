@@ -1,4 +1,4 @@
-function [methodsX, methodsY] = select_method(bnd_idx, bnd_x, bnd_y, dimensions, closed_bnd)
+function [methods_X] = select_method(bnd_idx, bnd_X, dimensions, closed_bnd)
 % SELECT_METHOD Derivative preprocessing step in deterimine which 
 % finite difference method to use at each grid point, should provide 
 % large speedup if more than a 2 or 3 variables are calculated
@@ -26,9 +26,13 @@ function [methodsX, methodsY] = select_method(bnd_idx, bnd_x, bnd_y, dimensions,
 % method 15: 4th order backwards difference
 
 
+comps = flow_ncomps(bnd_X);
+x = flow_comps(bnd_X);
+
 % Preallocate method matrics
-methodsX = zeros(dimensions);
-methodsY = zeros(dimensions);
+for i = 1:comps
+    methods_X.(x{i}) = zeros(dimensions);
+end
 
 i = 1;
 j = 1;
@@ -55,27 +59,27 @@ while i <= dimensions(1)
         % Assign appropriate methods
         switch gap
             case 1
-                methodsY(i, j_temp)   = 7;
+                methods_X.(x{1})(i, j_temp)   = 7;
             case 2
-                methodsY(i, j_temp)   = 1;
-                methodsY(i, j_temp+1) = 12;
+                methods_X.(x{1})(i, j_temp)   = 1;
+                methods_X.(x{1})(i, j_temp+1) = 12;
             case 3
-                methodsY(i, j_temp)   = 2;
-                methodsY(i, j_temp+1) = 8;
-                methodsY(i, j_temp+2) = 13;
+                methods_X.(x{1})(i, j_temp)   = 2;
+                methods_X.(x{1})(i, j_temp+1) = 8;
+                methods_X.(x{1})(i, j_temp+2) = 13;
             case 4
-                methodsY(i, j_temp)   = 3;
-                methodsY(i, j_temp+1) = 5;
-                methodsY(i, j_temp+2) = 10;
-                methodsY(i, j_temp+3) = 14;
+                methods_X.(x{1})(i, j_temp)   = 3;
+                methods_X.(x{1})(i, j_temp+1) = 5;
+                methods_X.(x{1})(i, j_temp+2) = 10;
+                methods_X.(x{1})(i, j_temp+3) = 14;
             otherwise 
-                methodsY(i, j_temp)   = 4;
-                methodsY(i, j_temp+1) = 6;
+                methods_X.(x{1})(i, j_temp)   = 4;
+                methods_X.(x{1})(i, j_temp+1) = 6;
                 for k = 1:gap-4
-                    methodsY(i, j_temp+1+k) = 9;
+                    methods_X.(x{1})(i, j_temp+1+k) = 9;
                 end
-                methodsY(i, j_temp+gap-4+2) = 11;
-                methodsY(i, j_temp+gap-4+3) = 15; 
+                methods_X.(x{1})(i, j_temp+gap-4+2) = 11;
+                methods_X.(x{1})(i, j_temp+gap-4+3) = 15; 
         end
         gap = 0;
     end
@@ -109,27 +113,27 @@ while j <= dimensions(2)
         % Assign appropriate methods
         switch gap
             case 1
-                methodsX(i_temp, j)   = 7;
+                methods_X.(x{2})(i_temp, j)   = 7;
             case 2
-                methodsX(i_temp, j)   = 1;
-                methodsX(i_temp+1, j) = 12;
+                methods_X.(x{2})(i_temp, j)   = 1;
+                methods_X.(x{2})(i_temp+1, j) = 12;
             case 3
-                methodsX(i_temp, j)   = 2;
-                methodsX(i_temp+1, j) = 8;
-                methodsX(i_temp+2, j) = 13;
+                methods_X.(x{2})(i_temp, j)   = 2;
+                methods_X.(x{2})(i_temp+1, j) = 8;
+                methods_X.(x{2})(i_temp+2, j) = 13;
             case 4
-                methodsX(i_temp, j)   = 3;
-                methodsX(i_temp+1, j) = 5;
-                methodsX(i_temp+2, j) = 10;
-                methodsX(i_temp+3, j) = 14;
+                methods_X.(x{2})(i_temp, j)   = 3;
+                methods_X.(x{2})(i_temp+1, j) = 5;
+                methods_X.(x{2})(i_temp+2, j) = 10;
+                methods_X.(x{2})(i_temp+3, j) = 14;
             otherwise 
-                methodsX(i_temp, j)   = 4;
-                methodsX(i_temp+1, j) = 6;
+                methods_X.(x{2})(i_temp, j)   = 4;
+                methods_X.(x{2})(i_temp+1, j) = 6;
                 for k = 1:gap-4
-                    methodsX(i_temp+1+k, j) = 9;
+                    methods_X.(x{2})(i_temp+1+k, j) = 9;
                 end
-                methodsX(i_temp+gap-4+2, j) = 11;
-                methodsX(i_temp+gap-4+3, j) = 15; 
+                methods_X.(x{2})(i_temp+gap-4+2, j) = 11;
+                methods_X.(x{2})(i_temp+gap-4+3, j) = 15; 
         end
         gap = 0;
     end
@@ -163,7 +167,7 @@ if closed_bnd
     centralY(:, end-1:end) = 0;
 
     % Set these methods to 4th order central
-    methodsX(logical(centralX)) = 9;
-    methodsY(logical(centralY)) = 9;
+    methods_X(logical(centralX)) = 9;
+    methods_X(logical(centralY)) = 9;
 end
 end

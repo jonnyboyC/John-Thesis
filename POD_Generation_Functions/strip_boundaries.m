@@ -1,4 +1,4 @@
-function varargout = strip_boundaries(bnd_idx, varargin)
+function varargout = strip_boundaries(bnd_idx, num_images, varargin)
 % Check to ensure a cell is provided
 if size(varargin,1) == 0
     error('Must provide at least one set of data');
@@ -11,14 +11,28 @@ bnd_idx = reshape(bnd_idx, [], 1);
 active = sum(bnd_idx == 1 | bnd_idx == 0);
 
 % Strip boundaries and return results
-varargout = cell(size(varargin,2), 1);
-for i = 1:size(varargin,2)
-    if length(size(varargin{i})) == 3
+varargout = cell(length(varargin), 1);
+for i = 1:length(varargin)
+    if ~ismatrix(varargin{i}) && ~isstruct(varargin{i})
         error('Provide Matrices must be 2D matrices');
     end
-    num_images = size(varargin{i},2);
-    mask = repmat(bnd_idx, 1, num_images);
-    varargout{i} = varargin{i}(mask == 1 | mask == 0);
-    varargout{i} = reshape(varargout{i}, active, num_images);
+    
+    % If struct assume one of the flow components
+    if isstruct(varargin{i})
+        comps = flow_ncomps(varargin{i});
+        x = flow_comps(varargin{i});
+        num_images = size(varargin{i}.(x{1}),2);
+        mask = repmat(bnd_idx, 1, num_images);
+
+        for j = 1:comps
+            varargout{i}.(x{j}) = varargin{i}.(x{j})(mask == 1 | mask == 0);
+            varargout{i}.(x{j}) = reshape(varargout{i}.(x{j}), active, num_images);
+        end
+    else
+        num_images = size(varargin{i},2);
+        mask = repmat(bnd_idx, 1, num_images);
+        varargout{i} = varargin{i}(mask == 1 | mask == 0);
+        varargout{i} = reshape(varargout{i}, active, num_images);
+    end
 end
 end

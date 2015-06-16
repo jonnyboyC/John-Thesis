@@ -1,4 +1,4 @@
-function[mean_u, mean_v, flux_u, flux_v] = clip_bounds(bnd_idx, mean_u, mean_v, flux_u, flux_v)
+function[mean_U, flux_U] = clip_bounds(bnd_idx, mean_U, flux_U, copy)
 % CLIP_BOUNDS set all points inside the determined boundar to identically
 % zero
 %
@@ -7,10 +7,11 @@ function[mean_u, mean_v, flux_u, flux_v] = clip_bounds(bnd_idx, mean_u, mean_v, 
 % to zero that have been determined to lie within the boundary
 
 % bnd_idx == -1 represents values outside the flow
-mean_u(bnd_idx <= 0) = 0;
-mean_v(bnd_idx <= 0) = 0;
+comps = flow_ncomps(mean_U);
+u = flow_comps(mean_U);
+mask = repmat(bnd_idx, copy);
 
-mask = repmat(bnd_idx, 1, 1, size(flux_u, 3));
-
-flux_u(mask <= 0) = 0;
-flux_v(mask <= 0) = 0;
+for i = 1:comps
+    mean_U.(u{i})(bnd_idx <= 0) = 0;
+    flux_U.(u{i})(mask <= 0) = 0;
+end

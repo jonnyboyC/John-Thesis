@@ -161,7 +161,7 @@ ensemble_dim = flow_dims(U);
 mean_U = mean_comps(U, ensemble_dim);
 
 % Get flow dimensions
-dimensions = size(X.(x{1}));  
+dimensions = size(squeeze(X.(x{1})));  
 
 % Determine the number of images actually in memory
 num_images = size(U.(u{1}), ensemble_dim);
@@ -179,45 +179,52 @@ else
 end
 
 % Exactly define flow boundaries
-[bnd_X, bnd_idx] = refine_bounds(X_dis, U, mean_U, direct, streamlines, open_flow, update_bnds);
+[bnd_X, bnd_idx] = refine_bounds(X_dis, U, mean_U, direct, streamlines, update_bnds);
 
+% TODO filter bit
 % Filter raw images, to attempt to remove artifacts
 if filter
-    [u, v, mean_u, mean_v] = filter_images(U, bnd_idx, bnd_X);
+    [U, mean_U] = filter_images(U, bnd_idx, bnd_X, ensemble_dim);
 end
 
+copy = ones(1, ensemble_dim);
+copy(end) = num_images;
+
 % Find fluxating velocity of flow
-flux_u = u - repmat(mean_u,1,1,num_images);
-flux_v = v - repmat(mean_v,1,1,num_images);
+for i = 1:comps
+    flux_U.(u{i}) = U.(u{i}) - repmat(mean_U.(u{i}), copy);
+end
+
+clear U
 
 % Remove excess portions of flow no longer in use
-[mean_u, mean_v, flux_u, flux_v] = clip_bounds(bnd_idx, mean_u, mean_v, flux_u, flux_v);
+[mean_U, flux_U] = clip_bounds(bnd_idx, mean_U, flux_U, copy);
 
 % Calculate volume elements of the mesh
-vol_frac = voln_piv_2D(x, y, bnd_idx, bnd_x, bnd_y);
-    
-clear u v
+vol_frac = voln_piv_2D(X, bnd_idx, bnd_X);
 
 % Create a stacked data matrix for u and v velocities
-flux_u      = reshape(flux_u, data_points, num_images);
-flux_v      = reshape(flux_v, data_points, num_images);
-mean_u      = reshape(mean_u, data_points, 1);
-mean_v      = reshape(mean_v, data_points, 1);
-vol_frac    = reshape(vol_frac, data_points, 1);
+vol_frac = reshape(vol_frac, data_points, 1); 
+for i = 1:comps
+    flux_U.(u{i}) = reshape(flux_U.(u{i}), data_points, num_images);
+    mean_U.(u{i}) = reshape(mean_U.(u{i}), data_points, 1); 
+end
+
 
 %% Perform Proper Orthogonal Decomposition
 
 % Generate covariance matrix
-covariance = cal_covariance_mat_2D(flux_u, flux_v, vol_frac, bnd_idx);
+covariance = cal_covariance_mat(flux_U, vol_frac, bnd_idx, num_images);
 
 % Perform POD on fluctuating data
-[pod_u, pod_v, lambda, modal_amp, cutoff] = POD_2D(covariance, flux_u, flux_v); 
+[pod_U, lambda, modal_amp, cutoff] = POD(covariance, flux_U); 
 
 % Figure out sign and apply flip
 for i = 1:cutoff
-    sign_flip = sign(mean(mean(sign(pod_v(:,i)./(pod_v(:,i) + eps)))));
-    pod_u(:,i) = pod_u(:,i)*sign_flip;
-    pod_v(:,i) = pod_v(:,i)*sign_flip;
+    sign_flip = sign(mean(mean(sign(pod_U.(u{1})(:,i)./(pod_U.(u{1})(:,i) + eps)))));
+    for j = 1:comps
+        pod_U.(u{j}) = pod_U.(u{j})*sign_flip;
+    end
     modal_amp(:,i) = modal_amp(:,i)*sign_flip;
 end
 
@@ -230,12 +237,11 @@ if cluster
 end
 
 % Calculate voritcity
-[pod_vor, mean_vor] = calc_pod_vor(pod_u, pod_v, mean_u, mean_v, ...
-                            dimensions, cutoff, bnd_idx, bnd_x, bnd_y, x, y);
+% [pod_vor, mean_vor] = calc_pod_vor(pod_U, mean_V, dimensions, cutoff, bnd_idx, bnd_X, X);
                      
 % Create a stacked data matrix for vorticity values
-pod_vor  = reshape(pod_vor, data_points, cutoff);
-mean_vor = reshape(mean_vor, data_points, 1);
+% pod_vor  = reshape(pod_vor, data_points, cutoff);
+% mean_vor = reshape(mean_vor, data_points, 1);
 
 %% Setup for Plotting and Plotting
 
@@ -250,22 +256,20 @@ end
 if ~isempty(save_figures)
     
     % setup data structure
-    data.x      = x_dis;
-    data.y      = y_dis;
+    data.X      = X_dis;
     data.bnd_idx = bnd_idx;
     
     % Plot vector field modes
-    plot_vector_modes(data, pod_u, pod_v, num_plot, dimensions, 'POD', lambda, direct, save_figures, streamlines);
+    plot_vector_modes(data, pod_U, num_plot, dimensions, non_dim, 'POD', lambda, direct, save_figures, streamlines);
     
     % plot scalar field modes
-    plot_scalar_modes(data, pod_u, num_plot, dimensions, 'u', lambda, direct, save_figures);
-    plot_scalar_modes(data, pod_v, num_plot, dimensions, 'v', lambda, direct, save_figures);
-    plot_scalar_modes(data, pod_vor, num_plot, dimensions, 'vorticity', lambda, direct, save_figures);
+    plot_scalar_modes(data, pod_U, num_plot, dimensions, non_dim, lambda, direct, save_figures);
+    % plot_scalar_modes(data, pod_vor, num_plot, dimensions, 'vorticity', lambda, direct, save_figures);
 end
 
 % Add mode zero
-[modal_amp, lambda, pod_u, pod_v, pod_vor] = ...
-    add_mode_zero(modal_amp, lambda, pod_u, pod_v, pod_vor, mean_u, mean_v, mean_vor);
+[modal_amp, lambda, pod_U] = ... , pod_vor
+    add_mode_zero(modal_amp, lambda, pod_U, mean_U); %pod_vor, , mean_vor
 
 %% Save / Return variables
 run_num = floor(100000*rand(1));
@@ -275,28 +279,22 @@ results_pod.run_num = run_num;
 results_pod.exp_sampling_rate = exp_sampling_rate;
 
 % mesh information
-results_pod.x = x;
-results_pod.y = y;
-results_pod.x_dis = x_dis;
-results_pod.y_dis = y_dis;
+results_pod.X = X;
+results_pod.X_dis = X_dis;
 results_pod.dimensions = dimensions;
 results_pod.bnd_idx = bnd_idx;
-results_pod.bnd_x = bnd_x;
-results_pod.bnd_y = bnd_y;
+results_pod.bnd_X = bnd_X;
 results_pod.uniform = uniform;
 results_pod.vol_frac = vol_frac;
 
 % fluctuating flow
-results_pod.flux_u = flux_u;
-results_pod.flux_v = flux_v;
+results_pod.flux_U = flux_U;
 
 % mean flow
-results_pod.mean_u = mean_u;
-results_pod.mean_v = mean_v;
+results_pod.mean_U = mean_U;
 
 % pod modes
-results_pod.pod_u = pod_u;
-results_pod.pod_v = pod_v;
+results_pod.pod_U = pod_U;
 results_pod.pod_vor = pod_vor;
 
 % modal coordinates and energy captured, modes to 99%

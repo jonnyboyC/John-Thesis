@@ -1,4 +1,4 @@
-function plot_vector_modes(data, u, v, num_modes, dimensions, varname, lambda, direct, save_figures, streamlines)
+function plot_vector_modes(data, U, num_modes, dimensions, nondim, varname, lambda, direct, save_figures, streamlines)
 % PLOT_VECTOR_MODES plot a set of vector fields modes
 %
 % PLOT_VECTOR_MODES(data, u, v, num_modes, dimensions, varname, lambda,
@@ -7,17 +7,21 @@ function plot_vector_modes(data, u, v, num_modes, dimensions, varname, lambda, d
 % Determine energy content of each mode
 energy = lambda(1:num_modes)./sum(lambda)*100;
 
-% Calculate vector magnitude 
-magnitude = sqrt(u.^2 + v.^2);
+% get the components that are in the active plane
+dims = flow_dims(data.X);
+[x, u] = flow_comps_ip(data.X, U);
+
+% Calculate vector magnitude
+magnitude = sqrt(U.(u{1}).^2 + U.(u{2}).^2);
 
 % Determine maximum values of each mode
-cmax=max(abs(magnitude));
+cmax = max(abs(magnitude));
 
 % Scale all images to max magnitude of one
 for i = 1:num_modes
     magnitude(:,i) = magnitude(:,i)/cmax(i);
-    u(:,i) = u(:,i)/cmax(i);
-    v(:,i) = v(:,i)/cmax(i);
+    U.(u{1})(:,i) = U.(u{1})(:,i)/cmax(i);
+    U.(u{2})(:,i) = U.(u{2})(:,i)/cmax(i);
 end
 
 % Get color scaling
@@ -26,11 +30,12 @@ cmin = 0;
 
 % Preallocate figure subplot handles
 h_mag_sub = gobjects(4, 1);
-if streamlines 
+if streamlines
     h_dir_sub = cell(4, 1);
 else
     h_dir_sub = gobjects(4,1);
 end
+
 ax_sub = gobjects(4, 1);
 plot_img_num = 1;
 
@@ -43,11 +48,12 @@ movegui(h,'center')
 for i = 1:num_modes
     % Update pod data
     data.pod = reshape(magnitude(:,i),dimensions);
-    data.u   = reshape(u(:,i), dimensions);
-    data.v   = reshape(v(:,i), dimensions);
+    for j = 1:dims 
+        data.U.(u{j}) = reshape(U.(u{j})(:,i), dimensions);
+    end
     
     % After Originally generating 4 plots, update values
-    if plot_img_num > 4 
+    if plot_img_num > 4
         % Save images in requested format
         if any(ismember({'fig', 'jpg', 'png'}, save_figures))
             for j = 1:size(save_figures,2)
@@ -64,8 +70,13 @@ for i = 1:num_modes
     % plot individual plots
     if i <= 4
         [h_mag_sub(i), h_dir_sub(i), ax_sub(i)] = plot_vector_field(data, streamlines);
-        ax_sub(plot_img_num).XLabel = xlabel('x/D', 'fontname','times new roman','fontsize',14);
-        ax_sub(plot_img_num).YLabel = ylabel('y/D', 'fontname','times new roman','fontsize',14);
+        if nondim
+            ax_sub(plot_img_num).XLabel = xlabel([x{1} '/L'], 'fontname','times new roman','fontsize',14);
+            ax_sub(plot_img_num).YLabel = ylabel([x{2} '/L'], 'fontname','times new roman','fontsize',14);
+        else
+            ax_sub(plot_img_num).XLabel = xlabel(x{1}, 'fontname','times new roman','fontsize',14);
+            ax_sub(plot_img_num).YLabel = ylabel(x{2}, 'fontname','times new roman','fontsize',14);
+        end
         ax_sub(plot_img_num).CLim = [cmin cmax];
         cax = colorbar('peer', ax_sub(plot_img_num));
     else
@@ -75,18 +86,18 @@ for i = 1:num_modes
     
     % update plot title
     ax_sub(plot_img_num).Title = title([varname ': mode ' num2str(i) ' (' num2str((energy(i)),3) ' %)'], 'fontname','times new roman','fontsize', 16);
-
+    
     % update plot position
-    plot_img_num=plot_img_num+1;
+    plot_img_num = plot_img_num + 1;
     
     % If last iteration save files
-    if i == num_modes   
-        if any(ismember({'fig', 'jpg'}, save_figures))
+    if i == num_modes
+        if any(ismember({'fig', 'jpg', 'png'}, save_figures))
             for j = 1:size(save_figures,2)
                 saveas(h, [direct filesep 'Figures' filesep 'POD' filesep ...
-                    'Modes' filesep varname '_modes' num2str(i-4) '_' num2str(i-1)], save_figures{j});            
+                    'Modes' filesep varname '_modes' num2str(j-4) '_' num2str(j-1)], save_figures{j});
             end
         end
     end
-    
-end 
+end
+end

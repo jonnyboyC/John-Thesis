@@ -1,5 +1,5 @@
-function [modal_amp, lambda, pod_u, pod_v, pod_vor] = ...
-    add_mode_zero(modal_amp, lambda, pod_u, pod_v, pod_vor, mean_u, mean_v, mean_vor)
+function [modal_amp, lambda, pod_U] = ... , pod_VOR] = ...
+    add_mode_zero(modal_amp, lambda, pod_U, mean_U) %pod_VOR, mean_VOR)
 % ADD_MODE_ZERO add an additional mode corresponding to the mean flow, use
 % edit for details on input, output
 
@@ -11,8 +11,12 @@ lambda = [0; lambda];
 % Add mean and flucuating amplitudes
 modal_amp = [ones(num_images,1), modal_amp];
 
+comps = flow_ncomps(pod_U);
+u = flow_comps(pod_U);
+
 % Add mode zero
-pod_u = [mean_u, pod_u];
-pod_v = [mean_v, pod_v];
-pod_vor = [mean_vor, pod_vor];
+for i = 1:comps
+    pod_U.(u{i}) = [mean_U.(u{i}), pod_U.(u{i})];
+end
+%pod_vor = [mean_vor, pod_vor];
 end

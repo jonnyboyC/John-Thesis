@@ -1,9 +1,18 @@
-function vol_frac = voln_piv_2D(x,y,bnd_idx,bnd_x, bnd_y)
-% VOLN_PIV_2D determine the volumne contained in each flow pixel
+function vol_frac = voln_piv_2D(X,bnd_idx,bnd_X)
+% VOLN_PIV_2D determine the volumne contained in each flow pixel, currently
+% one of the funciton limiting POD_Gen to 2D plane slices
 %
 % vol_frac = VOLN_PIV_2D(x,y,bnd_idx, bnd_x, bnd_y) determine the volumn contained in
 % each flow pixel taking into account the boundary
 
+% TODO still only works for 2D plane
+x_comps = flow_comps_ns(X);
+
+x = X.(x_comps{1});
+y = X.(x_comps{2});
+
+bnd_x = bnd_X.(x_comps{1});
+bnd_y = bnd_X.(x_comps{2});
 
 vol_frac = zeros(size(x));
 
