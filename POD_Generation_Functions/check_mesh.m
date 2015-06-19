@@ -28,7 +28,7 @@ for i = 1:dims
 end
 
 % if ration between mean and std_dev is small assume mesh is uniform
-if all(abs(std_step./mean_step) < 1e-6)
+if all(abs(std_step./(mean_step+eps)) < 1e-6)
     uniform = true;
 else
     uniform = false;

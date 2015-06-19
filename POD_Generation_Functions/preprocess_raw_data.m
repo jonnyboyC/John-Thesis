@@ -48,6 +48,37 @@ if non_dim
     u_scale = 1;
 end
 
+% Find the direct alone the matrix cooresponding to the coordinates 
+X.direct = cell(ndims(X.(x{1})),1);
+
+for i = 1:comps
+    grad = [];
+    
+    % switch based on size of coordinate matrix
+    switch ndims(X.(x{i})) %
+        case 1
+            grad{1} = gradient(X.(x{i}));
+        case 2
+            [grad{1}, grad{2}] = gradient(X.(x{i}));
+        case 3
+            [grad{1}, grad{2}, grad(3)] = gradient(X.(x{i}));
+    end
+    
+    % Get the average change along a dimension
+    grad = cellfun(@(x) mean(abs(x(:))), grad);
+    
+    % If no difference if found continue
+    if range(grad) == 0
+        continue;
+    end
+    [~, idx] = max(grad);
+    
+    % Assign the coordinate main to the index cooresponding to the
+    % dimension
+    X.direct{idx} = x{i};  
+end
+    
+
 % if coordinates are in millimeters convert to meters
 if strcmp(xy_units, 'mm')
     for i = 1:comps

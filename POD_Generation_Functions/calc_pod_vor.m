@@ -9,7 +9,7 @@ function [pod_vor, mean_vor] = calc_pod_vor(U, mean_U, dimensions, ...
 pod_vor = zeros(dimensions(1), dimensions(2), cutoff);
 
 % Calculate dervatives
-[~, udy] = derivatives(U, bnd_idx, bnd_X, X, dimensions);
+UdX = derivatives(U, bnd_idx, bnd_X, X, dimensions);
 
 for i = 1:cutoff
     pod_vor(:,:,i) = vdx(:,:,i)-udy(:,:,i);

@@ -8,7 +8,11 @@ function varargout = flow_comps(varargin)
 
 varargout = cell(length(varargin));
 
+
 for i = 1:length(varargin)
-    varargout{i} = fieldnames(varargin{i}); 
+    temp = fieldnames(varargin{i});
+    idx = strcmp(temp, 'direct');
+    temp(idx) = [];
+    varargout{i} = temp;
 end
 end

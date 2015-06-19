@@ -237,11 +237,15 @@ if cluster
 end
 
 % Calculate voritcity
-% [pod_vor, mean_vor] = calc_pod_vor(pod_U, mean_V, dimensions, cutoff, bnd_idx, bnd_X, X);
-                     
-% Create a stacked data matrix for vorticity values
-% pod_vor  = reshape(pod_vor, data_points, cutoff);
-% mean_vor = reshape(mean_vor, data_points, 1);
+[pod_W, mean_W] = calc_pod_vor(pod_U, mean_U, dimensions, cutoff, bnd_idx, bnd_X, X);
+ 
+w = flow_comps(pod_V);
+ncomp_w= flow_comps(pod_W);
+for i = 1:ncomp_w
+    % Create a stacked data matrix for vorticity values
+    pod_W.(w{i}) = reshape(pod_W.(w{i}), data_points, cutoff);
+    mean_W.(w{i}) = reshape(mean_W.(w{i}), data_points, 1);
+end
 
 %% Setup for Plotting and Plotting
 
@@ -295,7 +299,7 @@ results_pod.mean_U = mean_U;
 
 % pod modes
 results_pod.pod_U = pod_U;
-results_pod.pod_vor = pod_vor;
+results_pod.pod_vor = pod_W;
 
 % modal coordinates and energy captured, modes to 99%
 results_pod.modal_amp = modal_amp;

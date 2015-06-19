@@ -167,7 +167,7 @@ if closed_bnd
     centralY(:, end-1:end) = 0;
 
     % Set these methods to 4th order central
-    methods_X(logical(centralX)) = 9;
-    methods_X(logical(centralY)) = 9;
+    methods_X.(x{1})(logical(centralX)) = 9;
+    methods_X.(x{2})(logical(centralY)) = 9;
 end
 end

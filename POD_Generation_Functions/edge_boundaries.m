@@ -10,11 +10,11 @@ x = flow_comps_ns(X);
 % Determine the vector normal of the boundary
 switch ndims(bnd_idx) % TODO make this more abstract
     case 1
-        bnd_X.(x{1}) = gradient(bnd_idx);
+        bnd_X.(X.direct{1}) = gradient(bnd_idx);
     case 2
-        [bnd_X.(x{1}), bnd_X.(x{2})] = gradient(bnd_idx);
+        [bnd_X.(X.direct{1}), bnd_X.(X.direct{2})] = gradient(bnd_idx);
     case 3
-        [bnd_X.(x{1}), bnd_X.(x{2}), bnd_X.(x{3})] = gradient(bnd_idx);
+        [bnd_X.(X.direct{1}), bnd_X.(X.direct{2}), bnd_X.(X.direct{3})] = gradient(bnd_idx);
 end
 
 % Get the number of comps
@@ -27,15 +27,6 @@ for i = 1:comps
     
     idx_1 = flow_index([1, 1], i, bnd_X);
     idx_end = flow_index([0, 0], i, bnd_X);
-    
-    %TODO FIX FIX FIX
-%     if i == 1
-%         idx_1 = struct_index([1, 1], 2, bnd_X);
-%         idx_end = struct_index([0, 0], 2, bnd_X);
-%     else
-%         idx_1 = struct_index([1, 1], 1, bnd_X);
-%         idx_end = struct_index([0, 0], 1, bnd_X);
-%     end
     
     % Get a dimensions - 1 set of ones and fill 
     dimensions_temp = dimensions;
