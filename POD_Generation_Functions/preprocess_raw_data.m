@@ -1,4 +1,4 @@
-function [X, U, u_scale, l_scale] = preprocess_raw_data(X, U, l_scale, ...
+function [X, U, X_direct, u_scale, l_scale] = preprocess_raw_data(X, U, l_scale, ...
     u_scale_gen, non_dim, xy_units, flow_flip, image_range, direct)
 % PREPROCESS_RAW_DATA perform the various scaling and image flipping, and
 % cropping prior to actual calculation
@@ -49,7 +49,7 @@ if non_dim
 end
 
 % Find the direct alone the matrix cooresponding to the coordinates 
-X.direct = cell(ndims(X.(x{1})),1);
+X_direct = cell(ndims(X.(x{1})),1);
 
 for i = 1:comps
     grad = [];
@@ -75,7 +75,7 @@ for i = 1:comps
     
     % Assign the coordinate main to the index cooresponding to the
     % dimension
-    X.direct{idx} = x{i};  
+    X_direct{idx} = x{i};  
 end
     
 

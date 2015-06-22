@@ -6,10 +6,8 @@ function [l, q] = galerkin_coefficients(coef_problem)
 % [l, q]= GALERKIN_COEFFICENT(coef_problem)
  
 % Unpack Variables
-x           = coef_problem.x;
-y           = coef_problem.y;
-pod_u       = coef_problem.pod_u;
-pod_v       = coef_problem.pod_v;
+X           = coef_problem.X;
+pod_U       = coef_problem.pod_U;
 dimensions  = coef_problem.dimensions;
 vol_frac    = coef_problem.vol_frac;
 run_num     = coef_problem.run_num;
@@ -17,15 +15,18 @@ direct      = coef_problem.direct;
 override_coef = coef_problem.override_coef;
 use_chunks  = coef_problem.use_chunks;
 bnd_idx     = coef_problem.bnd_idx;
-bnd_x       = coef_problem.bnd_x;
-bnd_y       = coef_problem.bnd_y;
+bnd_X       = coef_problem.bnd_X;
 custom      = coef_problem.custom;
+uniform     = coef_problem.uniform;
 
 
 clear coef_problem
 
-num_elem = numel(x);
-num_modes = size(pod_u, 2);
+[x, u] = flow_comps_ip(X, pod_U);
+dims = flow_dims(X);
+
+num_elem = numel(X.(x{1}));
+num_modes = size(pod_U.(u{1}), 2);
 
 % If we are using the same number of cutoff modes and overwrite is set to
 % false look for previous data
@@ -45,16 +46,18 @@ if override_coef == false && custom == false
 end
 
 % Calculate terms, allows for nonuniform mesh
-[pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac, l] = ...
-    components(x, y, pod_u, pod_v, dimensions, vol_frac, num_modes, num_elem, bnd_idx, bnd_x, bnd_y);
+[pod_UdX, pod_U, vol_frac, l] = ...
+    components(X, pod_U, dimensions, vol_frac, num_modes, num_elem, uniform, bnd_idx, bnd_X);
 
 % Free memory
-clear x y dimensions bnd_idx z mean_u mean_v
+clear X bnd_idx bnd_X
 h = waitbar(0, 'Calculating quadratic terms');
 
-% If problem has over 400 modes need to break problem into chunks
+% If memory is an issue pass flag use chunks to write partitial results to
+% disk
 if use_chunks == false
     
+    % If using more than 700 modes clear matlab workers for memory
     if num_modes > 700
        delete(gcp('nocreate')); 
     end
@@ -62,19 +65,26 @@ if use_chunks == false
     % Quadractic terms preallocation
     q = zeros(num_modes, num_modes, num_modes);
 
-    % Calculate terms
+    % Calculate quadractic term ((uk * grad(uj)),ui)
     for k = 1:num_modes
-        pod_u_pod_u_x = (repmat(pod_u(:,k),1,num_modes)).*pod_udx;
-        pod_v_pod_u_y = (repmat(pod_v(:,k),1,num_modes)).*pod_udy;        
-        pod_u_pod_v_x = (repmat(pod_u(:,k),1,num_modes)).*pod_vdx;
-        pod_v_pod_v_y = (repmat(pod_v(:,k),1,num_modes)).*pod_vdy;
-        q(:,:,k) = -inner_prod(pod_u_pod_u_x + pod_v_pod_u_y, pod_u, vol_frac) ...
-                   -inner_prod(pod_u_pod_v_x + pod_v_pod_v_y, pod_v, vol_frac);
-               
+        for i = 1:dims;
+            
+            % Calculate directional derivative component
+            pod_UDX = 0;
+            for j = 1:dims;
+                pod_UDX = pod_UDX + ...
+                    repmat(pod_U.(u{j})(:,k), 1, num_modes).*pod_UdX.(u{i}).(x{j});
+            end
+            
+            % Add components inner product to quadractic term
+            q(:,:,k) = q(:,:,k) - inner_prod(pod_UDX, pod_U.(u{i}), vol_frac);
+        end
+        
         % Update wait bar
         waitbar(k/num_modes, h, sprintf('%d of %d coefficients computed\n', k, num_modes))
     end
 else
+    
     % Create one worker to save files to harddrive
     delete(gcp);
     pool = parpool('local', 1);
@@ -88,34 +98,45 @@ else
     data = matfile([direct '\Viscous Coeff\cduv.mat'], 'Writable', true);
     data.q(num_modes,num_modes,num_modes) = 0;
     
+    % Calculate quadractic term ((uk * grad(uj)),ui)
     for k = 1:num_modes
-        pod_u_pod_u_x = (repmat(pod_u(:,k),1,num_modes)).*pod_udx;
-        pod_v_pod_u_y = (repmat(pod_v(:,k),1,num_modes)).*pod_udy;        
-        pod_u_pod_v_x = (repmat(pod_u(:,k),1,num_modes)).*pod_vdx;
-        pod_v_pod_v_y = (repmat(pod_v(:,k),1,num_modes)).*pod_vdy;
-        q = -inner_prod(pod_u_pod_u_x + pod_v_pod_u_y, pod_u, vol_frac) ...
-            -inner_prod(pod_v_pod_v_y + pod_u_pod_v_x, pod_v, vol_frac);
+        for i = 1:dims;
+            
+            % Calculate directional derivative component
+            pod_UDX = 0;
+            for j = 1:dims;
+                pod_UDX = pod_UDX + ...
+                    repmat(pod_U.(u{j})(:,k), 1, num_modes).*pod_UdX.(u{i}).(x{j});
+            end
+            
+            % Add components inner product to quadractic term
+            q = q - inner_prod(pod_UDX, pod_U.(u{i}), vol_frac);
+        end
+        
+        % Write to disk on a separate thread
         f = parfeval(pool, @save_q, 0, data, q, k);
         
         % Update wait bar
         waitbar(k/num_modes, h, sprintf('%d of %d coefficients computed\n', k, num_modes))
         
-        % Allow writing to caught up
+        % Allow time for writing to caught up so less data is in memory
         if mod(k,20) == 0
             wait(f);
         end
     end
 
+    % Delete 1 matlab worker
     delete(pool)
+    
+    % Pull for matrix into memory
     q = data.q;
 end
 
-% close waitbar
+% Close waitbar
 close(h);
 
-% Free memory
-clear pod_u pod_v pod_udx pod_udy pod_vdx pod_vdy f
-clear pod_u_pod_u_x pod_u_pod_v_x pod_v_pod_u_y pod_v_pod_v_y
+% Free memory before starting workers again
+clear pod_U pod_UdX
 
 q = reshape(q, [], num_modes*num_modes);
 
@@ -130,7 +151,7 @@ if isempty(gcp('nocreate'));
 end
 end
 
-% allow writing to disk asynchronously
+% Allow writing to disk asynchronously
 function save_q(data, q, k)
     data.q(:,:,k) = q;
 end

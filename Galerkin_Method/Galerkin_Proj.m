@@ -125,13 +125,11 @@ update_folders(direct);
 vars = load(direct_POD, 'results_pod');
 
 % Create more readable names
-x           = vars.results_pod.x;           % mesh coordinates in x direction
-y           = vars.results_pod.y;           % mesh coordinates in y direction
+X           = vars.results_pod.X;           % mesh coordinates
 u_scale     = vars.results_pod.u_scale;     % velocity scaling
 l_scale     = vars.results_pod.l_scale;     % length scaling
-pod_u       = vars.results_pod.pod_u;       % streamwise pod modes
-pod_v       = vars.results_pod.pod_v;       % spanwise pod modes
-pod_vor     = vars.results_pod.pod_vor;     % vorticity pod modes
+pod_U       = vars.results_pod.pod_U;       % pod modes
+pod_W       = vars.results_pod.pod_W;       % vorticity pod modes
 lambda      = vars.results_pod.lambda;      % eigenvalues of modes
 dimensions  = vars.results_pod.dimensions;  % dimensions of mesh
 bnd_idx     = vars.results_pod.bnd_idx;     % location of boundaries
@@ -141,8 +139,8 @@ cutoff      = vars.results_pod.cutoff;      % number of modes at cutoff
 modal_amp   = vars.results_pod.modal_amp;   % modal amplitude  from raw data
 
 if calc_coef
-    bnd_x       = vars.results_pod.bnd_x;       % location of flow boundaries normal to x
-    bnd_y       = vars.results_pod.bnd_y;       % location of flow boundaries normal to y
+    uniform     = vars.results_pod.uniform;      % Is the mesh uniform 
+    bnd_X       = vars.results_pod.bnd_X;       % location of flow boundaries normal to x
     vol_frac    = vars.results_pod.vol_frac;    % mesh area size
 end
 
@@ -189,23 +187,21 @@ futures = 0;
 if calc_coef 
     
     % Ready Coef Problem Structure
-    coef_problem.x              = x;
-    coef_problem.y              = y;
+    coef_problem.X              = X;
     coef_problem.use_chunks     = use_chunks;
-    coef_problem.pod_u          = pod_u;
-    coef_problem.pod_v          = pod_v;
+    coef_problem.pod_U          = pod_U;
     coef_problem.dimensions     = dimensions;
     coef_problem.vol_frac       = vol_frac;
     coef_problem.bnd_idx        = bnd_idx;
-    coef_problem.bnd_x          = bnd_x;
-    coef_problem.bnd_y          = bnd_y;
+    coef_problem.bnd_X          = bnd_X;
     coef_problem.run_num        = run_num;
     coef_problem.override_coef  = override_coef;
     coef_problem.direct         = direct;
     coef_problem.custom         = false;
+    coef_problem.uniform        = uniform;
     
     % Free memory
-    clear vol_frac bnd_x bnd_y 
+    clear vol_frac bnd_X 
     
     % Prefill Cells
     lc = cell(2,2);

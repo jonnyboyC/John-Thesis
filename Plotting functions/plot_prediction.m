@@ -116,10 +116,14 @@ for i = 1:size(plot_points,2)
             ax(j).CLim = [cmin(j), cmax(j)];
             colorbar;
         else
-            [h_surf(j), h_dir(j)] = plot_vector_field(data_temp, streamlines, h_surf(j), h_dir(j));
+            if ~rem(i,5)
+                [h_surf(j), h_dir(j)] = plot_vector_field(data_temp, streamlines, h_surf(j), h_dir(j));
+            end
         end
     end
-    frame = getframe(gcf);
-    writeVideo(writer, frame)
+    if ~rem(i,5)
+        frame = getframe(gcf);
+        writeVideo(writer, frame);
+    end
 end
 end

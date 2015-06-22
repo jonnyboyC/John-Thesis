@@ -35,7 +35,7 @@ sum_mode_energy = cumsum(lambda)./sum(lambda);
 cutoff = find((sum_mode_energy >= 0.99), 1);
 
 % Display cutoff energy content
-fprintf('\nCutoff for Couplet Viscous Dissapation is %d mode at %3.4f percent total energy\n\n', ...
+fprintf('\%d modes need to capture %3.4f percent total energy\n\n', ...
     cutoff, sum_mode_energy(cutoff));
 
 % Return truncated pod modes

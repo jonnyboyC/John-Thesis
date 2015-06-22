@@ -32,8 +32,8 @@ leg_names{length(models)+2} = 'empirical 3 std';
 
 
 plot(one_sec, [mean_emp_TKE, mean_emp_TKE], 'k');
-plot(one_sec, 3*[std_emp_TKE, std_emp_TKE] + mean_emp_TKE, 'k-.');
-plot(one_sec, -3*[std_emp_TKE, std_emp_TKE] + mean_emp_TKE, 'k-.');
+plot(one_sec, 1*[std_emp_TKE, std_emp_TKE] + mean_emp_TKE, 'k-.');
+plot(one_sec, -1*[std_emp_TKE, std_emp_TKE] + mean_emp_TKE, 'k-.');
 
 legend(ax, leg_names, 'Location', 'southoutside', 'Orientation', 'horizontal');
 ax.YScale = 'log';
