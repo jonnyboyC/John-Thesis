@@ -1,5 +1,5 @@
-function [pod_UdX, pod_U, vol_frac] = ...
-        components_ws(X, pod_U, dimensions, vol_frac, num_modes, num_elem, bnd_idx, bnd_X)
+function [pod_UdX, pod_U, bnd_X, vol_frac] = ...
+        components_ws(X, pod_U, dimensions, vol_frac, num_modes, num_elem, uniform, bnd_idx, bnd_X)
 % COMPONENT_WS, calculate the derivative terms needed to calculate the
 % galerkin coefficients of the weak formulation
 % 
@@ -19,6 +19,6 @@ for i = 1:dims;
 end
 
 % Strip data points that are superfluous
-[pod_UdX, pod_U, bnd_X, vol_frac] = strip_boundaries(bnd_idx, pod_UdX, bnd_X, pod_U, vol_frac);
+[pod_UdX, pod_U, bnd_X, vol_frac] = strip_boundaries(bnd_idx, pod_UdX, pod_U, bnd_X, vol_frac);
 
 end

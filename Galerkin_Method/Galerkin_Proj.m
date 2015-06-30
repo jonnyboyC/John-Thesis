@@ -129,7 +129,6 @@ X           = vars.results_pod.X;           % mesh coordinates
 u_scale     = vars.results_pod.u_scale;     % velocity scaling
 l_scale     = vars.results_pod.l_scale;     % length scaling
 pod_U       = vars.results_pod.pod_U;       % pod modes
-pod_W       = vars.results_pod.pod_W;       % vorticity pod modes
 lambda      = vars.results_pod.lambda;      % eigenvalues of modes
 dimensions  = vars.results_pod.dimensions;  % dimensions of mesh
 bnd_idx     = vars.results_pod.bnd_idx;     % location of boundaries
@@ -235,6 +234,9 @@ eddy    = cell(total_models,2,length(num_modesG));
 l       = cell(total_models,2,length(num_modesG));
 q       = cell(total_models,2,length(num_modesG));
 
+[x, u] = flow_comps_ip(X, pod_U);
+dims = flow_dims(X);
+
 % Initialize if time integration is being performed
 if time_int
     t               = cell(total_models,2,length(num_modesG));
@@ -265,16 +267,15 @@ for i = 1:length(num_modesG)
     % Calculate empirical average TKE for selected modes
     modal_TKE = mean(sum(1/2*modal_amp(:,modes).^2,2));
     
-    % Created truncated pod basis
-    pod_ut  = pod_u(:,[1, modes]);
-    pod_vt  = pod_v(:,[1, modes]);
-    pod_vort = pod_vor(:,[1, modes]);
+    % Create temporary pod basis from requested modes
+    for j = 1:dims
+        pod_Ut.(u{j}) = pod_U.(u{j})(:,[1, modes]);
+    end
 
     if calc_coef
         
         % Calculate coefficeints for current system
-        coef_problem.pod_u = pod_ut;
-        coef_problem.pod_v = pod_vt;
+        coef_problem.pod_U = pod_Ut;
         coef_problem.custom = custom;
         
         if custom
@@ -374,9 +375,7 @@ for i = 1:length(num_modesG)
         % Prepare data
         plot_data.num_modes     = num_modes-1;
         plot_data.direct        = direct;
-        plot_data.pod_ut        = pod_ut;
-        plot_data.pod_vt        = pod_vt;
-        plot_data.pod_vort      = pod_vort;
+        plot_data.pod_Ut        = pod_Ut;
         plot_data.dimensions    = dimensions;
         plot_data.fft_window    = fft_window;
         plot_data.u_scale       = u_scale;
@@ -384,8 +383,7 @@ for i = 1:length(num_modesG)
         plot_data.type          = 'Galerkin';
         plot_data.plot_type     = plot_type;
         plot_data.sample_freq   = sample_freq;
-        plot_data.x             = x;
-        plot_data.y             = y;
+        plot_data.X             = X;
         plot_data.Mod           = false;
         plot_data.bnd_idx       = bnd_idx;
         plot_data.custom        = custom;

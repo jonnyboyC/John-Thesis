@@ -40,11 +40,11 @@ end
 if streamlines
     if nargin == 2 
         h_dir = streamslice(data.X.(x{1})', data.X.(x{2})', data.U.(u{1})', data.U.(u{2})');
-        set(h_dir,'Color','black')
+        set(h_dir,'Color','white')
     else
         delete(h_dir{1})
         h_dir = streamslice(data.X.(x{1})', data.X.(x{2})', data.U.(u{1})', data.U.(u{2})');
-        set(h_dir,'Color','black')
+        set(h_dir,'Color','white')
     end
     h_dir = {h_dir};
 else

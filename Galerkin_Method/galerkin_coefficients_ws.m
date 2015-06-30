@@ -15,6 +15,8 @@ override_coef = coef_problem.override_coef;
 bnd_idx     = coef_problem.bnd_idx;
 bnd_X       = coef_problem.bnd_X;
 custom      = coef_problem.custom;
+uniform     = coef_problem.uniform;
+
 
 clear coef_problem
 
@@ -24,7 +26,9 @@ dims = flow_dims(X);
 num_elem = numel(X.(x{1}));
 num_modes = size(pod_U.(u{1}), 2);
 
-[bnd_x, bnd_y] = strip_boundaries(bnd_idx, bnd_x, bnd_y);
+for i = 1:dims
+   bnd_X.(x{i}) = reshape(bnd_X.(x{i}), num_elem, 1); 
+end
 
 % If we are using the same number of cutoff modes and overwrite is set to
 % false look for previous data
@@ -43,24 +47,22 @@ if override_coef == false && custom == false
 end
 
 % Calculate terms, allows for nonuniform mesh
-[pod_UdX, pod_U, vol_frac] = ...
-    components_ws(X, pod_U, dimensions, vol_frac, num_modes, num_elem, bnd_idx, bnd_X);
+[pod_UdX, pod_U, bnd_X, vol_frac] = ...
+    components_ws(X, pod_U, dimensions, vol_frac, num_modes, num_elem, uniform, bnd_idx, bnd_X);
 
+% Replace Lapcalian term with weak formulation by green's identity 
+l_weak_volume = 0;
+l_weak_surf = 0;
+for i = 1:dims
+    for j = 1:dims
+        l_weak_volume = l_weak_volume ...
+            - inner_prod(pod_UdX.(u{i}).(x{j}), pod_UdX.(u{i}).(x{j}), vol_frac);
+        l_weak_surf = l_weak_surf ...
+            + surf_inner_prod(pod_UdX.(u{i}).(x{j}), pod_U.(u{i}), vol_frac, bnd_X.(x{j}));
+    end
+end
 
-% Calculated Weak Solution Gradient inner products
-ccux = -inner_prod(pod_udx, pod_udx, vol_frac);
-ccvx = -inner_prod(pod_vdx, pod_vdx, vol_frac);
-
-ccuy = -inner_prod(pod_udy, pod_udy, vol_frac);
-ccvy = -inner_prod(pod_vdy, pod_vdy, vol_frac);
-
-% Calulate Weak Solution Surface Integral inner products
-surf_cu = surf_inner_prod(pod_udx, pod_u, vol_frac, bnd_x) + ...
-          surf_inner_prod(pod_udy, pod_u, vol_frac, bnd_y);
-surf_cv = surf_inner_prod(pod_vdx, pod_v, vol_frac, bnd_x) + ...
-          surf_inner_prod(pod_vdy, pod_v, vol_frac, bnd_y);
-
-l = ccux + ccuy + ccvx + ccvy + surf_cu + surf_cv;
+l = l_weak_volume + l_weak_surf;
 
 cutoff = num_modes;
 if ~custom

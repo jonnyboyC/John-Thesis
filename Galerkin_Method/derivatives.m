@@ -70,9 +70,6 @@ if ~uniform
     for i = 1:dims
         temp_dims = full_dims;
 
-        setup = ones(1,dims);
-        setup(i) = temp_dims(i);
-        indices = zeros(setup);
         indices(:) = 1:temp_dims(i);
         temp_dims(i) = 1;
 
