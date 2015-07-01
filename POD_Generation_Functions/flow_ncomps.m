@@ -8,6 +8,10 @@ function varargout = flow_ncomps(varargin)
 varargout = cell(length(varargin));
 
 for i = 1:length(varargin)
-    varargout{i} = length(fieldnames(varargin{i})); 
+    if isfield(varargin{i}, 'direct');
+        varargout{i} = length(fieldnames(rmfield(varargin{i}, 'direct'))); 
+    else
+        varargout{i} = length(fieldnames(varargin{i}));
+    end
 end
 end

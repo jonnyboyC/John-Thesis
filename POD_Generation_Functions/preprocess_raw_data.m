@@ -9,6 +9,7 @@ function [X, U, u_scale, l_scale] = preprocess_raw_data(X, U, l_scale, ...
 % Get fields
 [x, u] = flow_comps(X, U);
 comps = flow_ncomps(X);
+dims = flow_dims(X);
 
 % Apply any flips to get the images in the correct orientation
 [X, U] = image_rotation(X, U, flow_flip);
@@ -49,7 +50,7 @@ if non_dim
 end
 
 % Find the direct alone the matrix cooresponding to the coordinates 
-X.direct = cell(ndims(X.(x{1})),1);
+X.direct = cell(dims,1);
 
 for i = 1:comps
     grad = [];
@@ -75,7 +76,15 @@ for i = 1:comps
     
     % Assign the coordinate main to the index cooresponding to the
     % dimension
-    X.direct{idx} = x{i};  
+    if isempty(X.direct{idx}) 
+        X.direct{idx} = x{i};
+    else
+        for j = 1:dims;
+            if isempty(X.direct{j})
+               X.direct{j} = x{i}; 
+            end
+        end
+    end
 end
     
 

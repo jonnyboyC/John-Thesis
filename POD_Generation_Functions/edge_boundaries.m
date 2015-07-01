@@ -45,9 +45,10 @@ end
 % Generate a comps dimension matrix with true on the exterior
 exterior = false(size(bnd_idx));
 
+X = rmfield(X, 'direct');
 for i = 1:comps
-    idx_1 = struct_index([1, 1], i, exterior);
-    idx_end = struct_index([0, 0], i, exterior);
+    idx_1 = flow_index([1, 1], i, exterior);
+    idx_end = flow_index([0, 0], i, exterior);
     
     % Set exterior of mesh to true
     exterior(idx_1{:}) = true;
@@ -70,8 +71,5 @@ end
 for i = 1:comps
     bnd_X.(x{i})(bnd_idx == 1 & ~exterior) = 0;
 end
-
-% Check to make sure we are not working with a polar coordinate field
-
 
 end

@@ -201,7 +201,10 @@ clear U
 [mean_U, flux_U] = clip_bounds(bnd_idx, mean_U, flux_U, copy);
 
 % Calculate volume elements of the mesh
-vol_frac = voln_piv_2D(X, bnd_idx, bnd_X);
+% vol_frac = voln_piv_2D(X, bnd_idx, bnd_X);
+
+% Testing
+derp = vertex_volume(X, bnd_idx);
 
 % Create a stacked data matrix for u and v velocities
 vol_frac = reshape(vol_frac, data_points, 1); 

@@ -1,7 +1,7 @@
 function varargout = flow_index(indices, dims, varargin)
-% STRUCT_INDEX Index the structured values X, U, and POD
+% FLOW_INDEX Index the structured values X, U, and POD
 %
-%   indices = STRUCT_INDEX(indices, dims, X) 
+%   indices = FLOW_INDEX(indices, dims, X) 
 %   [indices1, indices2] = STRUCT_INDEX(indices, dims, X, POD)
 %
 %   Provide a cell array of indices such as {[1 10], [10 20]} and
