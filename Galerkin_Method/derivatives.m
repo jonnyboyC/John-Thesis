@@ -1,98 +1,205 @@
-function [dX, d2X] = derivatives(U, bnd_idx, bnd_X, X, uniform, dimensions)
+function [UdX, Ud2X] = derivatives(U, bnd_idx, bnd_X, X, uniform, dimensions) %X_direct, , Hessian
 % DERIVATIVES take the first and 2nd derivatives of a set of variables
 % using a nonuniform mesh 4th order finite difference method. DERIVATIVES
 % selected the appropriate finite different method based on the boundaries
 % defined in bnd_idx, bnd_x, and bnd_y
 %
-% [dx, dy] derivatives(var, bnd_idx, bnd_x, bnd_y, x, y, dimensions)
+% UdX = derivatives(U, bnd_idx, bnd_X, X, X_direct, uniform, dimensions)
 % calculate the first order derivatives
 %
-% [dx, dy, d2x, d2y] = derivative(var, bnd_idx, bnd_x, bnd_y, x, y,
-% dimensions) calculate the first and 2nd order derivatives
+% [UdX, Ud2X] = derivative(U, bnd_idx, bnd_X, X, X_direct, uniform, dimensions)
+% calculate the first and 2nd order derivatives
+%
+% TODO currently only calculates Lapalcian terms for 2nd order could extend
+% to calculate a full Hessian fairly easily
 
-% Figure out how many loops are needed
 
-% New computational domain grid
+%% Preprocessing 
 
-u = flow_comps(U);
-comps = flow_ncomps(U);
 
-x = flow_comps_ip(X);
-dims = flow_dims(X);
-full_dims = size(X.(x{1}));
+% Get information on the components and the grid provided
 
+[x, u] = flow_comps_ip(X, U);    % Get grid components i.e x, y etc.
+dims = flow_dims(X);        % Number of active dimensions
+full_dims = size(X.(x{1})); % Mesh dimensions
+
+
+% TODO can only work with 2D grids at the moment
 if dims > 2
     error(['This function can only handle two dimensional derivatives, a modification' ...
         'is needed to solve for 3D']);
 end
 
-if ~uniform
-    for i = 1:dims
-        temp_dims = full_dims;
+% Determine number of vector fields present
+fields = size(U.(u{1}), 2);
 
-        setup = ones(1,dims);
-        setup(i) = temp_dims(i);
-        indices = zeros(setup);
-        indices(:) = 1:temp_dims(i);
-        temp_dims(i) = 1;
-
-        Xi.(x{i}) = repmat(indices, temp_dims);
-    end
-end
-
-number2calc = size(U.(u{i}), 2);
-
-% Prefill outputs
-for i = 1:comps
-    dX.(u{i}) = struct([]);
+% Prefill velocity derivatives
+for i = 1:dims
+    UdX.(u{i}) = struct([]);
     for j = 1:dims
-        x_temp.(x{j}) = zeros([dimensions, number2calc]); 
+        x_temp.(x{j}) = zeros([dimensions, fields]); 
     end
-    dX.(u{i}) = x_temp;
-end
-
-if nargout == 2
-    for i = 1:comps
-        d2X.(u{i}) = struct([]);
+    UdX.(u{i}) = x_temp;
+    
+    if nargout == 2
+        Ud2X.(u{i}) = struct([]);
         for j = 1:dims
-            x_temp.(x{j}) = zeros([dimensions, number2calc]);
+            x_temp.(x{j}) = zeros([dimensions, fields]);
         end
-        d2X.(u{i}) = x_temp;
+        Ud2X.(u{i}) = x_temp;
     end
 end
 
+% Convert to original dimensions if in a stacked vector
 for i = 1:dims
     X.(x{i}) = reshape(X.(x{i}), dimensions);
 end
 
-% Select finite elemente method to be used at each grid point
-[methods_X] = select_method(bnd_idx, bnd_X, dimensions, true);
+%% Method selection and parametric transform setup
 
-% Precalculate stencil for each point
-[stencil_X] = generate_stencil(X, methods_X, dimensions);
-[stencil_Xi] = generate_stencil(Xi, methods_Xi, dimensions);
+% Select finite element method and produce mesh stenciles
+methods_X = select_method(bnd_idx, bnd_X, dimensions, true);
 
-% Calculate derivative terms
-for i = 1:number2calc
-    % Padding to allow for simultaneous calculation of derivatives
-    padded_var1 = [zeros(4,dimensions(2)); reshape(U(:,i), dimensions); zeros(4,dimensions(2))];
-    padded_var2 = [zeros(dimensions(1),4), reshape(U(:,i), dimensions), zeros(dimensions(1),4)];
+% If grid is not uniform set up parametric transform
+if ~uniform  
     
-    % 1st order terms
-    for j = 1:size(stencil_X,3)
-        dx(:,:,i) = dx(:,:,i) + padded_var1(10-j:end-j+1,:).*stencilX(:,:,j);
-        dy(:,:,i) = dy(:,:,i) + padded_var2(:,10-j:end-j+1).*stencilY(:,:,j);
+    % Copy dimensions for readability
+    xi = x;
+    
+    % Create meshs of indices 
+    for i = 1:dims
+        temp_dims = full_dims;
+
+        indices(:) = 1:temp_dims(i);
+        temp_dims(i) = 1;
+
+        Xi.(xi{i}) = repmat(indices, temp_dims);
     end
     
-    if nargout == 4
-        % Padding to allow for simultaneous calculation of derivatives
-        padded_dx = [zeros(4,dimensions(2)); dx(:,:,i); zeros(4,dimensions(2))];
-        padded_dy = [zeros(dimensions(1),4), dy(:,:,i), zeros(dimensions(1),4)];
+    % Select finite element method and produce mesh stenciles
+    [methods_Xi] = select_method(ones(dimensions), bnd_X, dimensions, true);
+    [stencil_Xi, nstencil] = generate_stencil(X, methods_Xi, dimensions);
+    
+    % Preallocate indices derivatives
+    for i = 1:dims
+        XidX.(xi{i}) = struct([]);
+        for j = 1:dims
+            x_temp.(xi{j}) = zeros(dimensions);
+        end
+        XidX.(xi{i}) = x_temp;
+    end
+    
+    for i = 1:dims
+        % Generate padding to vectorize derivative calculation
+        temp_dimensions = dimensions;
+        temp_dimensions(i) = floor(nstencil/2);
+        padding = zeros(temp_dimensions);
+        
+        % index the stencil matrix
+        stencil_idx = flow_index([1 1], ndims(stencil_Xi.(xi{1})), stencil_Xi);
+        
+        for j = 1:dims
+            % Pad indices
+            padded_var = cat(i, padding, reshape(Xi.(xi{j}), dimensions), padding);
 
-        % 2nd order terms
-        for j = 1:size(stencilX,3)
-            d2x(:,:,i) = d2x(:,:,i) + padded_dx(10-j:end-j+1,:).*stencilX(:,:,j);
-            d2y(:,:,i) = d2y(:,:,i) + padded_dy(:,10-j:end-j+1).*stencilY(:,:,j);
+            % Calculte first order derivatives
+            for k = 1:nstencil
+                stencil_idx{end} = k;
+                idx = flow_index([10-k, 1-k], i, padded_var);
+                XidX.(xi{j}).(x{i}) = XidX.(xi{j}).(x{i}) + ...
+                    padded_var(idx{:}).*stencil_Xi.(x{i})(stencil_idx{:});
+            end
+            %XidX.(xi{j}).(x{i})(isnan(XidX.(xi{j}).(x{i}))) = 0;
+        end
+    end
+    % Use computation domain mesh to generate stencil
+    [stencil_X, nstencil] = generate_stencil(Xi, methods_X, dimensions);
+else
+    % If it is uniform just use the original mesh
+    [stencil_X, nstencil] = generate_stencil(X, methods_X, dimensions);
+end
+
+%% Calculate Derivatives
+
+% Take the derivative in each dimension
+for i = 1:dims
+    
+    % Generate padding to vectorize derivative calculation
+    temp_dimensions = dimensions;
+    temp_dimensions(i) = floor(nstencil/2);
+    padding = zeros(temp_dimensions);
+    
+    % index the stencil matrix
+    stencil_idx = flow_index([1 1], ndims(stencil_X.(x{1})), stencil_X);
+    
+    % Loop through each component and each field to be calculated
+    for j = 1:dims
+    for k = 1:fields
+
+        % Pad variable
+        padded_var = cat(i, padding, reshape(U.(u{j})(:,k), dimensions), padding);
+        
+        % 1st order terms
+        for l = 1:nstencil
+            stencil_idx{end} = l;
+            idx = flow_index([10-l, 1-l], i, padded_var);
+            UdX.(u{j}).(x{i})(:,:,k) = UdX.(u{j}).(x{i})(:,:,k) + ...
+                    padded_var(idx{:}).*stencil_X.(x{i})(stencil_idx{:});
+        end
+        
+        % Calculate 2nd order term if requested
+        if nargout == 2
+            
+            % Padd variable derivative
+            padded_var = cat(i, padding, UdX.(u{j}).(x{j})(:,:,k), padding);
+            
+            % 2nd order derivative
+            for l = 1:nstencil
+                stencil_idx{end} = l;
+                idx = flow_index([10-l, 1-l], i, padded_var);
+                Ud2X.(u{j}).(x{i})(:,:,k) = Ud2X.(u{j}).(x{i})(:,:,k) + ...
+                        padded_var(idx{:}).*stencil_X.(x{i})(stencil_idx{:});
+            end
+        end
+    end
+    end
+end
+
+% Perform transform to get back to original domain
+if ~uniform
+    
+    % Generate dimensiosn to copy matrices
+    copy = ones(1, dims+1);
+    copy(end) = fields;
+    
+    % Copy matrix
+    UdX_copy = UdX;
+    
+    % Combine terms to get transform
+    for i = 1:dims
+        for j = 1:dims
+            UdX.(u{i}).(x{j}) = 0;
+            for k = 1:dims
+                UdX.(u{i}).(x{j}) = UdX.(u{i}).(x{j}) + ...
+                    repmat(XidX.(xi{k}).(x{j}), copy).*UdX_copy.(u{i}).(x{j});
+            end
+        end
+    end
+    
+    if nargout == 2
+        
+        % Copy matrix
+        Ud2X_copy = Ud2X;
+        
+        % Combine terms to get transform
+        for i = 1:dims
+            for j = 1:dims
+                Ud2X.(u{i}).(x{j}) = 0;
+                for k = 1:dims
+                    Ud2X.(u{i}).(x{j}) = Ud2X.(u{i}).(x{j}) + ...
+                        repmat(XidX.(xi{k}).(x{j}), copy).*Ud2X_copy.(u{i}).(x{j});
+                end
+            end
         end
     end
 end

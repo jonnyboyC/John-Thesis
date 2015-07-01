@@ -1,38 +1,39 @@
-function [pod_udx, pod_udy, pod_vdx, pod_vdy, pod_u, pod_v, vol_frac, l] = ...
-    components(x, y, pod_u, pod_v, dimensions, vol_frac, num_modes, num_elem, bnd_idx, bnd_x, bnd_y)
+function [pod_UdX, pod_U, vol_frac, l] = ...
+    components(X, pod_U, dimensions, vol_frac, num_modes, num_elem, uniform, bnd_idx, bnd_X)
 % COMPONENT, calculate the derivative terms needed to calculate the
 % galerkin coefficients
 % 
 % type edit COMPONENT for input details
 
 % Calculate coefficients for for pod_u's & pod_v's derivatives
-[pod_udx, pod_udy, pod_ud2x, pod_ud2y] = derivatives(pod_u, bnd_idx, bnd_x, ...
-                                            bnd_y, x, y, dimensions);
-[pod_vdx, pod_vdy, pod_vd2x, pod_vd2y] = derivatives(pod_v, bnd_idx, bnd_x, ...
-                                            bnd_y, x, y, dimensions);
+[pod_UdX, pod_Ud2X] = derivatives(pod_U, bnd_idx, bnd_X, X, uniform, dimensions);
+
+[x, u] = flow_comps_ip(X, pod_U);
+dims = flow_dims(X);
 
 % Convert all matrix quantities to vectors
-pod_udx     = reshape(pod_udx, num_elem, num_modes);
-pod_udy     = reshape(pod_udy, num_elem, num_modes);
-pod_ud2x    = reshape(pod_ud2x, num_elem, num_modes);
-pod_ud2y    = reshape(pod_ud2y, num_elem, num_modes);
-pod_vdx     = reshape(pod_vdx, num_elem, num_modes);
-pod_vdy     = reshape(pod_vdy, num_elem, num_modes);
-pod_vd2x    = reshape(pod_vd2x, num_elem, num_modes);
-pod_vd2y    = reshape(pod_vd2y, num_elem, num_modes);
+for i = 1:dims;
+    for j = 1:dims;
+        pod_UdX.(u{i}).(x{j}) = reshape(pod_UdX.(u{i}).(x{j}), num_elem, num_modes);
+        pod_Ud2X.(u{i}).(x{j}) = reshape(pod_Ud2X.(u{i}).(x{j}), num_elem, num_modes);
+    end
+end
 
-[pod_udx, pod_udy, pod_ud2x, pod_ud2y, pod_vdx, pod_vdy, pod_vd2x, pod_vd2y] = ...
-    strip_boundaries(bnd_idx, pod_udx, pod_udy, pod_ud2x, pod_ud2y, pod_vdx, pod_vdy, pod_vd2x, pod_vd2y);
+% Strip data points that are superfluous
+[pod_UdX, pod_Ud2X, pod_U, vol_frac] = ...
+    strip_boundaries(bnd_idx, pod_UdX, pod_Ud2X, pod_U, vol_frac);
 
 % Calculated Laplacian
-d2pod_u = (pod_ud2x + pod_ud2y);
-d2pod_v = (pod_vd2x + pod_vd2y);
+for i = 1:dims
+    d2pod_U.(u{i}) = 0;
+    for j = 1:dims
+       d2pod_U.(u{i}) = d2pod_U.(u{i}) + pod_Ud2X.(u{i}).(x{j});
+    end
+end
 
-[pod_u, pod_v, vol_frac] = strip_boundaries(bnd_idx, pod_u, pod_v, vol_frac);
-
-% Find projected viscosity terms
-cbu = inner_prod(d2pod_u, pod_u, vol_frac);
-cbv = inner_prod(d2pod_v, pod_v, vol_frac);
-l = cbu + cbv;
-
+% Determine linear term
+l = 0;
+for i = 1:dims
+    l = l + inner_prod(d2pod_U.(u{i}), pod_U.(u{i}), vol_frac);
+end
 end

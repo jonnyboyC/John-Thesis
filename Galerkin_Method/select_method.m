@@ -144,7 +144,10 @@ end
 if closed_bnd
     % Determine portion of boundary represented by solid surface
     solid_bnd = double(bnd_idx == 0);
-    solid_bnd(bnd_x ~= 0 | bnd_y ~= 0) = 0;
+    
+    for i = 1:comps
+        solid_bnd(bnd_X.(x{i}) ~= 0) = 0;
+    end
     
     centralX = zeros(dimensions);
     centralY = zeros(dimensions);

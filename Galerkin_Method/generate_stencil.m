@@ -1,4 +1,4 @@
-function [s_X] = generate_stencil(X, methods_X, dimensions)
+function [s_X, nstencil] = generate_stencil(X, methods_X, dimensions)
 % GENERATE_STENCIL generate the appropriate weights for each grid point
 % when evaulating the derivtives
 %
@@ -8,12 +8,12 @@ function [s_X] = generate_stencil(X, methods_X, dimensions)
 % produces a size(x) by 9 matrix for sX sY determining the weight at each
 % point
 
-x_dims = flow_comp_ip(X);
+x_dims = flow_comps_ip(X);
 x = X.(x_dims{1});
-y = X.(x_dims{1});
+y = X.(x_dims{2});
 
 methodsX = methods_X.(x_dims{1});
-methodsY = methods_Y.(x_dims{1});
+methodsY = methods_X.(x_dims{2});
 
 sX = zeros([dimensions, 9]);
 sY = zeros([dimensions(2), dimensions(1), 9]);
@@ -34,8 +34,13 @@ methodsY = methodsY';
 sY = -permute(sY, [2,1,3]);
 sX = -sX;
 
-s_X.(x{1}) = sX;
-s_X.(x{2}) = sY;
+s_X.(x_dims{1}) = sX;
+s_X.(x_dims{2}) = sY;
+
+if nargout == 2
+    nstencil = size(sX);
+    nstencil = nstencil(end);
+end
 end
 
 function [s1, s2, s3, s4, s5, s6, s7, s8, s9] = stencil(x1, x2, x3, x4, x5, x6, x7, x8, x9, method)

@@ -46,9 +46,9 @@ for zone = 1:num_zones
 
     %  concatinate matrices
     if zone ~= 1
-        x = [fliplr(x_temp), x];
-        y = [fliplr(y_temp), y];
-        z = [fliplr(z_temp), z];
+        x = [fliplr(x_temp(:,2:end)), x];
+        y = [fliplr(y_temp(:,2:end)), y];
+        z = [fliplr(z_temp(:,2:end)), z];
     else
         x = [x_temp, x];
         y = [y_temp, y];

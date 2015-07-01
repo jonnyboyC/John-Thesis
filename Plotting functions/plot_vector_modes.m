@@ -41,7 +41,7 @@ plot_img_num = 1;
 
 % Generate plot handles
 h = figure('Name',['  Variable: ' varname ',  (' num2str(sum(energy),4) '%)'],'color','w');
-h.Position = [400, 400, 1100, 650];
+h.Position = [400, 400, 1300, 600];
 movegui(h,'center')
 
 
@@ -95,7 +95,7 @@ for i = 1:num_modes
         if any(ismember({'fig', 'jpg', 'png'}, save_figures))
             for j = 1:size(save_figures,2)
                 saveas(h, [direct filesep 'Figures' filesep 'POD' filesep ...
-                    'Modes' filesep varname '_modes' num2str(j-4) '_' num2str(j-1)], save_figures{j});
+                    'Modes' filesep varname '_modes_' num2str(i-4) '_' num2str(i-1)], save_figures{j});
             end
         end
     end

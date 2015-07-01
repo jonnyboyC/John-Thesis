@@ -137,7 +137,7 @@ update_folders(direct);
 [X, U] = Velocity_Read_Save(num_images, load_raw, load_handle, direct);  
 
 % Apply scaling to flow variables
-[X, U, u_scale, l_scale] = preprocess_raw_data(X, U, l_scale, u_scale_gen, ...
+[X, U, X_direct, u_scale, l_scale] = preprocess_raw_data(X, U, l_scale, u_scale_gen, ...
                                             non_dim, xy_units, flow_flip, image_range, direct);
 
 % Check if mesh has even spacing
@@ -179,7 +179,7 @@ else
 end
 
 % Exactly define flow boundaries
-[bnd_X, bnd_idx] = refine_bounds(X_dis, U, mean_U, direct, streamlines, update_bnds);
+[bnd_X, bnd_idx] = refine_bounds(X_dis, X_direct, U, mean_U, direct, streamlines, update_bnds);
 
 % TODO filter bit
 % Filter raw images, to attempt to remove artifacts
@@ -226,7 +226,7 @@ covariance = cal_covariance_mat(flux_U, vol_frac, bnd_idx, num_images);
 for i = 1:cutoff
     sign_flip = sign(mean(mean(sign(pod_U.(u{1})(:,i)./(pod_U.(u{1})(:,i) + eps)))));
     for j = 1:comps
-        pod_U.(u{j}) = pod_U.(u{j})*sign_flip;
+        pod_U.(u{j})(:,i) = pod_U.(u{j})(:,i)*sign_flip;
     end
     modal_amp(:,i) = modal_amp(:,i)*sign_flip;
 end
@@ -240,10 +240,12 @@ if cluster
 end
 
 % Calculate voritcity
-[pod_W, mean_W] = calc_pod_vor(pod_U, mean_U, dimensions, cutoff, bnd_idx, bnd_X, X);
- 
-w = flow_comps(pod_V);
-ncomp_w= flow_comps(pod_W);
+[pod_W, mean_W] = calc_pod_vor(pod_U, mean_U, dimensions, bnd_idx, bnd_X, uniform, X, X_direct);
+
+% Get components of vorticity
+w = flow_comps(pod_W);
+ncomp_w = flow_ncomps(pod_W);
+
 for i = 1:ncomp_w
     % Create a stacked data matrix for vorticity values
     pod_W.(w{i}) = reshape(pod_W.(w{i}), data_points, cutoff);
@@ -271,12 +273,12 @@ if ~isempty(save_figures)
     
     % plot scalar field modes
     plot_scalar_modes(data, pod_U, num_plot, dimensions, non_dim, lambda, direct, save_figures);
-    % plot_scalar_modes(data, pod_vor, num_plot, dimensions, 'vorticity', lambda, direct, save_figures);
+    plot_scalar_modes(data, pod_W, num_plot, dimensions, non_dim, lambda, direct, save_figures);
 end
 
 % Add mode zero
-[modal_amp, lambda, pod_U] = ... , pod_vor
-    add_mode_zero(modal_amp, lambda, pod_U, mean_U); %pod_vor, , mean_vor
+[modal_amp, lambda, pod_U,  pod_W] = ... ,
+    add_mode_zero(modal_amp, lambda, pod_U, mean_U, pod_W, mean_W); %
 
 %% Save / Return variables
 run_num = floor(100000*rand(1));
@@ -299,10 +301,11 @@ results_pod.flux_U = flux_U;
 
 % mean flow
 results_pod.mean_U = mean_U;
+results_pod.mean_W = mean_W;
 
 % pod modes
 results_pod.pod_U = pod_U;
-results_pod.pod_vor = pod_W;
+results_pod.pod_W = pod_W;
 
 % modal coordinates and energy captured, modes to 99%
 results_pod.modal_amp = modal_amp;

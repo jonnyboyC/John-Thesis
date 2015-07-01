@@ -1,4 +1,4 @@
-function [bnd_X] = edge_boundaries(bnd_idx, X)
+function [bnd_X] = edge_boundaries(bnd_idx, X, X_direct)
 % EDGE_BOUNDARIES determine the velocity normal direction for the flow
 %
 % [bnd_x, bnd_y] = EDGE_BOUNDARIES(bnd_idx) given the boundary index found
@@ -10,11 +10,11 @@ x = flow_comps_ns(X);
 % Determine the vector normal of the boundary
 switch ndims(bnd_idx) % TODO make this more abstract
     case 1
-        bnd_X.(X.direct{1}) = gradient(bnd_idx);
+        bnd_X.(X_direct{1}) = gradient(bnd_idx);
     case 2
-        [bnd_X.(X.direct{1}), bnd_X.(X.direct{2})] = gradient(bnd_idx);
+        [bnd_X.(X_direct{1}), bnd_X.(X_direct{2})] = gradient(bnd_idx);
     case 3
-        [bnd_X.(X.direct{1}), bnd_X.(X.direct{2}), bnd_X.(X.direct{3})] = gradient(bnd_idx);
+        [bnd_X.(X_direct{1}), bnd_X.(X_direct{2}), bnd_X.(X_direct{3})] = gradient(bnd_idx);
 end
 
 % Get the number of comps

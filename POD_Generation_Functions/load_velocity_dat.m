@@ -69,9 +69,9 @@ fclose(velocity_file);
 % Stack data hopefully the correct way
 for zone = 1:num_zones
     if zone ~= 1
-        u = [fliplr(u_zones{zone}), u];
-        v = [fliplr(v_zones{zone}), v];  
-        w = [fliplr(w_zones{zone}), w];
+        u = [fliplr(u_zones{zone}(:,2:end,:)), u];
+        v = [fliplr(v_zones{zone}(:,2:end,:)), v];  
+        w = [fliplr(w_zones{zone}(:,2:end,:)), w];
     else
         u = [u_zones{zone}, u];
         v = [v_zones{zone}, v];  

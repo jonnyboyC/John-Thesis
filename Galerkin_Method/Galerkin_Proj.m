@@ -125,13 +125,10 @@ update_folders(direct);
 vars = load(direct_POD, 'results_pod');
 
 % Create more readable names
-x           = vars.results_pod.x;           % mesh coordinates in x direction
-y           = vars.results_pod.y;           % mesh coordinates in y direction
+X           = vars.results_pod.X;           % mesh coordinates
 u_scale     = vars.results_pod.u_scale;     % velocity scaling
 l_scale     = vars.results_pod.l_scale;     % length scaling
-pod_u       = vars.results_pod.pod_u;       % streamwise pod modes
-pod_v       = vars.results_pod.pod_v;       % spanwise pod modes
-pod_vor     = vars.results_pod.pod_vor;     % vorticity pod modes
+pod_U       = vars.results_pod.pod_U;       % pod modes
 lambda      = vars.results_pod.lambda;      % eigenvalues of modes
 dimensions  = vars.results_pod.dimensions;  % dimensions of mesh
 bnd_idx     = vars.results_pod.bnd_idx;     % location of boundaries
@@ -141,8 +138,8 @@ cutoff      = vars.results_pod.cutoff;      % number of modes at cutoff
 modal_amp   = vars.results_pod.modal_amp;   % modal amplitude  from raw data
 
 if calc_coef
-    bnd_x       = vars.results_pod.bnd_x;       % location of flow boundaries normal to x
-    bnd_y       = vars.results_pod.bnd_y;       % location of flow boundaries normal to y
+    uniform     = vars.results_pod.uniform;      % Is the mesh uniform 
+    bnd_X       = vars.results_pod.bnd_X;       % location of flow boundaries normal to x
     vol_frac    = vars.results_pod.vol_frac;    % mesh area size
 end
 
@@ -189,23 +186,21 @@ futures = 0;
 if calc_coef 
     
     % Ready Coef Problem Structure
-    coef_problem.x              = x;
-    coef_problem.y              = y;
+    coef_problem.X              = X;
     coef_problem.use_chunks     = use_chunks;
-    coef_problem.pod_u          = pod_u;
-    coef_problem.pod_v          = pod_v;
+    coef_problem.pod_U          = pod_U;
     coef_problem.dimensions     = dimensions;
     coef_problem.vol_frac       = vol_frac;
     coef_problem.bnd_idx        = bnd_idx;
-    coef_problem.bnd_x          = bnd_x;
-    coef_problem.bnd_y          = bnd_y;
+    coef_problem.bnd_X          = bnd_X;
     coef_problem.run_num        = run_num;
     coef_problem.override_coef  = override_coef;
     coef_problem.direct         = direct;
     coef_problem.custom         = false;
+    coef_problem.uniform        = uniform;
     
     % Free memory
-    clear vol_frac bnd_x bnd_y 
+    clear vol_frac bnd_X 
     
     % Prefill Cells
     lc = cell(2,2);
@@ -239,6 +234,9 @@ eddy    = cell(total_models,2,length(num_modesG));
 l       = cell(total_models,2,length(num_modesG));
 q       = cell(total_models,2,length(num_modesG));
 
+[x, u] = flow_comps_ip(X, pod_U);
+dims = flow_dims(X);
+
 % Initialize if time integration is being performed
 if time_int
     t               = cell(total_models,2,length(num_modesG));
@@ -269,16 +267,15 @@ for i = 1:length(num_modesG)
     % Calculate empirical average TKE for selected modes
     modal_TKE = mean(sum(1/2*modal_amp(:,modes).^2,2));
     
-    % Created truncated pod basis
-    pod_ut  = pod_u(:,[1, modes]);
-    pod_vt  = pod_v(:,[1, modes]);
-    pod_vort = pod_vor(:,[1, modes]);
+    % Create temporary pod basis from requested modes
+    for j = 1:dims
+        pod_Ut.(u{j}) = pod_U.(u{j})(:,[1, modes]);
+    end
 
     if calc_coef
         
         % Calculate coefficeints for current system
-        coef_problem.pod_u = pod_ut;
-        coef_problem.pod_v = pod_vt;
+        coef_problem.pod_U = pod_Ut;
         coef_problem.custom = custom;
         
         if custom
@@ -378,9 +375,7 @@ for i = 1:length(num_modesG)
         % Prepare data
         plot_data.num_modes     = num_modes-1;
         plot_data.direct        = direct;
-        plot_data.pod_ut        = pod_ut;
-        plot_data.pod_vt        = pod_vt;
-        plot_data.pod_vort      = pod_vort;
+        plot_data.pod_Ut        = pod_Ut;
         plot_data.dimensions    = dimensions;
         plot_data.fft_window    = fft_window;
         plot_data.u_scale       = u_scale;
@@ -388,8 +383,7 @@ for i = 1:length(num_modesG)
         plot_data.type          = 'Galerkin';
         plot_data.plot_type     = plot_type;
         plot_data.sample_freq   = sample_freq;
-        plot_data.x             = x;
-        plot_data.y             = y;
+        plot_data.X             = X;
         plot_data.Mod           = false;
         plot_data.bnd_idx       = bnd_idx;
         plot_data.custom        = custom;

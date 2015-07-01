@@ -5,16 +5,14 @@ modal_amp   = plot_data.modal_amp;
 num_modes   = plot_data.num_modes;
 t           = plot_data.t;
 direct      = plot_data.direct;
-pod_ut      = plot_data.pod_ut;
-pod_vt      = plot_data.pod_vt;
+pod_Ut      = plot_data.pod_Ut;
 dimensions  = plot_data.dimensions;
 fft_window  = plot_data.fft_window;
 sample_freq = plot_data.sample_freq;
 id          = plot_data.id;
 type        = plot_data.type;
 plot_type   = plot_data.plot_type;
-x           = plot_data.x;
-y           = plot_data.y;
+X           = plot_data.X;
 Mod         = plot_data.Mod;
 bnd_idx     = plot_data.bnd_idx;
 custom      = plot_data.custom;
@@ -23,8 +21,7 @@ use_stream = false;
 
 % If using Mod add a mode zero to make it work like Galerkin
 if Mod == true
-    [modal_amp, pod_ut, pod_vt] = add_mode_zero_mod(modal_amp, pod_ut, pod_vt, ...
-            plot_data.mean_u, plot_data.mean_v);
+    [modal_amp, pod_Ut] = add_mode_zero_mod(modal_amp, pod_Ut, plot_data.mean_U);
 end
 
 % TODO significant overhaul to this function
@@ -33,7 +30,7 @@ if any(strcmp(plot_type, 'video stream'))
 end
 
 if any(strcmp(plot_type, 'video') | strcmp(plot_type, 'video stream'))
-    plot_prediction(pod_ut, pod_vt, x, y, bnd_idx, modal_amp, t, dimensions, use_stream, direct, custom, id)
+    plot_prediction(pod_Ut, X, bnd_idx, modal_amp, t, dimensions, use_stream, direct, custom, id)
 end
 
 % Strip mean_u, mean_v

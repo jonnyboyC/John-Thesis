@@ -30,7 +30,7 @@ for i = 1:comps
     
     % Generate plot handles
     h = figure('Name',['  Variable: ' u{i} ',  (' num2str(sum(energy),4) '%)'],'color','w');
-    h.Position = [400, 400, 1100, 650];
+    h.Position = [400, 400, 1300, 600];
     movegui(h,'center')
     
     for j = 1:num_modes

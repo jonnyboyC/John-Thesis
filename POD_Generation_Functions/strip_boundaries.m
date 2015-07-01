@@ -1,4 +1,4 @@
-function varargout = strip_boundaries(bnd_idx, num_images, varargin)
+function varargout = strip_boundaries(bnd_idx, varargin)
 % Check to ensure a cell is provided
 if size(varargin,1) == 0
     error('Must provide at least one set of data');
@@ -19,15 +19,7 @@ for i = 1:length(varargin)
     
     % If struct assume one of the flow components
     if isstruct(varargin{i})
-        comps = flow_ncomps(varargin{i});
-        x = flow_comps(varargin{i});
-        num_images = size(varargin{i}.(x{1}),2);
-        mask = repmat(bnd_idx, 1, num_images);
-
-        for j = 1:comps
-            varargout{i}.(x{j}) = varargin{i}.(x{j})(mask == 1 | mask == 0);
-            varargout{i}.(x{j}) = reshape(varargout{i}.(x{j}), active, num_images);
-        end
+        varargout{i} = step_in(varargin{i}, bnd_idx, active);
     else
         num_images = size(varargin{i},2);
         mask = repmat(bnd_idx, 1, num_images);
@@ -35,4 +27,24 @@ for i = 1:length(varargin)
         varargout{i} = reshape(varargout{i}, active, num_images);
     end
 end
+end
+
+% Allow repeated stepping into structures to strip inactive portions
+function X = step_in(X, bnd_idx, active)
+    % Get components
+    comps = flow_ncomps(X);
+    x = flow_comps(X);
+    
+    for i = 1:comps
+        if isstruct(X.(x{i}))
+            % If we get another structure step in further
+            X.(x{i}) = step_in(X.(x{i}), bnd_idx, active);
+        else
+            % Else must be data and strip inactive points
+            num_images = size(X.(x{i}),2);
+            mask = repmat(bnd_idx, 1, num_images);
+            X.(x{i}) = X.(x{i})(mask == 1 | mask == 0);
+            X.(x{i}) = reshape(X.(x{i}), active, num_images);
+        end
+    end
 end

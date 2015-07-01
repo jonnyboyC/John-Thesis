@@ -8,7 +8,7 @@ function covariance = cal_covariance_mat(flux_U, vol_frac, bnd_idx, num_images)
 % boundary from BND_IDX
 
 % Remove data within boundaries
-[flux_U, vol_frac] = strip_boundaries(bnd_idx, num_images, flux_U, vol_frac);
+[flux_U, vol_frac] = strip_boundaries(bnd_idx, flux_U, vol_frac);
 vol_frac = repmat(vol_frac, 1, num_images);
 
 comps = flow_ncomps(flux_U);
