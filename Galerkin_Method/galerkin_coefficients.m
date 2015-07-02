@@ -9,7 +9,7 @@ function [l, q] = galerkin_coefficients(coef_problem)
 X           = coef_problem.X;
 pod_U       = coef_problem.pod_U;
 dimensions  = coef_problem.dimensions;
-vol_frac    = coef_problem.vol_frac;
+volume      = coef_problem.volume;
 run_num     = coef_problem.run_num;
 direct      = coef_problem.direct;
 override_coef = coef_problem.override_coef;
@@ -46,8 +46,8 @@ if override_coef == false && custom == false
 end
 
 % Calculate terms, allows for nonuniform mesh
-[pod_UdX, pod_U, vol_frac, l] = ...
-    components(X, pod_U, dimensions, vol_frac, num_modes, num_elem, uniform, bnd_idx, bnd_X);
+[pod_UdX, pod_U, volume, l] = ...
+    components(X, pod_U, dimensions, volume, num_modes, num_elem, uniform, bnd_idx, bnd_X);
 
 % Free memory
 clear X bnd_idx bnd_X
@@ -77,7 +77,7 @@ if use_chunks == false
             end
             
             % Add components inner product to quadractic term
-            q(:,:,k) = q(:,:,k) - inner_prod(pod_UDX, pod_U.(u{i}), vol_frac);
+            q(:,:,k) = q(:,:,k) - inner_prod(pod_UDX, pod_U.(u{i}), volume);
         end
         
         % Update wait bar
@@ -110,7 +110,7 @@ else
             end
             
             % Add components inner product to quadractic term
-            q = q - inner_prod(pod_UDX, pod_U.(u{i}), vol_frac);
+            q = q - inner_prod(pod_UDX, pod_U.(u{i}), volume);
         end
         
         % Write to disk on a separate thread

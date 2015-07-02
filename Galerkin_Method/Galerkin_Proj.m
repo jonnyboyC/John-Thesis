@@ -63,6 +63,9 @@ function [res_coef, res_int] = Galerkin_Proj(varargin)
 %
 % problem.classify_sim = true
 % Classify simulated results to emprical data
+% 
+% problem.odesolver = @ode113
+% Select the ode solver to be used for time integration.
 
 % Set format, clear figures, and set up correct directory
 format long g
@@ -74,7 +77,8 @@ fields = {  'num_modesG',   'plot_type',    'save_coef', ...
             'override_coef','tspan',        'init', ...
             'direct' ,      'Re0_gen',      'fft_window', ...
             'run_num',      'dissapation',  'time_int', ...
-            'use_chunks',   'calc_coef',    'classify_sim'};
+            'use_chunks',   'calc_coef',    'classify_sim', ...
+            'odesolver'};
         
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -86,7 +90,7 @@ else
 end
 
 % Create more readable names
-num_modesG      = problem.num_modesG; % Add mean flow
+num_modesG      = problem.num_modesG; 
 run_num         = problem.run_num;
 plot_type       = problem.plot_type;
 save_coef       = problem.save_coef;
@@ -101,6 +105,7 @@ calc_coef       = problem.calc_coef;
 time_int        = problem.time_int;
 classify_sim    = problem.classify_sim;
 use_chunks      = problem.use_chunks;
+odesolver       = problem.odesolver;
 
 clear problem
 
@@ -140,32 +145,36 @@ modal_amp   = vars.results_pod.modal_amp;   % modal amplitude  from raw data
 if calc_coef
     uniform     = vars.results_pod.uniform;      % Is the mesh uniform 
     bnd_X       = vars.results_pod.bnd_X;       % location of flow boundaries normal to x
-    vol_frac    = vars.results_pod.vol_frac;    % mesh area size
+    volume      = vars.results_pod.volume;    % mesh area size
 end
 
 % Free memory
 clear vars
 
-if time_int && classify_sim
-    % Load Cluster variables
-    vars = load(direct_POD, 'results_clust');
-    
-    centers         = vars.results_clust.centers;     % k-means cluster centers
-    km_stoch        = vars.results_clust.km_stoch;    % k-mean stochastic matrix
-    gm_stoch        = vars.results_clust.gm_stoch;    % gaussian mixture stochastic matrix
-    gm_models       = vars.results_clust.gm_models;   % gaussian mixture models
-    cluster_range   = vars.results_clust.cluster_range;    % number of variables in cluster
-    
-    % Free memory
-    clear vars
-end
+% if time_int && classify_sim
+%     % Load Cluster variables
+%     vars = load(direct_POD, 'results_clust');
+%     
+%     centers         = vars.results_clust.centers;     % k-means cluster centers
+%     km_stoch        = vars.results_clust.km_stoch;    % k-mean stochastic matrix
+%     gm_stoch        = vars.results_clust.gm_stoch;    % gaussian mixture stochastic matrix
+%     gm_models       = vars.results_clust.gm_models;   % gaussian mixture models
+%     cluster_range   = vars.results_clust.cluster_range;    % number of variables in cluster
+%     
+%     % Free memory
+%     clear vars
+% end
 
+
+% Initialize coefficeints
+system    = cell(length(num_modesG),1);
 
 % Determine Reynolds number 
 Re0 = Re0_gen(direct);  
 
 % Determine kinematic visocity
-vis = calc_vis(u_scale, l_scale, Re0, non_dim);
+system{:}.vis = calc_vis(u_scale, l_scale, Re0, non_dim);
+
 
 % Determine sampling frequency from provided tspan
 if length(tspan) > 2
@@ -190,7 +199,7 @@ if calc_coef
     coef_problem.use_chunks     = use_chunks;
     coef_problem.pod_U          = pod_U;
     coef_problem.dimensions     = dimensions;
-    coef_problem.vol_frac       = vol_frac;
+    coef_problem.volume         = volume;
     coef_problem.bnd_idx        = bnd_idx;
     coef_problem.bnd_X          = bnd_X;
     coef_problem.run_num        = run_num;
@@ -200,54 +209,34 @@ if calc_coef
     coef_problem.uniform        = uniform;
     
     % Free memory
-    clear vol_frac bnd_X 
-    
-    % Prefill Cells
-    lc = cell(2,2);
-    qc = cell(2,2);
+    clear volume bnd_X 
     
     % Generate values up to cutoff to be used for Couplet viscous dissipation
     if ismember('Least Squares', dissapation);
         fprintf('Generating coefficients for unresolved modes using %d modes\n', cutoff);
         
         % Calculate for traditional Galerkin Projection
-        [lc{1,1}, qc{1,1}] = galerkin_coefficients(coef_problem);
-        lc{1,2}  = 'Base cutoff';
-        qc{1,2}  = 'Base cutoff';
+        [cutoff_coef.l.base, cutoff_coef.q.base] = galerkin_coefficients(coef_problem);
         
         % Calculate for weak formulation Galerkin Projection
-        lc{2,1}  = galerkin_coefficients_ws(coef_problem);
-        lc{2,2}  = 'Weak cutoff';
-        qc{2,1}  = qc{1,1};
-        qc{2,2}  = 'Weak cutoff';
-    end
+        cutoff_coef.l.weak  = galerkin_coefficients_ws(coef_problem);
+        cutoff_coef.q.weak = cutoff_coef.q.base;
+    end 
 end
 
-% TODO eventually make this more dynamic
-% determine number of models
-base_models     = 2;
-linear_models   = 8;
-total_models    = linear_models*2-base_models;
-
-% Initialize coefficeints
-eddy    = cell(total_models,2,length(num_modesG));
-l       = cell(total_models,2,length(num_modesG));
-q       = cell(total_models,2,length(num_modesG));
-
-[x, u] = flow_comps_ip(X, pod_U);
+[~, u] = flow_comps_ip(X, pod_U);
 dims = flow_dims(X);
 
 % Initialize if time integration is being performed
 if time_int
-    t               = cell(total_models,2,length(num_modesG));
-    modal_amp_sim   = cell(total_models,2,length(num_modesG));
+    integration = cell(length(num_modesG),1);
 end
 
-% Initialize scores if clustering
-if classify_sim
-    scores_km       = cell(total_models,2,length(num_modesG));
-    scores_gm       = cell(total_models,2,length(num_modesG));
-end
+% % Initialize scores if clustering
+% if classify_sim
+%     scores_km       = cell(length(num_modesG),1);
+%     scores_gm       = cell(length(num_modesG),1);
+% end
 
 % Perform calculation on each set of modes requested
 for i = 1:length(num_modesG)
@@ -284,58 +273,39 @@ for i = 1:length(num_modesG)
             fprintf('Generating coefficients for resolved modes using %d modes\n', num_modes);
         end
         
-        [l{1,1,i}, q{1,1,i}] = galerkin_coefficients(coef_problem);
-        l{1,2,i} = 'Base Coeff';
-        q{1,2,i} = 'Base Coeff';
         
-        l{2,1,i} = galerkin_coefficients_ws(coef_problem);
-        l{2,2,i} = 'Weak Coeff';
-        q{2,1,i} = q{1,1,i};
-        q{2,2,i} = 'Weak Coeff';
+        [system{i}.l.base, system{i}.q.base] = galerkin_coefficients(coef_problem);
         
-        % Duplicate base galerkin projection terms to all models
-        l(:,:,i) = repmat(l(1:2,:,i), total_models/2, 1, 1);
-        q(:,:,i) = repmat(q(1:2,:,i), total_models/2, 1, 1);
-    
+        system{i}.l.weak = galerkin_coefficients_ws(coef_problem);
+        system{i}.q.weak = system{i}.q.base; 
+        
+        s = flow_comps(system{i}.l);
+        s_comps = flow_ncomps(system{i}.l);
+        
         %_____ Modified coefficients ______%
 
         % Attempt to estimate the neglected energy transfer with viscous
         fprintf('Calculating viscous dissapation terms\n');
 
-        eddy(1,:,i) = {zeros(num_modes,1), 'Base Original'};
-        eddy(2,:,i) = {zeros(num_modes,1), 'Weak Original'};
-
-        % calculate coefficients detailed by Couplet
-        if ismember('Least Squares', dissapation);
-            eddy{3,1,i} = viscous_dis_couplet(modal_amp, num_modes, modes, lc{1,1}, qc{1,1}, vis);
-            eddy{3,2,i} = 'Modal Base Couplet';
-
-            eddy{4,1,i} = viscous_dis_couplet(modal_amp, num_modes, modes, lc{2,1}, qc{2,1}, vis);
-            eddy{4,2,i} = 'Modal Weak Couplet';
+        for j = 1:s_comps
+            system{i}.eddy.GM.(s{j}) = zeros(num_modes,1);
         end
 
+        % Averaged energy balance detailed by Noack
         if ismember('Averaged', dissapation);
-            % Calculate coefficeints detailed by Noack
-            [eddy{5,1,i}, eddy{6,1,i}] = viscous_dis(modal_amp, num_modes, lambda, l{1,1,i}, q{1,1,i}, vis);
-            eddy{5,2,i} = 'Modal Base Noack';
-            eddy{6,2,i} = 'Global Base Noack';
-
-            [eddy{7,1,i}, eddy{8,1,i}] = viscous_dis(modal_amp, num_modes, lambda, l{2,1,i}, q{2,1,i}, vis);
-            eddy{7,2,i} = 'Modal Weak Noack';
-            eddy{8,2,i} = 'Global Weak Noack';
-        end
-
-        % Duplicate TODO name this better
-        eddy(linear_models+1:total_models,1,i) = eddy(base_models+1:linear_models,1,i);
-        for j = base_models+1:linear_models
-            if ~isempty(eddy{j,2,i}) 
-                eddy{j+linear_models-base_models,2,i} = ['NL ' eddy{j,2,i}];
+            for j = 1:s_comps
+            [system{i}.eddy.GM2.(s{j}), system{i}.eddy.GM1.(s{j})] = viscous_dis(modal_amp, ...
+                num_modes, lambda, system{i}.l.(s{j}), system{i}.q.(s{j}), system{i}.vis);
             end
         end
         
-        % Get correct names
-        l(:,2,i) = eddy(:,2,i);
-        q(:,2,i) = eddy(:,2,i);
+        % Energy balance via least squares solution detailed by Couplet
+        if ismember('Least Squares', dissapation);
+            for j = 1:s_comps
+            system{i}.eddy.GM3.(s{j}) = viscous_dis_couplet(modal_amp, num_modes, modes, ...
+                            cutoff_coef.l.(s{j}), cutoff_coef.q.(s{j}), system{i}.vis);
+            end
+        end
     end
     
     %_____ Time integration _____%
@@ -343,7 +313,7 @@ for i = 1:length(num_modesG)
         
         % Load coefficient if only time integration was selected 
         if ~calc_coef 
-            [l(:,:,i), q(:,:,i), eddy(:,:,i), vis] = load_coef(direct, run_num, custom);            
+            system{i} = load_coef(direct, run_num, custom);            
         end
         
         % Intial conditions and integration options
@@ -351,26 +321,21 @@ for i = 1:length(num_modesG)
         ao = modal_amp(init,[1 modes]);
         
         % Perform final manipulation to prep integration
-        [reduced_model_coeff] = integration_setup(eddy, vis, l, q, i, total_models, ...
-            linear_models, num_modes);
+        system = integration_setup(system, i, num_modes);
         
         % Perform time integration
-        [t, modal_amp_sim, time] = time_integration(reduced_model_coeff, eddy, vis, modal_TKE, ...
-            i, t, modal_amp_sim, ao, t_scale, tspan, total_models, linear_models, options);
+        [integration, time] = time_integration(odesolver, system, integration, modal_TKE, ...
+                                i, ao, t_scale, tspan, options);
         disp(time);
-        
-        % Get correct model names
-        t(:,2,i) = eddy(:,2,i);
-        modal_amp_sim(:,2,i) = eddy(:,2,i);
         
         %____ Plotting functions ____%
 
         % Classify simulation to to empirical clusters
-        if classify_sim && num_modes <= 40
-            idx = (cluster_range == num_modes-1);
-            [scores_km(:,1,i), scores_gm(:,1,i)] = classify_Gal(centers{idx}, ...
-                gm_models{idx}, modal_amp_sim(:,:,i), direct, km_stoch{idx}, gm_stoch{idx});
-        end
+%         if classify_sim && num_modes <= 40
+%             idx = (cluster_range == num_modes-1);
+%             [scores_km(:,1,i), scores_gm(:,1,i)] = classify_Gal(centers{idx}, ...
+%                 gm_models{idx}, modal_amp_sim(:,:,i), direct, km_stoch{idx}, gm_stoch{idx});
+%         end
 
         % Prepare data
         plot_data.num_modes     = num_modes-1;
@@ -388,18 +353,19 @@ for i = 1:length(num_modesG)
         plot_data.bnd_idx       = bnd_idx;
         plot_data.custom        = custom;
 
-        all_t = t(:,1,i)';
-        all_ids = eddy(:,2,i)';
-        all_modal_amps =  modal_amp_sim(:,1,i)';
-
         close all
         
+        e = flow_comps(system.eddy);
+        e_comps = flow_ncomps(system.eddy);
+        
         % Cycle through and plot all requested figures
-        for j = 1:total_models;
-            if ~isempty(all_ids{j})
-                plot_data.t = all_t{j};
-                plot_data.id = all_ids{j};
-                plot_data.modal_amp = all_modal_amps{j};
+        for j = 1:e_comps
+            s = flow_comps(system.eddy.(e{j}));
+            s_comps = flow_ncomps(system.eddy);
+            for k = 1:s_comps
+                plot_data.t = integration.t.(e{j}).(s{k});
+                plot_data.id = [e{j} ' ' s{k}];
+                plot_data.modal_amp = integration.modal_amp.(e{j}).(s{k});
                 produce_plots(plot_data);
             end
         end
@@ -417,16 +383,9 @@ for i = 1:length(num_modesG)
         results_coef.run_num = run_num;
         results_coef.num_modesG = num_modes-1;
         results_coef.sample_freq = sample_freq;
-        results_coef.linear_models = linear_models;
-        results_coef.total_models = total_models;
 
-        % viscous and convective terms
-        results_coef.l = squeeze(l(:,:,i));
-        results_coef.q = squeeze(q(:,:,i));
-
-        % visocity and eddy-visocity
-        results_coef.eddy = squeeze(eddy(:,:,i));
-        results_coef.vis = vis;
+        % System coefficients and properties
+        results_coef.system = system{i};
     end
 
     % Include integration information if requested
@@ -434,8 +393,7 @@ for i = 1:length(num_modesG)
         results_int.num_modesG = num_modes-1;
         results_int.run_num = run_num;
 
-        results_int.modal_amp_sim = squeeze(modal_amp_sim(:,:,i));
-        results_int.t = squeeze(t(:,:,i));
+        results_int.integration = integration{i};
     end
     
     % Save relavent coefficients

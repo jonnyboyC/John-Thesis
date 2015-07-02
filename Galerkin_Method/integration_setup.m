@@ -1,32 +1,48 @@
-function [reduced_model_coeff] = integration_setup(eddy, vis, l, q, idx, total_models, linear_models, num_modes)
+function system = integration_setup(system, i, num_modes)
 % INTEGRATION_SETUP convert the system coefficients from thier logical form
 % to that used by the system solve TIME_INTEGRATION
 %
 %   [reduced_model_coeff] = integration_setup(eddy, vis, l, q, i,
 %       total_models, linear_models, num_modes);
 
-
-reduced_model_coeff = cell(total_models,2);
-Gal_coeff   = cell(total_models,2);
 Mod = false;
 
-% Final setup for time integration
-for j = 1:total_models
-    if ~isempty(eddy{j,1,idx})
+s = flow_comps(system{i}.l);
+s_comps = flow_ncomps(system{i}.l);
 
-        % Setup up system coefficients
-        if j <= linear_models
-            total_vis = repmat((eddy{j,1,idx}+vis), 1, size(l{j,1,idx},1));
-            Gal_coeff{j,1,idx} = [l{j,1,idx}.*total_vis, q{j,1,idx}];
-            Gal_coeff{j,2,idx} = eddy{j,2,idx};
-        else
-            Gal_coeff{j,1,idx} = [l{j,1,idx}, q{j,1,idx}];
-            Gal_coeff{j,2,idx} = eddy{j,2,idx};
+e = flow_comps(system{i}.eddy);
+e_comps = flow_ncomps(system{i}.eddy);
+
+vis = system{i}.vis;
+
+linear_nonlinear = 1:2;
+
+% Generate the coef structure, add in spots for nonlinear 
+for j = linear_nonlinear
+    for k = 1:e_comps
+        for kk = 1:s_comps
+            
+            % Pre-combine eddy visocity if we are using a linear system
+            if j == 1
+                total_vis = repmat(system{i}.eddy.(e{k}).(s{kk}) + vis, 1, num_modes);
+                coeff = [system{i}.l.(s{kk}).*total_vis, system{i}.q.(s{kk})];
+            else
+                if k == 1
+                    continue;
+                end
+                coeff = [system{i}.l.(s{kk}), system{i}.q.(s{kk})];
+            end
+            
+            % Get a name for each model
+            if j == 1
+                type = s{kk};
+            else
+                type = ['NL_' s{kk}];
+            end
+
+            % Move all coefficients into one row for each mode
+            system{i}.coef.(e{k}).(type) = ode_coefficients(num_modes, coeff, Mod);
         end
-
-        % Galerkin 1D coefficients using 
-        reduced_model_coeff{j,1} = ode_coefficients2(num_modes, Gal_coeff{j,1,idx}, Mod);
-        reduced_model_coeff{j,2} = Gal_coeff{j,2,idx};
     end
 end
     

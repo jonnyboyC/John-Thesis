@@ -1,7 +1,7 @@
-function [l, q, eddy, vis] = load_coef(direct, run_num, custom)
+function system_coefs = load_coef(direct, run_num, custom)
 % LOAD_COEF load the coefficients of a previous run for time integration
 %
-% [l, q, eddy, vis] = LOAD_COEF(direct, run_num, custom)
+% system_coefs = LOAD_COEF(direct, run_num, custom)
 
 % load from custom folder if requested
 if custom
@@ -12,9 +12,5 @@ else
         filesep 'Coefficients_run_' num2str(run_num) '.mat'], 'results_coef');
 end
 
-l = vars.results_coef.l;
-q = vars.results_coef.q;
-eddy = vars.results_coef.eddy;
-vis = vars.results_coef.vis;
-
+system_coefs = vars.results_coef.system_coefs;
 end

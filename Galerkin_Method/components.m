@@ -1,5 +1,5 @@
-function [pod_UdX, pod_U, vol_frac, l] = ...
-    components(X, pod_U, dimensions, vol_frac, num_modes, num_elem, uniform, bnd_idx, bnd_X)
+function [pod_UdX, pod_U, volume, l] = ...
+    components(X, pod_U, dimensions, volume, num_modes, num_elem, uniform, bnd_idx, bnd_X)
 % COMPONENT, calculate the derivative terms needed to calculate the
 % galerkin coefficients
 % 
@@ -20,8 +20,8 @@ for i = 1:dims;
 end
 
 % Strip data points that are superfluous
-[pod_UdX, pod_Ud2X, pod_U, vol_frac] = ...
-    strip_boundaries(bnd_idx, pod_UdX, pod_Ud2X, pod_U, vol_frac);
+[pod_UdX, pod_Ud2X, pod_U, volume] = ...
+    strip_boundaries(bnd_idx, pod_UdX, pod_Ud2X, pod_U, volume);
 
 % Calculated Laplacian
 for i = 1:dims
@@ -34,6 +34,6 @@ end
 % Determine linear term
 l = 0;
 for i = 1:dims
-    l = l + inner_prod(d2pod_U.(u{i}), pod_U.(u{i}), vol_frac);
+    l = l + inner_prod(d2pod_U.(u{i}), pod_U.(u{i}), volume);
 end
 end

@@ -1,10 +1,10 @@
-function coefficient = surf_inner_prod(var1, var2, vol_frac, bound)
+function coefficient = surf_inner_prod(var1, var2, volume, bound)
 num1 = size(var1, 2);
 num2 = size(var2, 2);
 
 bound(bound > 0) = 1;
 bound = logical(bound);
-surf_vol = vol_frac(bound);
+surf_vol = volume(bound);
 
 mask1 = repmat(reshape(bound, numel(bound), 1), 1, num1);
 mask2 = repmat(reshape(bound, numel(bound), 1), 1, num2);

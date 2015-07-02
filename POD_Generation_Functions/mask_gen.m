@@ -1,4 +1,4 @@
-function [bnd_X, bnd_idx] = mask_gen(data, U, X_direct, streamlines)
+function [bnd_X, bnd_idx] = mask_gen(data, U, streamlines)
 % MASK_GEN generate a mask for the raw PIV data
 % [bnd_x, bnd_y, bnd_idx] = MASK_GEN(data, bnd_x, bnd_y, u, v) open a 
 % GUI to exclude sections of the flow images that may be causing problems
@@ -192,7 +192,7 @@ uiwait(f);
         end
         
         % Determine potential flow boundaries
-        bnd_X_temp = edge_boundaries(bnd_idx_temp, data.X, X_direct);
+        bnd_X_temp = edge_boundaries(bnd_idx_temp, data.X);
         
         % Apply checkboxes
         if ~hcheck1.Value

@@ -8,7 +8,7 @@ function l = galerkin_coefficients_ws(coef_problem)
 X           = coef_problem.X;
 pod_U       = coef_problem.pod_U;
 dimensions  = coef_problem.dimensions;
-vol_frac    = coef_problem.vol_frac;
+volume      = coef_problem.volume;
 run_num     = coef_problem.run_num;
 direct      = coef_problem.direct;
 override_coef = coef_problem.override_coef;
@@ -47,8 +47,8 @@ if override_coef == false && custom == false
 end
 
 % Calculate terms, allows for nonuniform mesh
-[pod_UdX, pod_U, bnd_X, vol_frac] = ...
-    components_ws(X, pod_U, dimensions, vol_frac, num_modes, num_elem, uniform, bnd_idx, bnd_X);
+[pod_UdX, pod_U, bnd_X, volume] = ...
+    components_ws(X, pod_U, dimensions, volume, num_modes, num_elem, uniform, bnd_idx, bnd_X);
 
 % Replace Lapcalian term with weak formulation by green's identity 
 l_weak_volume = 0;
@@ -56,9 +56,9 @@ l_weak_surf = 0;
 for i = 1:dims
     for j = 1:dims
         l_weak_volume = l_weak_volume ...
-            - inner_prod(pod_UdX.(u{i}).(x{j}), pod_UdX.(u{i}).(x{j}), vol_frac);
+            - inner_prod(pod_UdX.(u{i}).(x{j}), pod_UdX.(u{i}).(x{j}), volume);
         l_weak_surf = l_weak_surf ...
-            + surf_inner_prod(pod_UdX.(u{i}).(x{j}), pod_U.(u{i}), vol_frac, bnd_X.(x{j}));
+            + surf_inner_prod(pod_UdX.(u{i}).(x{j}), pod_U.(u{i}), volume, bnd_X.(x{j}));
     end
 end
 

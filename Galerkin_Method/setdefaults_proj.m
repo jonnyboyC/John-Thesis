@@ -65,6 +65,12 @@ if isempty(problem.Re0_gen) || (~isscalar(problem.Re0_gen) && ~isa(problem.Re0_g
     problem.Re0_gen = @Re0_gen_shear;   	% Claimed high speed side
 end
 
+% Default for odesolver
+if isempty(problem.odesolver) || (~isscalar(problem.odesolver) && ~isa(problem.odesolver, 'function_handle'))
+    fprintf('Using default values for odesolver\nproblem.odesolver = @ode113\n\n');
+    problem.odesolver = @ode113;   	% Selected ode solver method
+end
+
 % Default for fft_window
 if isempty(problem.fft_window) || (isnumeric(problem.fft_window) && ...
         size(problem.fft_window, 1) == 1 && size(problem.fft_window,2) == 2)

@@ -137,7 +137,7 @@ update_folders(direct);
 [X, U] = Velocity_Read_Save(num_images, load_raw, load_handle, direct);  
 
 % Apply scaling to flow variables
-[X, U, X_direct, u_scale, l_scale] = preprocess_raw_data(X, U, l_scale, u_scale_gen, ...
+[X, U, u_scale, l_scale] = preprocess_raw_data(X, U, l_scale, u_scale_gen, ...
                                             non_dim, xy_units, flow_flip, image_range, direct);
 
 % Check if mesh has even spacing
@@ -171,6 +171,7 @@ data_points = numel(X.(x{1}));
 
 % determine units to be displayed in plots
 if strcmp(xy_units, 'mm')
+    X_dis = X;
     for i = 1:comps
         X_dis.(x{i}) = X.(x{i})*1000;
     end
@@ -179,7 +180,7 @@ else
 end
 
 % Exactly define flow boundaries
-[bnd_X, bnd_idx] = refine_bounds(X_dis, X_direct, U, mean_U, direct, streamlines, update_bnds);
+[bnd_X, bnd_idx] = refine_bounds(X_dis, U, mean_U, direct, streamlines, update_bnds);
 
 % TODO filter bit
 % Filter raw images, to attempt to remove artifacts
@@ -204,10 +205,10 @@ clear U
 % vol_frac = voln_piv_2D(X, bnd_idx, bnd_X);
 
 % Testing
-derp = vertex_volume(X, bnd_idx);
+volume = vertex_volume(X, bnd_idx);
 
 % Create a stacked data matrix for u and v velocities
-vol_frac = reshape(vol_frac, data_points, 1); 
+volume = reshape(volume, data_points, 1); 
 for i = 1:comps
     flux_U.(u{i}) = reshape(flux_U.(u{i}), data_points, num_images);
     mean_U.(u{i}) = reshape(mean_U.(u{i}), data_points, 1); 
@@ -217,7 +218,7 @@ end
 %% Perform Proper Orthogonal Decomposition
 
 % Generate covariance matrix
-covariance = cal_covariance_mat(flux_U, vol_frac, bnd_idx, num_images);
+covariance = cal_covariance_mat(flux_U, volume, bnd_idx, num_images);
 
 % Perform POD on fluctuating data
 [pod_U, lambda, modal_amp, cutoff] = POD(covariance, flux_U); 
@@ -240,7 +241,7 @@ if cluster
 end
 
 % Calculate voritcity
-[pod_W, mean_W] = calc_pod_vor(pod_U, mean_U, dimensions, bnd_idx, bnd_X, uniform, X, X_direct);
+[pod_W, mean_W] = calc_pod_vor(pod_U, mean_U, dimensions, bnd_idx, bnd_X, uniform, X);
 
 % Get components of vorticity
 w = flow_comps(pod_W);
@@ -294,7 +295,7 @@ results_pod.dimensions = dimensions;
 results_pod.bnd_idx = bnd_idx;
 results_pod.bnd_X = bnd_X;
 results_pod.uniform = uniform;
-results_pod.vol_frac = vol_frac;
+results_pod.volume = volume;
 
 % fluctuating flow
 results_pod.flux_U = flux_U;

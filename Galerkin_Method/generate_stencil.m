@@ -34,6 +34,9 @@ methodsY = methodsY';
 sY = -permute(sY, [2,1,3]);
 sX = -sX;
 
+sY(isnan(sY) | isinf(sY)) = 0;
+sX(isnan(sX) | isinf(sX)) = 0;
+
 s_X.(x_dims{1}) = sX;
 s_X.(x_dims{2}) = sY;
 

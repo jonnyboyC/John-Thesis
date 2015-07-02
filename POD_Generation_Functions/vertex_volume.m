@@ -69,7 +69,6 @@ end
 dimensions = size(bnd_idx);
 volume = zeros(dimensions);
 idx = cell(1, dims);
-idx_temp = cell(1, dims);
 mask_idx = flow_index(repmat({[1 2]}, 1, dims), 1:dims, bnd_idx);
 shifts = get_shifts(dims);
 xy = flow_comps(X_median.(x{1}));
@@ -110,12 +109,13 @@ for i = 1:numel(bnd_idx)
             if all(bnd_idx(mask_temp{:}) >= 0)
                 vertices = zeros(pow2(dims),dims);
                 for k = 1:dims
-                    vertices(1,k) = X.(x{k})(i);
+                    idx_temp = num2cell([idx{:}] - 1);
+                    vertices(1,k) = X.(x{k})(idx_temp{:});
                 end
                 for k = 1:dims
-                    for l = 1:dims
-                        idx_temp = num2cell([idx{:}] - 1);
-                        idx_temp{k} = idx_temp{k} + shifts(j,k) - 1;
+                    for l = 1:length(xy)
+                        idx_temp = num2cell([idx{:}] - 2);
+                        idx_temp = num2cell([idx_temp{:}] + shifts(j,:));
                         vertices(l+1,k) = X_median.(x{k}).(xy{l})(idx_temp{:});
                     end
                 end
