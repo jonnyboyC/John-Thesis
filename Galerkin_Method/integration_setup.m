@@ -38,6 +38,7 @@ for j = linear_nonlinear
                 type = s{kk};
             else
                 type = ['NL_' s{kk}];
+                system{i}.eddy.(e{k}).(type) = system{i}.eddy.(e{k}).(s{kk});
             end
 
             % Move all coefficients into one row for each mode

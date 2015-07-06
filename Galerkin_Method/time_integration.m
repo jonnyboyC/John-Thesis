@@ -17,7 +17,7 @@ for j = 1:e_comps
     
     for k = 1:s_comps
         parfeval_futures(cnt) = parfeval(@integrator, 5, odesolver, system{i}.coef.(e{j}).(s{k}), ...
-                                    system{i}.coef.(e{j}).(s{k}), e{j}, s{k}, vis, modal_TKE, ao, tspan, options);
+                                    system{i}.eddy.(e{j}).(s{k}), vis, e{j}, s{k}, modal_TKE, ao, tspan, options);
         cnt = cnt + 1;
     end
 end
@@ -30,11 +30,12 @@ for j = 1:cnt-1
     % fetch results if it take over half an hour discard results
     [~, t_job, modal_amp_job, type, subtype, time] = fetchNext(parfeval_futures, 3000);
     
-    integration{i}.t.type.subtype = t_job/t_scale;
-    integration{i}.modal_amp.type.subtype = modal_amp_job;
+    integration{i}.t.(type).(subtype) = t_job/t_scale;
+    integration{i}.modal_amp.(type).(subtype) = modal_amp_job;
     
     % update wait bar
-    waitbar(j/cnt, h, sprintf('Galerkin system with %s %s finished in %6.1fs', type, subtype, time));
+    waitbar(j/(cnt-1), h, sprintf('Galerkin system with %s %s finished in %6.1fs', ...
+        strrep(type, '_', ' '), strrep(subtype, '_', ' '), time));
 end
 
 

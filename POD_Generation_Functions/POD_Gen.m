@@ -236,8 +236,7 @@ close all
 
 % Cluster resulting POD modes
 if cluster
-    [km_stoch, gm_stoch, gm_models, gm_groups, km_groups, centers] = ...
-        cluster_POD(modal_amp, num_clusters, direct, save_figures);
+    [km, gm] = cluster_POD(modal_amp, num_clusters, direct, save_figures);
 end
 
 % Calculate voritcity
@@ -320,14 +319,10 @@ results_pod.non_dim = non_dim;
 
 if cluster
     % k-mean clustering data
-    results_clust.km_groups = km_groups;
-    results_clust.centers = centers;
-    results_clust.km_stoch = km_stoch;
+    results_clust.km = km;
     
     % gaussian mixture model data
-    results_clust.gm_models = gm_models;
-    results_clust.gm_groups = gm_groups;
-    results_clust.gm_stoch = gm_stoch;
+    results_clust.gm = gm;
     results_clust.cluster_range = 2:40;
 end
 

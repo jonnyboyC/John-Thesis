@@ -1,5 +1,4 @@
-function [km_stoch, gm_stoch, gm_models, gm_groups, km_groups, centers] = ...
-    cluster_POD(modal_amp, num_clusters, direct, save_figures)
+function [km, gm] = cluster_POD(modal_amp, num_clusters, direct, save_figures)
 % CLUSTER_POD return clusters of the POD modal amplitudes by k-mean and
 % gaussian mixture model type edit to find list of imputs and outputs
 
@@ -15,11 +14,8 @@ cluster_range = 2:40;
 cluster_modes = [1,2];
 
 % Prefil groups and centers
-centers = cell(length(cluster_range),1);
-gm_models = cell(length(cluster_range),1);
-gm_groups = cell(length(cluster_range),1);
-km_stoch = cell(length(cluster_range),1);
-gm_stoch = cell(length(cluster_range),1);
+gm = cell(length(cluster_range),1);
+km = cell(length(cluster_range),1);
 
 % Clustering options
 options = statset('UseParallel', 1);
@@ -27,34 +23,36 @@ gm_options = statset('MaxIter', 1000);
 
 % ready figures
 h_km = figure;
-h_gm    = figure;
+h_gm = figure;
 h_stoch = figure;
-h_stoch2= figure;
+h_stoch2 = figure;
 
 % Calculate cluster centers and stochastic matrices
 for i = 1:length(cluster_range);
     % Cluster based on k-mean
-    [km_groups, centers{i}] = kmeans(modal_amp(:,1:cluster_range(i)), ...
+    [km{i}.groups, km{i}.centers] = kmeans(modal_amp(:,1:cluster_range(i)), ...
         num_clusters, 'Replicates', k_replicate, 'Options', options);
     
     % Create gaussian mixture model
-    gm_models{i} = fitgmdist(modal_amp(:,1:cluster_range(i)), num_clusters, ...
+    gm{i}.models = fitgmdist(modal_amp(:,1:cluster_range(i)), num_clusters, ...
         'Replicates', gm_replicate, 'SharedCov', true, 'Options', gm_options);
     
     % Cluster based on gaussian mixture model
-    gm_groups{i} = cluster(gm_models{i}, modal_amp(:,1:cluster_range(i)));
+    gm{i}.groups = cluster(gm{i}.models, modal_amp(:,1:cluster_range(i)));
     
     % in 2D phase space plot clusters
     if i == 1 && ~isempty(save_figures)
-        cluster_plot(h_km, modal_amp, km_groups, centers{i}, cluster_modes, num_clusters, ...
+        cluster_plot(h_km, modal_amp, km{i}.groups, km{i}.centers, cluster_modes, num_clusters, ...
             direct, save_figures);
-        gm_cluster_plot(h_gm, modal_amp, gm_groups{i}, gm_models{i}, cluster_modes, ...
+        gm_cluster_plot(h_gm, modal_amp, gm{i}.groups, gm{i}.models, cluster_modes, ...
             num_clusters, direct, save_figures);
     end
     
     % Generate stochastic matrices for both clustering methods
-    km_stoch{i} = gen_stochastic_matrix(h_stoch, num_clusters, km_groups, direct, make_plot, save_figures);
-    gm_stoch{i} = gen_stochastic_matrix(h_stoch2, num_clusters, gm_groups{i}, direct, make_plot, save_figures);
+    km{i}.stoch = gen_stochastic_matrix(h_stoch, num_clusters, km{i}.groups, direct, make_plot, save_figures);
+    km{i}.prob = calc_probability(km{i}.stoch, km{i}.groups);
+    gm{i}.stoch = gen_stochastic_matrix(h_stoch2, num_clusters, gm{i}.groups, direct, make_plot, save_figures);
+    gm{i}.prob = calc_probability(gm{i}.stoch, gm{i}.groups);
 end
 
 end

@@ -81,15 +81,15 @@ if ~uniform
     
     % Select finite element method and produce mesh stenciles
     [methods_Xi] = select_method(ones(dimensions), bnd_X, dimensions, true);
-    [stencil_Xi, nstencil] = generate_stencil(X, methods_Xi, dimensions);
+    [stencil_Xi, nstencil] = generate_stencil(Xi, methods_Xi, dimensions);
     
     % Preallocate indices derivatives
     for i = 1:dims
-        XidX.(xi{i}) = struct([]);
+        XdXi.(xi{i}) = struct([]);
         for j = 1:dims
             x_temp.(xi{j}) = zeros(dimensions);
         end
-        XidX.(xi{i}) = x_temp;
+        XdXi.(xi{i}) = x_temp;
     end
     
     for i = 1:dims
@@ -109,12 +109,14 @@ if ~uniform
             for k = 1:nstencil
                 stencil_idx{end} = k;
                 idx = flow_index([10-k, 1-k], i, padded_var);
-                XidX.(xi{j}).(x{i}) = XidX.(xi{j}).(x{i}) + ...
+                XdXi.(xi{j}).(x{i}) = XdXi.(xi{j}).(x{i}) + ...
                     padded_var(idx{:}).*stencil_Xi.(x{i})(stencil_idx{:});
             end
-            %XidX.(xi{j}).(x{i})(isnan(XidX.(xi{j}).(x{i}))) = 0;
         end
     end
+    % Get the final transform matrix taking inverse jacobian
+    transform = inverse_jacobian(XdXi, dimensions);
+    
     % Use computation domain mesh to generate stencil
     [stencil_X, nstencil] = generate_stencil(Xi, methods_X, dimensions);
 else
@@ -184,7 +186,7 @@ if ~uniform
             UdX.(u{i}).(x{j}) = 0;
             for k = 1:dims
                 UdX.(u{i}).(x{j}) = UdX.(u{i}).(x{j}) + ...
-                    repmat(XidX.(xi{k}).(x{j}), copy).*UdX_copy.(u{i}).(x{j});
+                    repmat(transform.(xi{k}).(x{j}), copy).*UdX_copy.(u{i}).(x{j});
             end
         end
     end
@@ -200,7 +202,7 @@ if ~uniform
                 Ud2X.(u{i}).(x{j}) = 0;
                 for k = 1:dims
                     Ud2X.(u{i}).(x{j}) = Ud2X.(u{i}).(x{j}) + ...
-                        repmat(XidX.(xi{k}).(x{j}), copy).*Ud2X_copy.(u{i}).(x{j});
+                        repmat(transform.(xi{k}).(x{j}), copy).*Ud2X_copy.(u{i}).(x{j});
                 end
             end
         end

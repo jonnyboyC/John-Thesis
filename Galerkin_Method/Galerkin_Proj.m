@@ -151,19 +151,17 @@ end
 % Free memory
 clear vars
 
-% if time_int && classify_sim
-%     % Load Cluster variables
-%     vars = load(direct_POD, 'results_clust');
-%     
-%     centers         = vars.results_clust.centers;     % k-means cluster centers
-%     km_stoch        = vars.results_clust.km_stoch;    % k-mean stochastic matrix
-%     gm_stoch        = vars.results_clust.gm_stoch;    % gaussian mixture stochastic matrix
-%     gm_models       = vars.results_clust.gm_models;   % gaussian mixture models
-%     cluster_range   = vars.results_clust.cluster_range;    % number of variables in cluster
-%     
-%     % Free memory
-%     clear vars
-% end
+if time_int && classify_sim
+    % Load Cluster variables
+    vars = load(direct_POD, 'results_clust');
+    
+    km = vars.results_clust.km; % k-means cluster information
+    gm = vars.results_clust.gm; % gaussian mixture model cluster information
+    cluster_range = vars.results_clust.cluster_range; % number of variables in cluster
+    
+    % Free memory
+    clear vars
+end
 
 
 % Initialize coefficeints
@@ -173,8 +171,9 @@ system    = cell(length(num_modesG),1);
 Re0 = Re0_gen(direct);  
 
 % Determine kinematic visocity
-system{:}.vis = calc_vis(u_scale, l_scale, Re0, non_dim);
-
+for i = 1:length(num_modesG)
+    system{i}.vis = calc_vis(u_scale, l_scale, Re0, non_dim);
+end
 
 % Determine sampling frequency from provided tspan
 if length(tspan) > 2
@@ -188,7 +187,7 @@ end
 [t_scale, tspan] = calc_t_scale(u_scale, l_scale, non_dim, tspan);
 
 % Preallocate for future save function
-futures = 0;
+futures = parallel.FevalOnAllFuture;
 
 %% Setup variables to Coefficient Calculations
 
@@ -232,11 +231,13 @@ if time_int
     integration = cell(length(num_modesG),1);
 end
 
-% % Initialize scores if clustering
-% if classify_sim
-%     scores_km       = cell(length(num_modesG),1);
-%     scores_gm       = cell(length(num_modesG),1);
-% end
+% Initialize scores if clustering
+if classify_sim
+    frob_km     = cell(length(num_modesG),1);
+    frob_gm     = cell(length(num_modesG),1);
+    prob_km     = cell(length(num_modesG),1);    
+    prob_gm     = cell(length(num_modesG),1);
+end
 
 % Perform calculation on each set of modes requested
 for i = 1:length(num_modesG)
@@ -331,11 +332,11 @@ for i = 1:length(num_modesG)
         %____ Plotting functions ____%
 
         % Classify simulation to to empirical clusters
-%         if classify_sim && num_modes <= 40
-%             idx = (cluster_range == num_modes-1);
-%             [scores_km(:,1,i), scores_gm(:,1,i)] = classify_Gal(centers{idx}, ...
-%                 gm_models{idx}, modal_amp_sim(:,:,i), direct, km_stoch{idx}, gm_stoch{idx});
-%         end
+        if classify_sim && num_modes <= 40
+            idx = (cluster_range == num_modes-1);
+            [frob_km{i}, frob_gm{i}, prob_km{i}, prob_gm{i}] = ... 
+                classify_Gal(km{idx}, gm{idx}, integration, i, direct);
+        end
 
         % Prepare data
         plot_data.num_modes     = num_modes-1;
@@ -355,17 +356,17 @@ for i = 1:length(num_modesG)
 
         close all
         
-        e = flow_comps(system.eddy);
-        e_comps = flow_ncomps(system.eddy);
+        e = flow_comps(system{i}.eddy);
+        e_comps = flow_ncomps(system{i}.eddy);
         
         % Cycle through and plot all requested figures
         for j = 1:e_comps
-            s = flow_comps(system.eddy.(e{j}));
-            s_comps = flow_ncomps(system.eddy);
+            s = flow_comps(system{i}.eddy.(e{j}));
+            s_comps = flow_ncomps(system{i}.eddy.(e{j}));
             for k = 1:s_comps
-                plot_data.t = integration.t.(e{j}).(s{k});
-                plot_data.id = [e{j} ' ' s{k}];
-                plot_data.modal_amp = integration.modal_amp.(e{j}).(s{k});
+                plot_data.t = integration{i}.t.(e{j}).(s{k});
+                plot_data.id = strrep([e{j} ' ' s{k}], '_', ' ');
+                plot_data.modal_amp = integration{i}.modal_amp.(e{j}).(s{k});
                 produce_plots(plot_data);
             end
         end
@@ -376,9 +377,11 @@ for i = 1:length(num_modesG)
     % generate empty results structures
     results_coef = struct;
     results_int = struct;
+    results_scores = struct;
     
     % Include coefficent terms if requested
     if calc_coef
+        results_coef.name = 'results_coef';
         results_coef.modes = modes;
         results_coef.run_num = run_num;
         results_coef.num_modesG = num_modes-1;
@@ -390,16 +393,26 @@ for i = 1:length(num_modesG)
 
     % Include integration information if requested
     if time_int
+        results_int.name = 'results_int';
         results_int.num_modesG = num_modes-1;
         results_int.run_num = run_num;
 
         results_int.integration = integration{i};
     end
     
+    % Include scores if requested 
+    if classify_sim && num_modes <= 40
+        results_scores.name = 'results_scores';
+        results_scores.frob_km = frob_km{i};
+        results_scores.frob_gm = frob_gm{i};
+        results_scores.prob_km = prob_km{i};
+        results_scores.prob_gm = prob_gm{i};
+    end
+    
     % Save relavent coefficients
     if save_coef == true
-        futures = save_galerkin(direct, custom, time_int, calc_coef, i, ...
-            futures, results_coef, results_int);
+        futures = save_galerkin(direct, custom, time_int, calc_coef, classify_sim, i, ...
+            futures, num_modes-1, results_coef, results_int, results_scores);
     end
 end
 
@@ -411,6 +424,7 @@ end
 if nargout == 2
     res_int = results_int;
 end
+
 
 % return format
 format short g
