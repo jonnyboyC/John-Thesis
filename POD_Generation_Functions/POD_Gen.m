@@ -82,7 +82,7 @@ fields = {  'num_images',   'load_raw',     'save_pod', ...
             'update_bnds',  'num_clusters', 'exp_sampling_rate',...
             'cluster',      'average_mesh', 'filter', ...
             'streamlines',  'non_dim',      'xy_units', ...
-            'load_handle',  'open_flow'};
+            'load_handle'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -112,7 +112,6 @@ streamlines = problem.streamlines;
 average_mesh= problem.average_mesh;
 non_dim     = problem.non_dim;
 xy_units    = problem.xy_units;
-open_flow   = problem.open_flow;
 exp_sampling_rate = problem.exp_sampling_rate;
 
 clear problem
@@ -149,7 +148,8 @@ end
 
 % If request compress mesh by a factor of 2 in both directions
 if average_mesh && uniform
-    [X, U] = compress_mesh(X, U, open_flow);
+    [X, U] = compress_mesh(X, U);
+    update_bnds = true;
 end
 
 % get flow components and get the dimension the ensemble resides
@@ -185,7 +185,7 @@ end
 % TODO filter bit
 % Filter raw images, to attempt to remove artifacts
 if filter
-    [U, mean_U] = filter_images(U, bnd_idx, bnd_X, ensemble_dim);
+    [U, mean_U] = filter_images(U, bnd_idx, num_images, ensemble_dim);
 end
 
 copy = ones(1, ensemble_dim);
@@ -202,9 +202,6 @@ clear U
 [mean_U, flux_U] = clip_bounds(bnd_idx, mean_U, flux_U, copy);
 
 % Calculate volume elements of the mesh
-% vol_frac = voln_piv_2D(X, bnd_idx, bnd_X);
-
-% Testing
 volume = vertex_volume(X, bnd_idx);
 
 % Create a stacked data matrix for u and v velocities

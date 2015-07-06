@@ -49,10 +49,14 @@ for i = 1:length(cluster_range);
     end
     
     % Generate stochastic matrices for both clustering methods
-    km{i}.stoch = gen_stochastic_matrix(h_stoch, num_clusters, km{i}.groups, direct, make_plot, save_figures);
-    km{i}.prob = calc_probability(km{i}.stoch, km{i}.groups);
-    gm{i}.stoch = gen_stochastic_matrix(h_stoch2, num_clusters, gm{i}.groups, direct, make_plot, save_figures);
+    km{i}.stoch = gen_stochastic_matrix(num_clusters, km{i}.groups);
+    gm{i}.stoch = gen_stochastic_matrix(num_clusters, gm{i}.groups);
     gm{i}.prob = calc_probability(gm{i}.stoch, gm{i}.groups);
+    km{i}.prob = calc_probability(km{i}.stoch, km{i}.groups);
+    
+    plot_stochastic_matrix(km{i}.stoch, km{i}.groups, save_figures, direct, h_stoch);
+    plot_stochastic_matrix(gm{i}.stoch, gm{i}.groups, save_figures, direct, h_stoch2);
+
 end
 
 end

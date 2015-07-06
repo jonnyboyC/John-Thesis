@@ -1,4 +1,4 @@
-function [res_coef, res_int] = Galerkin_Proj(varargin)
+function [res_coef, res_int, res_scores] = Galerkin_Proj(varargin)
 % GALERKIN_PROJ perform Galerkin projection of the POD system onto Navier
 % Stokes. This requires POD_GEN to be run, can produce and save graphs
 % see below return results into RES if output is requested
@@ -334,7 +334,7 @@ for i = 1:length(num_modesG)
         % Classify simulation to to empirical clusters
         if classify_sim && num_modes <= 40
             idx = (cluster_range == num_modes-1);
-            [frob_km{i}, frob_gm{i}, prob_km{i}, prob_gm{i}] = ... 
+            [frob_km{i}, frob_gm{i}, prob_km{i}, prob_gm{i}] = ...
                 classify_Gal(km{idx}, gm{idx}, integration, i, direct);
         end
 
@@ -421,8 +421,11 @@ if nargout >= 1
     results_coef.num_modesG = num_modesG;
     res_coef = results_coef;
 end
-if nargout == 2
+if nargout >= 2
     res_int = results_int;
+end
+if nargout == 3
+    res_scores = results_scores;
 end
 
 

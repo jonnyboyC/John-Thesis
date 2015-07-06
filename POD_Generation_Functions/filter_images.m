@@ -10,7 +10,7 @@ dims = flow_dims(U);
 u = flow_comps(U);
 
 % Generate index
-idx = flow_index({1 1}, dims(end), U);
+idx = flow_index([1 1], dims(end), U);
 
 % Perform filtering
 for i = 1:num_images

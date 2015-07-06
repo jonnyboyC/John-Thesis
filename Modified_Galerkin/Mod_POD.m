@@ -111,18 +111,15 @@ update_folders(direct);
 vars = load(direct_POD, 'results_pod');
 
 % Create more readable names
-pod_u       = vars.results_pod.pod_u;       % streamwise pod modes
-pod_v       = vars.results_pod.pod_v;       % spanwise pod modes
-mean_u      = vars.results_pod.mean_u;
-mean_v      = vars.results_pod.mean_v;
+pod_U       = vars.results_pod.pod_U;       % streamwise pod modes
+mean_U      = vars.results_pod.mean_U;
 u_scale     = vars.results_pod.u_scale;     % velocity scaling
 l_scale     = vars.results_pod.l_scale;     % length scaling
 lambda_OG   = vars.results_pod.lambda;      % eigenvalues of modes
-modal_amp   = vars.results_pod.modal_amp;   % modal amplitude of each image in pod basis
+integration = vars.results_pod.integration;   % modal amplitude of each image in pod basis
 dimensions  = vars.results_pod.dimensions;  % dimensions of mesh
 run_num     = vars.results_pod.run_num;     % POD run numbers
-x           = vars.results_pod.x;           % x coordinate
-y           = vars.results_pod.y;           % y coordinate
+X           = vars.results_pod.X;           % x coordinate
 bnd_idx     = vars.results_pod.bnd_idx;
 
 % Determine sampling frequency from provided tspan
@@ -143,28 +140,31 @@ if classify_sim
     % Load Cluster variables
     vars = load(direct_POD, 'results_clust');
     
-    centers         = vars.results_clust.centers;     % k-means cluster centers
-    km_stoch        = vars.results_clust.km_stoch;    % k-mean stochastic matrix
-    gm_stoch        = vars.results_clust.gm_stoch;    % gaussian mixture stochastic matrix
-    gm_models       = vars.results_clust.gm_models;   % gaussian mixture models
-    cluster_range   = vars.results_clust.cluster_range;    % number of variables in cluster
+    km = vars.results_clust.km;     % k-means cluster data
+    gm = vars.results_clust.gm;     % gaussian mixture data
+    cluster_range = vars.results_clust.cluster_range;    % number of variables in cluster
+    
+    frob_km     = cell(length(num_modesG),1);
+    frob_gm     = cell(length(num_modesG),1);
+    prob_km     = cell(length(num_modesG),1);    
+    prob_gm     = cell(length(num_modesG),1);
     
 end
 
 vars = load(direct_Gal, 'results_coef');
 
 % Get results from Galerkin Projection
-q_total     = vars.results_coef.q;
-l_total     = vars.results_coef.l;
-eddy_total  = vars.results_coef.eddy;
+system     = vars.results_coef.system;
 vis         = vars.results_coef.vis;
-linear_models = vars.results_coef.linear_models;
 
 % Free memory
 clear vars
 
 % Remove any passed models that are greater than the linear models
 models(models > linear_models) = [];
+
+[x, u] = flow_comps(X, pod_U);
+dims = flow_ncomps(X);
 
 % Main Loop
 for i = 1:size(models, 2)
@@ -176,9 +176,10 @@ for i = 1:size(models, 2)
     [C, L, Q, lambda, modal_amp] = term2order(l_total{models(i),1}, q_total{models(i),1}, ...
                                    total_vis, lambda_OG, modal_amp, modes);
     
-    % Truncate POD
-    pod_ut = pod_u(:,modes);
-    pod_vt = pod_v(:,modes);
+    % Create temporary pod basis from requested modes
+    for j = 1:dims
+        pod_Ut.(u{j}) = pod_U.(u{j})(:,modes);
+    end
     modal_ampt = modal_amp(:, modes);
     
 
@@ -228,8 +229,8 @@ for i = 1:size(models, 2)
     
     if classify_sim
         idx = (cluster_range == RD_nm);
-        [scores_km, scores_gm] = classify_Gal(centers{idx}, ...
-            gm_models{idx}, modal_amp_til, direct, km_stoch{idx}, gm_stoch{idx});
+        [frob_km{i}, frob_gm{i}, prob_km{i}, prob_gm{i}]  = ...
+            classify_Gal(km{idx}, gm{idx}, integration, i, direct);
     end
     
     % Prepare data

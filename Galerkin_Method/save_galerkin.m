@@ -34,7 +34,7 @@ function save_results(num_modes, direct, custom, varargin)
 if custom
     direct_ext = [direct filesep 'Galerkin Coeff' filesep 'modes_' num_modes '_custom'];
 else
-    direct_ext = [direct filesep 'Galerkin Coeff' filesep 'modes_' num_modes];
+    direct_ext = [direct filesep 'Galerkin Coeff' filesep 'modes_' num2str(num_modes)];
 end
 
 if ~exist(direct_ext, 'dir')
@@ -49,6 +49,6 @@ file = matfile(filename, 'Writable', true);
 
 % save all 
 for i = 1:length(varargin)
-    file.(varargin{i}.file) = varargin{i};
+    file.(varargin{i}.name) = varargin{i};
 end
 end

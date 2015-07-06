@@ -12,7 +12,7 @@ else
     % Determine flow boundaries
     bnd_idx = flow_boundaries(U);
     
-    % Determine potential flow boundaries
+    % Determine if boundaries are visual or real
     bnd_X = edge_boundaries(bnd_idx, X);
     
     % Set up data for plotting
