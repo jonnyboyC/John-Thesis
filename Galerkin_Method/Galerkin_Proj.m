@@ -141,6 +141,7 @@ non_dim     = vars.results_pod.non_dim;     % was the result non_dimensionalized
 run_num     = vars.results_pod.run_num;     % POD run numbers
 cutoff      = vars.results_pod.cutoff;      % number of modes at cutoff
 modal_amp   = vars.results_pod.modal_amp;   % modal amplitude  from raw data
+exp_sampling_rate = vars.results.exp_sampling_rate;
 
 if calc_coef
     uniform     = vars.results_pod.uniform;      % Is the mesh uniform 

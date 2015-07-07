@@ -10,9 +10,14 @@ end
 
 % determine probability as ratio
 for i = 1:num_clusters
-    sum_col = sum(stoc_matrix(i,:));
-    if sum_col == 0;
-        sum_col = 1;
+    row = stoc_matrix(i,:);
+    row_col = sum(row);
+    if row_col == 0;
+        row_col = 1;
     end
-    stoc_matrix(i,:) = stoc_matrix(i,:)/sum_col;
+    row = row/row_col;
+%     blanks = sum(row == 0);
+%     row = (1 - 0.001*blanks)*row;
+%     row(row == 0) = 0.001;
+    stoc_matrix(i,:) = row;
 end
