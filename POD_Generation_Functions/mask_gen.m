@@ -183,13 +183,11 @@ uiwait(f);
                 cellfun(@num2str, num2cell((filters)), 'UniformOutput', false);
         end
         
-        if ~open_flow
-            % Use built in edge detection to boundary points change points to 0
-            bnd_idx_temp(edge(bnd_idx_temp, 'sobel')) = 0;
-            
-            % manually change edge points on image edge
-            bnd_idx_temp = manual_edge(bnd_idx_temp);
-        end
+        % Use built in edge detection to boundary points change points to 0
+        bnd_idx_temp(edge(bnd_idx_temp, 'sobel')) = 0;
+        
+        % manually change edge points on image edge
+        bnd_idx_temp = manual_edge(bnd_idx_temp);
         
         % Determine potential flow boundaries
         bnd_X_temp = edge_boundaries(bnd_idx_temp, data.X);
@@ -239,7 +237,7 @@ uiwait(f);
                 % Set filtered areas to 0 to indicate it is not an open
                 % flow boundary
                 bnd_X_temp.(x{1})(filters(i,1):filters(i,2), filters(i,3):filters(i,4)) = 0;
-                bnd_X_temp.(x{1})(filters(i,1):filters(i,2), filters(i,3):filters(i,4)) = 0;
+                bnd_X_temp.(x{2})(filters(i,1):filters(i,2), filters(i,3):filters(i,4)) = 0;
             end
             htable1.Data(1:size(filters,1),:) = ...
                 cellfun(@num2str, num2cell((filters)), 'UniformOutput', false);
