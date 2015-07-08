@@ -8,6 +8,7 @@ problem_mixing.u_scale_gen = @u_scale_gen_shear;
 problem_mixing.save_figures = {'fig', 'jpg'};
 problem_mixing.load_handle = @load_LaVision;
 problem_mixing.flow_flip = {'x', 'u'};
+problem_mixing.exp_sampling_rate = 10;
 
 problem_airfoil.num_images = 2000;
 problem_airfoil.load_raw = false;
@@ -19,6 +20,7 @@ problem_airfoil.non_dim = false;
 problem_airfoil.l_scale = 0.2032;
 problem_airfoil.u_scale_gen = @u_scale_gen_airfoil;
 problem_airfoil.flow_flip = {'x', 'u'};
+problem_airfoil.exp_sampling_rate = 10;
 
 problem_cavity.num_images = 2000;
 problem_cavity.load_raw = false;

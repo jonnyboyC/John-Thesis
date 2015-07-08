@@ -29,16 +29,16 @@ if nargin == 6
 
     if custom
         direct_ext = [direct filesep 'Figures' filesep type filesep 'modes_' ...
-            num2str(num_modes) '_custom'];
+            num2str(num_modes) '_custom' filesep 'energy'];
     else
         direct_ext = [direct filesep 'Figures' filesep type filesep 'modes_' ...
-            num2str(num_modes)];
+            num2str(num_modes) filesep 'energy'];
     end
     
     if ~exist(direct_ext, 'dir')
         mkdir(direct_ext);
     end
-    file_name = [direct_ext filesep 'Energy_' id '_'];
+    file_name = [direct_ext filesep 'Energy_' strrep(id, ' ', '_')];
     
     file_name = [file_name '_t' num2str(ceil(t(1))) '_' num2str(ceil(t(end))) ...
         's_' num2str(ceil(Hz)) 'Hz'];

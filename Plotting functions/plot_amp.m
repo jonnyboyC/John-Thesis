@@ -10,6 +10,8 @@ plot(ax, t, modal_amp);
 ax.XLabel.String = 'time (s)';
 ax.YLabel.String = 'Modal Amplitude';
 ax.Title.String = ['Predicted Modal Amplitudes ' id];
+axis(ax, 'tight');
+
 
 % Add amplitude legend
 leg_names = cell(size(modal_amp, 2), 1);
@@ -28,16 +30,16 @@ Hz = 1/(t(2) - t(1));
 
 if custom
     direct_ext = [direct filesep 'Figures' filesep type filesep 'modes_' ...
-        num2str(num_modes) '_custom'];
+        num2str(num_modes) '_custom' filesep 'amplitude'];
 else
     direct_ext = [direct filesep 'Figures' filesep type filesep 'modes_' ...
-        num2str(num_modes)];
+        num2str(num_modes) filesep 'amplitude'];
 end
 
 if ~exist(direct_ext, 'dir') 
     mkdir(direct_ext);
 end
-file_name = [direct_ext filesep 'Amplitude_' id '_'];
+file_name = [direct_ext filesep 'Amplitude_' strrep(id, ' ', '_')];
 
 file_name = [file_name '_t' num2str(ceil(t(1))) '_' num2str(ceil(t(end))) ...
     's_' num2str(ceil(Hz)) 'Hz'];

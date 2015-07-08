@@ -16,8 +16,8 @@ for i = 1:num_clusters
         row_col = 1;
     end
     row = row/row_col;
-%     blanks = sum(row == 0);
-%     row = (1 - 0.001*blanks)*row;
-%     row(row == 0) = 0.001;
+    blanks = sum(row == 0);
+    row = (1 - 0.001*blanks)*row;
+    row(row == 0) = 0.001;
     stoc_matrix(i,:) = row;
 end

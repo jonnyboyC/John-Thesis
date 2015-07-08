@@ -38,7 +38,6 @@ for j = 1:cnt-1
         strrep(type, '_', ' '), strrep(subtype, '_', ' '), time));
 end
 
-
 close(h);
 
 time = toc;

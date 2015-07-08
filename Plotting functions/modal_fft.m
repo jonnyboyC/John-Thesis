@@ -1,8 +1,19 @@
-function handle = modal_fft(modal_amp, num_plot, window_samples, sample_freq, xlim, direct, type, custom, id)
+function handle = plot_fft(modal_amp, num_modes, sample_freq, xlim, direct, type, custom, id)
 % Calculate the modal frequency response using fft
 
+if num_modes > 4
+    num_plot = 1:4;
+else
+    num_plot = 1:num_modes;
+end
+
+if size(t,1) > 8192
+    window_samples = ceil(size(t,1)/4);
+else
+    window_samples = ceil(size(t,1)/4);
+end
+
 % Number of points per windows, set to the next power of 2
-num_modes = size(modal_amp,2);
 NFFT    = 2^nextpow2(window_samples); 
 windows = floor(size(modal_amp, 1)/NFFT);   % Number of windows
 T       = NFFT/sample_freq;                 % window sample by sampling rate
@@ -68,7 +79,7 @@ if ~exist(direct_ext, 'dir')
     mkdir(direct_ext);
 end
 
-file_name = [direct_ext filesep 'FFT_' id '_'];
+file_name = [direct_ext filesep 'FFT_' strrep(id, ' ', '_')];
 file_name = [file_name '_' num2str(ceil(sample_freq)) 'Hz'];
 drawnow;
 

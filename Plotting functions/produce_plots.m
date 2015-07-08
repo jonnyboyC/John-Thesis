@@ -17,23 +17,24 @@ Mod         = plot_data.Mod;
 bnd_idx     = plot_data.bnd_idx;
 custom      = plot_data.custom;
 
-use_stream = false;
-
 % If using Mod add a mode zero to make it work like Galerkin
 if Mod == true
     [modal_amp, pod_Ut] = add_mode_zero_mod(modal_amp, pod_Ut, plot_data.mean_U);
 end
 
-% TODO significant overhaul to this function
+% decide if streamlines should be used
 if any(strcmp(plot_type, 'video stream'))
     use_stream = true;
+else
+    use_stream = false;
 end
 
+% Create video reconstruction of the flow
 if any(strcmp(plot_type, 'video') | strcmp(plot_type, 'video stream'))
     plot_prediction(pod_Ut, X, bnd_idx, modal_amp, t, dimensions, use_stream, direct, custom, id)
 end
 
-% Strip mean_u, mean_v
+% Strip mean mode off
 modal_amp = modal_amp(:,2:end);
 
 % Plot modal amplitude of the response
@@ -41,24 +42,13 @@ if any(strcmp(plot_type, 'amp'))
     plot_amp(modal_amp, t, direct, type, custom, id);
 end
 
+% Plot system energy
 if any(strcmp(plot_type, 'energy'))
     plot_energy(modal_amp, t, id, direct, type, custom);
 end
 
-
-% Plot modal fft
+% Plot system fft
 if any(strcmp(plot_type, 'fft'))
-    if num_modes > 4
-        num2plot = 1:4;
-    else
-        num2plot = 1:num_modes;
-    end
-    if size(t,1) > 8192
-        window_size = ceil(size(t,1)/4);
-%         window_size = 8192;
-    else
-        window_size = ceil(size(t,1)/4);
-    end
-    modal_fft(modal_amp, num2plot, window_size, ...
+    plot_fft(modal_amp, num_modes,...
         sample_freq, fft_window, direct, type, custom, id);
 end

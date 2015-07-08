@@ -1,4 +1,4 @@
-function [frob_km, frob_gm, prob_km, prob_gm] = classify_Gal(km, gm, integration, i, direct)
+function [frob_km, frob_gm, prob_km, prob_gm, completed] = classify_Gal(km, gm, integration, tspan, i, direct)
  
 % inputs for gen_stochoastic_matrix
 save_figures = {};
@@ -39,9 +39,17 @@ for j = 1:e_comps
         plot_stochastic_matrix(gm_stoch_gal, sim_gm_groups, save_figures, direct, h_gm);
         
         % Temporary reporting
-        fprintf('%s, %s got km_frob = %s and gm_frob = %s and km_prob = %s and gm_prob = %s\n', ...
-            strrep((e{j}), '_', ' '), strrep((s{k}), '_', ' '), num2str(frob_km.(e{j}).(s{k})), ...
-            num2str(frob_gm.(e{j}).(s{k})), num2str(prob_km.(e{j}).(s{k})), num2str(prob_gm.(e{j}).(s{k})));
+        if integration{i}.t.(e{j}).(s{k})(end) == tspan(end)
+            fprintf('%s %s finished got km_frob = %s and gm_frob = %s and km_prob = %s and gm_prob = %s\n', ...
+                strrep((e{j}), '_', ' '), strrep((s{k}), '_', ' '), num2str(frob_km.(e{j}).(s{k})), ...
+                num2str(frob_gm.(e{j}).(s{k})), num2str(prob_km.(e{j}).(s{k})), num2str(prob_gm.(e{j}).(s{k})));
+            completed.(e{j}).(s{k}) = true;
+        else
+            fprintf('%s %s diverged got km_frob = %s and gm_frob = %s and km_prob = %s and gm_prob = %s\n', ...
+                strrep((e{j}), '_', ' '), strrep((s{k}), '_', ' '), num2str(frob_km.(e{j}).(s{k})), ...
+                num2str(frob_gm.(e{j}).(s{k})), num2str(prob_km.(e{j}).(s{k})), num2str(prob_gm.(e{j}).(s{k})));
+            completed.(e{j}).(s{k}) = false;
+        end
     end
 end
 end

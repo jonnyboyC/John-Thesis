@@ -141,7 +141,7 @@ non_dim     = vars.results_pod.non_dim;     % was the result non_dimensionalized
 run_num     = vars.results_pod.run_num;     % POD run numbers
 cutoff      = vars.results_pod.cutoff;      % number of modes at cutoff
 modal_amp   = vars.results_pod.modal_amp;   % modal amplitude  from raw data
-exp_sampling_rate = vars.results.exp_sampling_rate;
+exp_sampling_rate = vars.results_pod.exp_sampling_rate;
 
 if calc_coef
     uniform     = vars.results_pod.uniform;      % Is the mesh uniform 
@@ -177,11 +177,14 @@ for i = 1:length(num_modesG)
 end
 
 % Determine sampling frequency from provided tspan
-if length(tspan) > 2
+if isnumeric(tspan)
     sample_freq = 1/(tspan(2) - tspan(1));
     fprintf('Detected Sampling Frequency %6.2f Hz\n\n', sample_freq);
-else
-    error('must provide tspan with a range');
+end
+if ischar(tspan) && strcmp(tspan, 'test')
+    sample_freq = exp_sampling_rate;
+    tspan = 0:1/sample_freq:length(modal_amp)/sample_freq;
+    fprintf('Detected Sampling Frequency %6.2f Hz\n\n', sample_freq);
 end
 
 % Create modify time scale if non-dimenionalized
@@ -238,6 +241,7 @@ if classify_sim
     frob_gm     = cell(length(num_modesG),1);
     prob_km     = cell(length(num_modesG),1);    
     prob_gm     = cell(length(num_modesG),1);
+    completed   = cell(length(num_modesG),1);
 end
 
 % Perform calculation on each set of modes requested
@@ -335,8 +339,8 @@ for i = 1:length(num_modesG)
         % Classify simulation to to empirical clusters
         if classify_sim && num_modes <= 40
             idx = (cluster_range == num_modes-1);
-            [frob_km{i}, frob_gm{i}, prob_km{i}, prob_gm{i}] = ...
-                classify_Gal(km{idx}, gm{idx}, integration, i, direct);
+            [frob_km{i}, frob_gm{i}, prob_km{i}, prob_gm{i}, completed{i}] = ...
+                classify_Gal(km{idx}, gm{idx}, integration, tspan, i, direct);
         end
 
         % Prepare data
@@ -408,6 +412,7 @@ for i = 1:length(num_modesG)
         results_scores.frob_gm = frob_gm{i};
         results_scores.prob_km = prob_km{i};
         results_scores.prob_gm = prob_gm{i};
+        results_scores.completed = completed{i};
     end
     
     % Save relavent coefficients

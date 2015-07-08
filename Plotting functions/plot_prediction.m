@@ -34,7 +34,7 @@ if ~exist(direct_ext, 'dir')
 end
 
 % 
-file_name = [direct_ext filesep 'Flow_prediction_' id];
+file_name = [direct_ext filesep 'Flow_prediction_' strrep(id, ' ', '_')];
 
 dims = flow_dims(X);
 [~, u] = flow_comps_ip(X, pod_U);
