@@ -7,13 +7,8 @@ else
     num_plot = 1:num_modes;
 end
 
-if size(t,1) > 8192
-    window_samples = ceil(size(t,1)/4);
-else
-    window_samples = ceil(size(t,1)/4);
-end
-
 % Number of points per windows, set to the next power of 2
+window_samples = ceil(size(modal_amp,1)/4);
 NFFT    = 2^nextpow2(window_samples); 
 windows = floor(size(modal_amp, 1)/NFFT);   % Number of windows
 T       = NFFT/sample_freq;                 % window sample by sampling rate
@@ -24,13 +19,11 @@ window  = hanning(NFFT);        % Hanning windows of width NFFT
 start   = 1;                    % Start location  
 finish  = NFFT;                 % End location 
 freq_response = 0;              % frequency response
-freq    = 0;                    % TODO
 
 % Calculate fft for selected hanning window
 for i = 1:windows
     modal_amp_win = modal_amp(start:finish,:).*(window*ones(1,num_modes));
     freq_response_temp  = fft(modal_amp_win);
-    % TODO confirm we are dividing by num_elem
     freq_response_temp = abs(freq_response_temp)/sample_freq;
     freq_response = freq_response + freq_response_temp;
     start = start + NFFT;
@@ -69,10 +62,10 @@ legend(leg_names);
 
 if custom
     direct_ext = [direct filesep 'Figures' filesep type filesep 'modes_' ...
-        num2str(num_modes) '_custom'];
+        num2str(num_modes) '_custom' filesep 'fourier'];
 else
     direct_ext = [direct filesep 'Figures' filesep type filesep 'modes_' ...
-        num2str(num_modes)];
+        num2str(num_modes) filesep 'fourier'];
 end
 
 if ~exist(direct_ext, 'dir') 
