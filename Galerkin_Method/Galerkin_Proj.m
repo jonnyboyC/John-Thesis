@@ -361,17 +361,17 @@ for i = 1:length(num_modesG)
 
         close all
         
-        e = flow_comps(system{i}.eddy);
-        e_comps = flow_ncomps(system{i}.eddy);
+        m = flow_comps(system{i}.eddy);
+        m_comps = flow_ncomps(system{i}.eddy);
         
         % Cycle through and plot all requested figures
-        for j = 1:e_comps
-            s = flow_comps(system{i}.eddy.(e{j}));
-            s_comps = flow_ncomps(system{i}.eddy.(e{j}));
+        for j = 1:m_comps
+            s = flow_comps(system{i}.eddy.(m{j}));
+            s_comps = flow_ncomps(system{i}.eddy.(m{j}));
             for k = 1:s_comps
-                plot_data.t = integration{i}.t.(e{j}).(s{k});
-                plot_data.id = strrep([e{j} ' ' s{k}], '_', ' ');
-                plot_data.modal_amp = integration{i}.modal_amp.(e{j}).(s{k});
+                plot_data.t = integration{i}.t.(m{j}).(s{k});
+                plot_data.id = strrep([m{j} ' ' s{k}], '_', ' ');
+                plot_data.modal_amp = integration{i}.modal_amp.(m{j}).(s{k});
                 produce_plots(plot_data);
             end
         end

@@ -1,4 +1,4 @@
-function [X, flag] = constrained_POD(lambda, L, N, n, epsilon, evals)
+function [X, flag] = constrained_POD(lambda, L, n, N, epsilon, evals)
 % Optimization problem to create an optimal rotation that minimizing the
 % energy difference between the original system and the new system.
 

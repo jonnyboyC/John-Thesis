@@ -4,20 +4,20 @@ tic;
 
 vis = system{i}.vis;
 
-e = flow_comps(system{i}.coef);
-e_comps = flow_ncomps(system{i}.coef);
+m = flow_comps(system{i}.coef);
+m_comps = flow_ncomps(system{i}.coef);
 
 cnt = 1;
 
 % Integrate Galerkin System usign async parallel execution
 parfeval_futures = parallel.FevalOnAllFuture;
-for j = 1:e_comps
-    s = flow_comps(system{i}.coef.(e{j}));
-    s_comps = flow_ncomps(system{i}.coef.(e{j}));
+for j = 1:m_comps
+    s = flow_comps(system{i}.coef.(m{j}));
+    s_comps = flow_ncomps(system{i}.coef.(m{j}));
     
     for k = 1:s_comps
-        parfeval_futures(cnt) = parfeval(@integrator, 5, odesolver, system{i}.coef.(e{j}).(s{k}), ...
-                                    system{i}.eddy.(e{j}).(s{k}), vis, e{j}, s{k}, modal_TKE, ao, tspan, options);
+        parfeval_futures(cnt) = parfeval(@integrator, 5, odesolver, system{i}.coef.(m{j}).(s{k}), ...
+                                    system{i}.eddy.(m{j}).(s{k}), vis, m{j}, s{k}, modal_TKE, ao, tspan, options);
         cnt = cnt + 1;
     end
 end

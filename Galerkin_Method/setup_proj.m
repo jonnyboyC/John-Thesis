@@ -17,4 +17,4 @@ problem_airfoil.Re0_gen = @Re0_gen_airfoil;
 problem_jet.num_modesG = 10;
 problem_jet.tspan = 0:0.0001:1;
 problem_jet.odesolver = @ode15s;
-problem_jet.Re0_gen = @Re0_gen_shear;
+problem_jet.Re0_gen = @Re0_gen_jet;

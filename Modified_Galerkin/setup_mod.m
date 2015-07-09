@@ -1,5 +1,7 @@
-problem_mixing.RD_nm = 10;
+problem_mixing.num_modes = 10;
 
-problem_airfoil.RD_nm = 10;
+problem_airfoil.num_modes = 10;
+problem_airfoil.models = {'GM', 'GM1'};
 
-problem_cavity.RD_nm = 10;
+
+problem_cavity.num_modes = 10;

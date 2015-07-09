@@ -1,9 +1,9 @@
 function problem = setdefaults_mod(problem)
 
 % Default for Reduced num_modes 
-if isempty(problem.RD_nm) || ~isscalar(problem.RD_nm)
-    fprintf('Using default value for RD_nm\nproblem.RD_nm = 8\n\n');
-    problem.RD_nm = 10;        % use 10 modes
+if isempty(problem.num_modes) || ~isscalar(problem.num_modes)
+    fprintf('Using default value for num_modes\nproblem.num_modes = 8\n\n');
+    problem.num_modes = 10;        % use 10 modes
 end
 
 % Default for type
@@ -19,14 +19,8 @@ if isempty(problem.classify_sim) || ~islogical(problem.classify_sim)
 end
 
 % Check to make sure incorrect strings are not passed
-correct = {'fft', 'amp', 'energy', 'video'};
-correct_members = ismember(problem.plot_type, correct);
-for i = 1:size(correct_members,2)
-    if ~correct_members(i)
-        fprintf('%s is not a correct input for problem.plot_type\n', problem.plot_type{i});
-    end
-end
-problem.plot_type = problem.plot_type(correct_members);
+correct = {'fft', 'amp', 'energy', 'video', 'video stream'};
+problem.plot_type = list_check(problem.plot_type, correct, 'plot_type');
 
 % Default for save_coef
 if isempty(problem.custom) || ~islogical(problem.custom)
@@ -42,10 +36,20 @@ if isempty(problem.fft_window) || (isnumeric(problem.fft_window) && ...
 end
 
 % Default for tspan
-if isempty(problem.tspan) || ~(isnumeric(problem.tspan) && ...
-        size(problem.tspan, 1) == 1 && size(problem.tspan,2) > 1)
+if isempty(problem.tspan) || ((~(isnumeric(problem.tspan) && ...
+        size(problem.tspan, 1) == 1 && size(problem.tspan,2) > 1)) && ~ischar(problem.tspan))
     fprintf('Using default value for tspan\nproblem.tspan = 0:0.01:100\n\n');
     problem.tspan = 0:0.0001:1;     % time range of integration
+end
+
+% Check to make sure incorrect strings are not passed
+if ischar(problem.tspan)
+    correct = {'test'};
+    correct_members = ismember(problem.tspan, correct);
+    if ~correct_members 
+        fprintf('%s is not a correct input for problem.run_num\n', problem.tspan);
+        problem.tspan = 'test';
+    end
 end
 
 % Default for save_mod
@@ -89,13 +93,51 @@ if ischar(problem.run_num)
 end
 
 % Default for previous galerkin type
-if isempty(problem.models) || ~isvector(problem.models);
-    fprintf('Using default value for models\nproblem.models = 1:8\n\n');
-    problem.models = 1:8;      % previous galerkin type
+if isempty(problem.models) || (~iscell(problem.models) && ~ischar(problem.models))
+    fprintf('Using default value for models\nproblem.models = {"GM"}\n\n');
+    problem.models = {'GM'};            % Generating basis model
 end
 
-% Default of OG_nm
-if isempty(problem.run_num) || ~isscalar(problem.run_num) || ~ischar(problem.run_num)
-    fprintf('Using default value for OG_nm\nproblem.OG_nm = "double"\n\n');
-    problem.OG_nm = 2*problem.RD_nm;
+if iscell(problem.models)
+    % Check to make sure incorrect strings are not passed
+    correct = {'GM', 'GM1', 'GM2', 'GM3'};
+    problem.models = list_check(problem.models, correct, 'models');
+end
+
+% Check to make sure incorrect strings are not passed
+if ischar(problem.models)
+    correct = {'all'};
+    correct_members = ismember(problem.models, correct);
+    if ~correct_members 
+        fprintf('%s is not a correct input for problem.models\n', problem.models);
+        problem.models = 'all';
+    end
+end
+
+% Default for previous galerkin type
+if isempty(problem.submodels) || ~iscell(problem.submodels) || ~ischar(problem.submodels)
+    fprintf('Using default value for submodels\nproblem.submodels = {"base", "weak"}\n\n');
+    problem.submodels = {'base', 'weak'}; % Generating basis submodel
+end
+
+if iscell(problem.submodels)
+    % Check to make sure incorrect strings are not passed
+    correct = {'base', 'weak'};
+    problem.submodels = list_check(problem.submodels, correct, 'models');
+end
+
+% Check to make sure incorrect strings are not passed
+if ischar(problem.submodels)
+    correct = {'all'};
+    correct_members = ismember(problem.submodels, correct);
+    if ~correct_members 
+        fprintf('%s is not a correct input for problem.submodels\n', problem.submodels);
+        problem.submodels = 'all';
+    end
+end
+
+% Default of basis_modes
+if isempty(problem.basis_modes) || ~isscalar(problem.basis_modes) || ~ischar(problem.basis_modes)
+    fprintf('Using default value for basis_modes\nproblem.basis_modes = "double"\n\n');
+    problem.basis_modes = 2*problem.num_modes;
 end

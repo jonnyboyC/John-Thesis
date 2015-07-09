@@ -31,6 +31,7 @@ problem_cavity.non_dim = false;
 problem_cavity.save_figures = {'fig', 'jpg'};
 problem_cavity.u_scale_gen = @u_scale_gen_shear;
 problem_cavity.l_scale = 0.0127;
+problem_cavity.exp_sampling_rate = 10;
 
 problem_jet.num_images = 860;
 problem_jet.load_raw = false;
@@ -40,6 +41,7 @@ problem_jet.xy_units = 'm';
 problem_jet.non_dim = true;
 problem_jet.open_flow = true;
 problem_jet.save_figures = {'fig', 'jpg'};
+problem_jet.exp_sampling_rate = 5000;
 problem_jet.u_scale_gen = 3.280839;
 problem_jet.l_scale = 1/0.3048;
 

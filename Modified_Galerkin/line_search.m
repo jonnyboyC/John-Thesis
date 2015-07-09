@@ -8,8 +8,8 @@ function [epsilon_low, epsilon_high, transfer, flip] = line_search(problem)
 C           = problem.C;
 L           = problem.L;
 Q           = problem.Q;
-OG_nm       = problem.OG_nm;
-RD_nm       = problem.RD_nm;
+num_modes   = problem.num_modes;
+basis_modes = problem.basis_modes;
 lambda      = problem.lambda;
 modal_amp   = problem.modal_amp;
 t_scale     = problem.t_scale;
@@ -19,13 +19,13 @@ line_range  = problem.line_range;
 
 
 % intial guess for epsilon
-epsilon_0 = sum(L(1:RD_nm, 1:RD_nm)*lambda(1:RD_nm)); 
+epsilon_0 = sum(L(1:basis_modes, 1:basis_modes)*lambda(1:basis_modes)); 
 epsilon = zeros(line_range+1,1);
 transfer = zeros(line_range+1,1);
 epsilon(1) = epsilon_0;
 
 % Find initial value for line search and plot
-transfer(1) = optimal_rotation(epsilon_0, C, L, Q, OG_nm, RD_nm, lambda, modal_amp, t_scale, tspan, init, 6000);
+transfer(1) = optimal_rotation(epsilon_0, C, L, Q, num_modes, basis_modes, lambda, modal_amp, t_scale, tspan, init, 6000);
 
 % Brute force Line Search, rough pass parrallel loop. Idea is to quickly
 % sweep a large area to look for sign changes to use for a finer pass in
@@ -44,7 +44,7 @@ for i = 1:line_range
     amp = floor(i+1/2)/128;
     epsilon(i+1) = epsilon_0*(1-amp*flip);
     parfeval_futures(i) = parfeval(@optimal_rotation, 1, epsilon(i+1), ...
-        C, L, Q, OG_nm, RD_nm, lambda, modal_amp, t_scale, tspan, init, 6000);
+        C, L, Q, num_modes, basis_modes, lambda, modal_amp, t_scale, tspan, init, 6000);
 end
 
 

@@ -6,20 +6,18 @@ function [bnd_X] = edge_boundaries(bnd_idx, X)
 % bnd_y
 
 x = flow_comps_ns(X);
+dims = flow_dims(X);
+dimensions = size(X.(x{1}));
+grad = cell(dims, 1);
 
 % Determine the vector normal of the boundary
-switch ndims(bnd_idx) % TODO make this more abstract
-    case 1
-        bnd_X.(X.direct{1}) = gradient(bnd_idx);
-    case 2
-        [bnd_X.(X.direct{1}), bnd_X.(X.direct{2})] = gradient(bnd_idx);
-    case 3
-        [bnd_X.(X.direct{1}), bnd_X.(X.direct{2}), bnd_X.(X.direct{3})] = gradient(bnd_idx);
+[grad{:}] = gradient(bnd_idx);
+
+for i = 1:dims
+    bnd_X.(X.direct{i}) = grad{i};
 end
 
-% Get the number of comps
 comps = flow_ncomps(bnd_X);
-dimensions = size(X.(x{1}));
 
 % Assume edges are also boundaries
 for i = 1:comps
