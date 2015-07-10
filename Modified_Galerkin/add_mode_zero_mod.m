@@ -8,7 +8,7 @@ num_images = size(modal_amp,1);
 % Add mean and flucuating amplitudes
 modal_amp = [ones(num_images,1), modal_amp];
 
-comps = flow_comps(pod_U);
+comps = flow_ncomps(pod_U);
 u = flow_comps(pod_U);
 
 % Add mode zero

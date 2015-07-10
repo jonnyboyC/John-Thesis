@@ -19,7 +19,7 @@ line_range  = problem.line_range;
 
 
 % intial guess for epsilon
-epsilon_0 = sum(L(1:basis_modes, 1:basis_modes)*lambda(1:basis_modes)); 
+epsilon_0 = sum(L(1:num_modes, 1:num_modes)*lambda(1:num_modes)); 
 epsilon = zeros(line_range+1,1);
 transfer = zeros(line_range+1,1);
 epsilon(1) = epsilon_0;

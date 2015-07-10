@@ -28,7 +28,7 @@ h = waitbar(0, 'Performing time integration on models in parrallel');
 % Fetch results as they become available
 for j = 1:cnt-1
     % fetch results if it take over half an hour discard results
-    [~, t_job, modal_amp_job, type, subtype, time] = fetchNext(parfeval_futures, 3000);
+    [~, t_job, modal_amp_job, type, subtype, time] = fetchNext(parfeval_futures);
     
     integration{i}.t.(type).(subtype) = t_job/t_scale;
     integration{i}.modal_amp.(type).(subtype) = modal_amp_job;

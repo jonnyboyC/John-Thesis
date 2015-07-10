@@ -1,13 +1,19 @@
-function [pod_u_til, pod_v_til, modal_amp_til] = ...
-                basis_transform(pod_ut, pod_vt, modal_amp, RD_nm, X) 
+function [pod_U_til, modal_amp_til] = ...
+                basis_transform(pod_Ut, modal_amp, num_modes, X) 
 % Transform pod modes and modal amplitude into new basis
-pod_u_til = zeros(size(pod_ut,1), RD_nm);
-pod_v_til = zeros(size(pod_vt,1), RD_nm);
-modal_amp_til = zeros(size(modal_amp,1), RD_nm);
-for i = 1:RD_nm
-    for j = 2:size(pod_ut,1)
-        pod_u_til(j,i) = sum(X(:,i)'.*pod_ut(j,:));
-        pod_v_til(j,i) = sum(X(:,i)'.*pod_vt(j,:));
+comps = flow_ncomps(pod_Ut);
+u = flow_comps(pod_Ut);
+for i = 1:comps
+    pod_U_til.(u{i}) = zeros(size(pod_Ut.(u{i}),1), num_modes);
+end
+
+modal_amp_til = zeros(size(modal_amp,1), num_modes);
+
+for i = 1:num_modes
+    for j = 2:size(pod_Ut.(u{1}),1)
+        for k = 1:comps
+            pod_U_til.(u{k})(j,i) = sum(X(:,i)'.*pod_Ut.(u{k})(j,:));
+        end
     end
     for j = 2:size(modal_amp,1)
         modal_amp_til(j,i) = sum(X(:,i)'.*modal_amp(j,:));

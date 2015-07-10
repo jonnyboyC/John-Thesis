@@ -88,7 +88,7 @@ submodels   = problem.submodels;
 fft_window  = problem.fft_window;
 tspan       = problem.tspan;
 custom      = problem.custom;
-classify_sim = problem.classify_sim;
+classify_sim= problem.classify_sim;
 
 clear problem
 
@@ -105,6 +105,7 @@ else
     [direct_POD, direct] = prompt_folder('POD', run_num, direct);
     [direct_Gal, direct] = prompt_folder('Galerkin', run_num, direct, basis_modes, custom);
 end
+
 
 % Make sure folders are up to date and load collected data
 update_folders(direct);
@@ -209,8 +210,9 @@ for i = 1:length(models)
         line_problem.lambda = lambda;
         line_problem.modal_amp = modal_ampt;
         line_problem.line_range = line_range;
+
         
-        % Brute force line search
+%         % Brute force line search
         [epsilon_low, epsilon_high, ~, flip] = line_search(line_problem);
         
         if flip == true
@@ -219,14 +221,14 @@ for i = 1:length(models)
                 'FunValCheck', 'on');
             
             [epsilon_final, ~, ~, OUTPUT] = fzero(@(epsilon) optimal_rotation...
-                (epsilon, C, L, Q, basis_modes, num_modes, lambda, modal_ampt, t_scale, tspan, init, 64000), epsilon_range, options);
+                (epsilon, C, L, Q, num_modes, basis_modes, lambda, modal_ampt, t_scale, tspan, init, 64000), epsilon_range, options);
             disp(OUTPUT);
         else
             disp('no sign flip detected');
             options = optimset('PlotFcns', {@optimplotx, @optimplotfval}, 'Display', 'iter', 'TolFun', 1e-10, 'TolX', 1e-6);
             
             [epsilon_final, ~, ~, OUTPUT] = fminbnd(@(epsilon) abs(optimal_rotation...
-                (epsilon, C, L, Q, basis_modes, num_modes, lambda, modal_ampt, t_scale, tspan, init, 64000)), epsilon_low, epsilon_high, options);
+                (epsilon, C, L, Q, num_modes, basis_modes, lambda, modal_ampt, t_scale, tspan, init, 64000)), epsilon_low, epsilon_high, options);
             disp(OUTPUT);
         end
         
@@ -236,10 +238,10 @@ for i = 1:length(models)
         % Final calculation of transformation matrix and new constant linear and
         % quadratic terms
         [~, X, C_til, L_til, Q_til, modal_amp_til, t] = ...
-            optimal_rotation(epsilon_final, C, L, Q, basis_modes, num_modes, lambda, modal_ampt, t_scale, tspan, init, 64000);
+            optimal_rotation(epsilon_final, C, L, Q, num_modes, basis_modes, lambda, modal_ampt, t_scale, tspan, init, 64000);
         
-        [pod_u_til, pod_v_til, modal_amp_raw_til] = ...
-            basis_transform(pod_ut, pod_vt, modal_ampt, num_modes, X);
+        [pod_U_til, modal_amp_raw_til] = ...
+            basis_transform(pod_Ut, modal_ampt, num_modes, X);
         
         if classify_sim
             idx = (cluster_range == num_modes);
@@ -250,7 +252,7 @@ for i = 1:length(models)
         % Prepare data
         plot_data.num_modes     = num_modes;
         plot_data.direct        = direct;
-        plot_data.pod_Ut        = pod_Ut;
+        plot_data.pod_Ut        = pod_U_til;
         plot_data.mean_U        = mean_U;
         plot_data.dimensions    = dimensions;
         plot_data.fft_window    = fft_window;
@@ -270,29 +272,32 @@ for i = 1:length(models)
         % Generate plots
         produce_plots(plot_data);
         
+        results_mod_coef.name           = 'results_mod_coef';
+        results_mod_int.name            = 'results_mod_int';
+        results_mod_scores.name         = 'results_mod_scores';
+        
+        % Prepare data to be saved
         results_mod_coef.X              = X;
         results_mod_coef.C_til          = C_til;
         results_mod_coef.L_til          = L_til;
         results_mod_coef.Q_til          = Q_til;
-        results_mod_coef.pod_u_til      = pod_u_til;
-        results_mod_coef.pod_v_til      = pod_v_til;
+        results_mod_coef.pod_U_til      = pod_U_til;
         results_mod_coef.modal_amp_til  = modal_amp_raw_til;
         results_mod_coef.epsilon_final  = epsilon_final;
         results_mod_coef.run_num        = run_num;
-        results_mod_coef.name           = 'results_mod_coef';
         
         results_mod_int.t               = t;
         results_mod_int.modal_amp_til   = modal_amp_til;
         results_mod_int.run_num        = run_num;
-        results_mod_int.name           = 'results_mod_int';
         
-        results_mod_scores.frob_km      = frob_km;
-        results_mod_scores.frob_gm      = frob_gm;
-        results_mod_scores.prob_km      = prob_km;
-        results_mod_scores.prob_gm      = prob_gm;
-        results_mod_scores.completed    = completed;
-        results_mod_scores.run_num      = run_num;
-        results_mod_scores.name         = 'results_mod_scores';
+        if classify_sim
+            results_mod_scores.frob_km      = frob_km;
+            results_mod_scores.frob_gm      = frob_gm;
+            results_mod_scores.prob_km      = prob_km;
+            results_mod_scores.prob_gm      = prob_gm;
+            results_mod_scores.completed    = completed;
+            results_mod_scores.run_num      = run_num;
+        end
         
         % Save important coefficients
         if save_mod == true

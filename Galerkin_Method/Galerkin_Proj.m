@@ -27,7 +27,9 @@ function [res_coef, res_int, res_scores] = Galerkin_Proj(varargin)
 % numbers are different new coefficients will be calcfinteulated
 %
 % problem.tspan = 0:0.0001:1
-% Specify time span for time integration
+% Specify time span for time integration. If the string "test" is instead
+% provided will integrate an equivalent amount of time as the empirical
+% data
 % 
 % problem.init = 1
 % Specify which image will constitute the initial conditions

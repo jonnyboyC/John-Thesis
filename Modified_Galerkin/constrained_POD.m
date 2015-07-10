@@ -14,11 +14,8 @@ problem.solver = 'fmincon';
 
 options = optimoptions('fmincon');
 options.MaxFunEvals = evals;
+options.Display = 'off';
 problem.options = options;
-
-% Other options to consider changing
-%options.UseParallel = true;
-% options.Algorithm = 'sqp';
 
 [x,~,flag,OUTPUT,~] = fmincon(problem);
 OUTPUT.message

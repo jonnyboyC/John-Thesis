@@ -8,7 +8,7 @@ if ~isequal(t, tspan)
 end
 
 if flag == -2
-    rep = rep*1000;
+    rep = rep*1e6;
 end
 end
  
