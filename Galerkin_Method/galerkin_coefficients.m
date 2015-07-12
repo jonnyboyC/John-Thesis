@@ -37,7 +37,7 @@ if override_coef == false && custom == false
        match_modes = regexp({saved_files.name}, ['m' num2str(num_modes) '\.']);
        orig = regexp({saved_files.name}, 'og');
        if any(~cellfun(@isempty, match_run) & ~cellfun(@isempty, match_modes) & ~cellfun(@isempty, orig))
-           data = load([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_og_m' num2str(num_modes) '.mat']);
+           data = load([direct filesep 'Viscous Coeff' filesep 'Coeff_' num2str(run_num) '_og_m' num2str(num_modes) '.mat']);
            l        = data.l;
            q        = data.q;
            return;
