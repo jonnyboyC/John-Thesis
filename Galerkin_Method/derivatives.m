@@ -1,8 +1,8 @@
-function [UdX, Ud2X] = derivatives(U, bnd_idx, bnd_X, X, uniform, dimensions) %X_direct, , Hessian
-% DERIVATIVES take the first and 2nd derivatives of a set of variables
+function [UdX, Ud2X] = derivatives(U, bnd_idx, bnd_X, X, uniform, dimensions) 
+% DERIVATIVES take the first and 2nd laplacian derivatives of a set of variables
 % using a nonuniform mesh 4th order finite difference method. DERIVATIVES
-% selected the appropriate finite different method based on the boundaries
-% defined in bnd_idx, bnd_x, and bnd_y
+% selectes the appropriate finite different method based on the boundaries
+% defined in bnd_idx, bnd_X,
 %
 % UdX = derivatives(U, bnd_idx, bnd_X, X, X_direct, uniform, dimensions)
 % calculate the first order derivatives
