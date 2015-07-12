@@ -1,4 +1,4 @@
-function [frob_km, frob_gm, prob_km, prob_gm, completed] = classify_Gal(km, gm, integration, tspan, i, direct)
+function [frob_km, frob_gm, prob_km, prob_gm, completed] = classify_Gal(km, gm, integration, tspan, num_clusters, i, direct)
  
 % inputs for gen_stochoastic_matrix
 save_figures = {};
@@ -22,8 +22,8 @@ for j = 1:m_comps
         sim_km_groups = knnsearch(km.centers, integration{i}.modal_amp.(m{j}).(s{k})(:,2:end));
         
         % Generate a stochastic matrix from transitions
-        km_stoch_gal = gen_stochastic_matrix(10, sim_gm_groups);
-        gm_stoch_gal = gen_stochastic_matrix(10, sim_km_groups);      
+        km_stoch_gal = gen_stochastic_matrix(num_clusters, sim_gm_groups);
+        gm_stoch_gal = gen_stochastic_matrix(num_clusters, sim_km_groups);      
         
         % Determine the log probabiliy of observing a particular chain
         sim_prob_km = calc_probability(km.stoch, sim_km_groups);

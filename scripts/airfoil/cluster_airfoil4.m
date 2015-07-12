@@ -13,7 +13,7 @@ for j = 1:3
     POD_Gen(problem_airfoil);
 end
 
-problem_airfoil.tspan = 'test';
+% problem_airfoil.tspan = 'test';
 problem_airfoil.num_modes = 4:6;
 Galerkin_Proj(problem_airfoil);
 
