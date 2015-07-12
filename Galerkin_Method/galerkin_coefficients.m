@@ -142,7 +142,7 @@ q = reshape(q, [], num_modes*num_modes);
 
 cutoff = num_modes; %#ok<NASGU>
 if ~custom
-    save([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_og_m' num2str(num_modes) '.mat'], ...
+    save([direct filesep 'Viscous Coeff' filesep 'Coeff_' num2str(run_num) '_og_m' num2str(num_modes) '.mat'], ...
          'l', 'q', 'cutoff', 'run_num', '-v7.3'); 
 end
 
