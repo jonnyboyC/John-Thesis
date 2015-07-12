@@ -39,7 +39,7 @@ if override_coef == false && custom == false
        match_modes = regexp({saved_files.name}, ['m' num2str(num_modes) '\.']);
        weak = regexp({saved_files.name}, 'wk');
        if any(~cellfun(@isempty, match_run) & ~cellfun(@isempty, match_modes) & ~cellfun(@isempty, weak))
-           data = load([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_wk_m' num2str(num_modes) '.mat']);
+           data = load([direct filesep 'Viscous Coeff' filesep 'Coeff_' num2str(run_num) '_wk_m' num2str(num_modes) '.mat']);
            l = data.l;
            return;
        end
@@ -66,7 +66,7 @@ l = l_weak_volume + l_weak_surf;
 
 cutoff = num_modes;
 if ~custom
-    save([direct '\Viscous Coeff\Coeff_' num2str(run_num) '_wk_m' num2str(num_modes) '.mat'], ...
+    save([direct filesep 'Viscous Coeff' filesep 'Coeff_' num2str(run_num) '_wk_m' num2str(num_modes) '.mat'], ...
         'l', 'cutoff', 'run_num', '-v7.3');
 end
 
