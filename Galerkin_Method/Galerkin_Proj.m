@@ -161,6 +161,7 @@ if time_int && classify_sim
     km = vars.results_clust.km; % k-means cluster information
     gm = vars.results_clust.gm; % gaussian mixture model cluster information
     cluster_range = vars.results_clust.cluster_range; % number of variables in cluster
+    num_clusters = vars.results_clust.num_clusters; % number of clustered used
     
     % Free memory
     clear vars
@@ -342,7 +343,7 @@ for i = 1:length(num_modesG)
         if classify_sim && num_modes <= 40
             idx = (cluster_range == num_modes-1);
             [frob_km{i}, frob_gm{i}, prob_km{i}, prob_gm{i}, completed{i}] = ...
-                classify_Gal(km{idx}, gm{idx}, integration, tspan, i, direct);
+                classify_Gal(km{idx}, gm{idx}, integration, tspan, num_clusters, i, direct);
         end
 
         % Prepare data

@@ -1,4 +1,11 @@
 function volume = vertex_volume(X, bnd_idx)
+% VERTEX_VOLUME estimate the volume surrounding the vertex for othogonal or
+% nonorthogonal meshes.
+%
+% volume = VERTEX_VOLUME(X, bnd_idx) where X is the grid tensor and bnd_idx
+% is the matrix with boundary information
+
+%#ok<*AGROW>
 
 % Get dimensions information
 dims = flow_dims(X);
@@ -16,7 +23,7 @@ for i = 1:dims
 end
 bnd_idx(exterior & bnd_idx == 1) = 0;
 
-% Wrap exterior with in boundary 
+% Wrap exterior with in boundary points
 bnd_temp = bnd_idx;
 bnd_idx = -ones(dimensions+2);
 idx = flow_index(repmat({[2 -1]}, 1, dims), 1:dims, bnd_idx);
@@ -86,8 +93,8 @@ for i = 1:numel(bnd_idx)
     % Get n-dimensional index
     [idx{:}] = ind2sub(dimensions, i);
     
-    % If open flow get volume as box surround vertex, else calculate
-    % partial box for on boundary points
+    % If open flow, get volume as box surround vertex, else calculate
+    % partial boxes for on boundary points
     if bnd_idx(i) == 1;
         mask_temp = mask_idx;
         vertices = zeros(pow2(dims),dims);
@@ -136,6 +143,6 @@ function idx = sIdx(x, range)
 
 idx = [];
 for i = range
-   idx = [idx x{i}]; 
+   idx = [idx x{i}];  
 end
 end

@@ -1,5 +1,5 @@
 function u_scale = u_scale_gen_airfoil(~, direct)
-airfoil_path = [direct, '\Other\A2_CpPHF_NS_20100728b.xls'];
+airfoil_path = [direct filesep 'Other' filesep 'A2_CpPHF_NS_20100728b.xls'];
 R = 287;
 water2Pa = 249; %249.17
 k = .952;  % Tunnel constant

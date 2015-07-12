@@ -14,6 +14,7 @@ for j = 1:3
 end
 
 problem_airfoil.tspan = 'test';
+
 problem_airfoil.num_modesG = 4:6;
 Galerkin_Proj(problem_airfoil);
 

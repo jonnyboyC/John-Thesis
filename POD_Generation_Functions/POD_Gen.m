@@ -321,6 +321,7 @@ if cluster
     % gaussian mixture model data
     results_clust.gm = gm;
     results_clust.cluster_range = 2:40;
+    results_clust.num_clusters = num_clusters;
 end
 
 % Save variables relavent to Galerkin to .mat files
