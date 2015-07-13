@@ -19,6 +19,12 @@ if isempty(problem.streamlines) || ~islogical(problem.streamlines)
     problem.streamlines = true;        % plot pod modes with quivers
 end
 
+% Default for read_only
+if isempty(problem.load_only) || ~islogical(problem.load_only)
+    fprintf('Using default value for read_only\nproblem.load_only = false\n\n');
+    problem.load_only = false;
+end
+
 
 % Default for save_pod
 if isempty(problem.save_pod) || ~islogical(problem.save_pod)

@@ -70,6 +70,11 @@ function [res_pod, res_clust] = POD_Gen(varargin)
 %   problem.xy_units = 'mm'
 %   specify the units the x and y coordinate are in currently accepts 'm'
 %   for meters and 'mm' for millimeters
+%
+%   problem.load_only = false
+%   select this option to simply load the files from raw and generate a
+%   mask. Primarily would be used to transfer data to a compute which can't
+%   use the proprietary read files
 
 format long g
 %close all
@@ -82,7 +87,7 @@ fields = {  'num_images',   'load_raw',     'save_pod', ...
             'update_bnds',  'num_clusters', 'exp_sampling_rate',...
             'cluster',      'average_mesh', 'filter', ...
             'streamlines',  'non_dim',      'xy_units', ...
-            'load_handle'};
+            'load_handle',  'load_only'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -112,6 +117,7 @@ streamlines = problem.streamlines;
 average_mesh= problem.average_mesh;
 non_dim     = problem.non_dim;
 xy_units    = problem.xy_units;
+load_only   = problem.load_only;
 exp_sampling_rate = problem.exp_sampling_rate;
 
 clear problem
@@ -181,6 +187,9 @@ end
 
 % Exactly define flow boundaries
 [bnd_X, bnd_idx] = refine_bounds(X_dis, U, mean_U, direct, streamlines, update_bnds);
+if load_only
+    return;
+end
 
 % TODO filter bit
 % Filter raw images, to attempt to remove artifacts
