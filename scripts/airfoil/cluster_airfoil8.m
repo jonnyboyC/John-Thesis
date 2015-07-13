@@ -14,11 +14,11 @@ for j = 1:3
 end
 
 problem_airfoil.tspan = 'test';
-problem_airfoil.num_modes = 4:6;
+problem_airfoil.num_modesG = 4:6;
 Galerkin_Proj(problem_airfoil);
 
-problem_airfoil.num_modes = 9:11;
+problem_airfoil.num_modesG = 9:11;
 Galerkin_Proj(problem_airfoil);
 
-problem_airfoil.num_modes = 14:16;
+problem_airfoil.num_modesG = 14:16;
 Galerkin_Proj(problem_airfoil);
