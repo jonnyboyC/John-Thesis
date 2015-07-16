@@ -1,4 +1,4 @@
-function [frob_km, frob_gm, prob_km, prob_gm, completed] = classify_Gal(km, gm, integration, tspan, num_clusters, i, direct)
+function [frob_km, frob_gm, prob_km, prob_gm, completed] = classify_Gal(km, gm, integration, tspan, num_clusters, int_time, i, direct)
  
 % inputs for gen_stochoastic_matrix
 save_figures = {};
@@ -17,6 +17,20 @@ for j = 1:m_comps
     s_comps = flow_ncomps(integration{i}.modal_amp.(m{j}));
     
     for k = 1:s_comps
+        
+        % If something happened the integration don't attempt to classify
+        if isempty(integration{i}.t.(m{j}).(s{k})) || isfield(integration{i}.t.(m{j}).(s{k}), 'error')
+            frob_km.(m{j}).(s{k}) = [];
+            frob_gm.(m{j}).(s{k}) = [];
+            
+            prob_km.(m{j}).(s{k}) = [];
+            prob_gm.(m{j}).(s{k}) = [];
+            
+            fprintf('%s %s took longer than %d seconds to integrate and was discarded\n', ...
+                strrep((m{j}), '_', ' '), strrep((s{k}), '_', ' '), int_time);
+            continue;
+        end
+        
         % Classify each point to a cluster
         sim_gm_groups = cluster(gm.models, integration{i}.modal_amp.(m{j}).(s{k})(:,2:end));
         sim_km_groups = knnsearch(km.centers, integration{i}.modal_amp.(m{j}).(s{k})(:,2:end));
@@ -40,14 +54,14 @@ for j = 1:m_comps
         
         % Temporary reporting
         if integration{i}.t.(m{j}).(s{k})(end) == tspan(end)
-            fprintf('%s %s finished got km_frob = %s and gm_frob = %s and km_prob = %s and gm_prob = %s\n', ...
-                strrep((m{j}), '_', ' '), strrep((s{k}), '_', ' '), num2str(frob_km.(m{j}).(s{k})), ...
-                num2str(frob_gm.(m{j}).(s{k})), num2str(prob_km.(m{j}).(s{k})), num2str(prob_gm.(m{j}).(s{k})));
+            fprintf('%s %s finished got km_frob = %2.4f and gm_frob = %2.4f and km_prob = %2.4f and gm_prob = %2.4f\n', ...
+                strrep((m{j}), '_', ' '), strrep((s{k}), '_', ' '),frob_km.(m{j}).(s{k}), ...
+                frob_gm.(m{j}).(s{k}), prob_km.(m{j}).(s{k}), prob_gm.(m{j}).(s{k}));
             completed.(m{j}).(s{k}) = true;
         else
-            fprintf('%s %s diverged got km_frob = %s and gm_frob = %s and km_prob = %s and gm_prob = %s\n', ...
-                strrep((m{j}), '_', ' '), strrep((s{k}), '_', ' '), num2str(frob_km.(m{j}).(s{k})), ...
-                num2str(frob_gm.(m{j}).(s{k})), num2str(prob_km.(m{j}).(s{k})), num2str(prob_gm.(m{j}).(s{k})));
+            fprintf('%s %s diverged got km_frob = %2.4f and gm_frob = %2.4f and km_prob = %2.4f and gm_prob = %2.4f\n', ...
+                strrep((m{j}), '_', ' '), strrep((s{k}), '_', ' '),frob_km.(m{j}).(s{k}), ...
+                frob_gm.(m{j}).(s{k}), prob_km.(m{j}).(s{k}), prob_gm.(m{j}).(s{k}));
             completed.(m{j}).(s{k}) = false;
         end
     end

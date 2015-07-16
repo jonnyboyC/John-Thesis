@@ -30,6 +30,9 @@ function [res_coef, res_int, res_scores] = Galerkin_Proj(varargin)
 % Specify time span for time integration. If the string "test" is instead
 % provided will integrate an equivalent amount of time as the empirical
 % data
+%
+% problem.int_time = 3600
+% Specifiy the maximum integration time in seconds.
 % 
 % problem.init = 1
 % Specify which image will constitute the initial conditions
@@ -80,7 +83,7 @@ fields = {  'num_modesG',   'plot_type',    'save_coef', ...
             'direct' ,      'Re0_gen',      'fft_window', ...
             'run_num',      'dissapation',  'time_int', ...
             'use_chunks',   'calc_coef',    'classify_sim', ...
-            'odesolver'};
+            'odesolver',    'int_time'};
         
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -97,6 +100,7 @@ run_num         = problem.run_num;
 plot_type       = problem.plot_type;
 save_coef       = problem.save_coef;
 override_coef   = problem.override_coef;
+int_time        = problem.int_time;
 tspan           = problem.tspan;
 init            = problem.init;
 direct          = problem.direct;
@@ -334,7 +338,7 @@ for i = 1:length(num_modesG)
         
         % Perform time integration
         [integration, time] = time_integration(odesolver, system, integration, modal_TKE, ...
-                                i, ao, t_scale, tspan, options);
+                                i, ao, t_scale, tspan, int_time, options);
         disp(time);
         
         %____ Plotting functions ____%
@@ -343,7 +347,7 @@ for i = 1:length(num_modesG)
         if classify_sim && num_modes <= 40
             idx = (cluster_range == num_modes-1);
             [frob_km{i}, frob_gm{i}, prob_km{i}, prob_gm{i}, completed{i}] = ...
-                classify_Gal(km{idx}, gm{idx}, integration, tspan, num_clusters, i, direct);
+                classify_Gal(km{idx}, gm{idx}, integration, tspan, num_clusters, int_time, i, direct);
         end
 
         % Prepare data
@@ -372,6 +376,10 @@ for i = 1:length(num_modesG)
             s = flow_comps(system{i}.eddy.(m{j}));
             s_comps = flow_ncomps(system{i}.eddy.(m{j}));
             for k = 1:s_comps
+                if isempty(integration{i}.t.(m{j}).(s{k})) || ...
+                        isfield(integration{i}.t.(m{j}).(s{k}), 'error')
+                    continue;
+                end
                 plot_data.t = integration{i}.t.(m{j}).(s{k});
                 plot_data.id = strrep([m{j} ' ' s{k}], '_', ' ');
                 plot_data.modal_amp = integration{i}.modal_amp.(m{j}).(s{k});

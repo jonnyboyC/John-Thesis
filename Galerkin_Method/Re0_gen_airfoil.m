@@ -7,7 +7,6 @@ if isempty(test)
 else
     test = str2double(test) + 2;
 end
-test = str2double(test);
 Re0 = data(:,2)*1000;
 Re0 = Re0(test);
 end

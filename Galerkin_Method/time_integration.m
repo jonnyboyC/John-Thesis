@@ -1,8 +1,9 @@
-function [integration, time] = time_integration(odesolver, system, integration, modal_TKE, i, ao, t_scale, tspan, options)
+function [integration, time] = time_integration(odesolver, system, integration, modal_TKE, ...
+                                            i, ao, t_scale, tspan, int_time, options)
 %#ok<*PFBNS>
 tic;
 
-vis = system{i}.vis;
+vis = system{i}.vis;        
 
 m = flow_comps(system{i}.coef);
 m_comps = flow_ncomps(system{i}.coef);
@@ -27,17 +28,48 @@ h = waitbar(0, 'Performing time integration on models in parrallel');
 
 % Fetch results as they become available
 for j = 1:cnt-1
-    % fetch results if it take over half an hour discard results
-    [~, t_job, modal_amp_job, type, subtype, time] = fetchNext(parfeval_futures);
+    % fetch results if it take over an hour discard results
+    [~, t_job, modal_amp_job, type, subtype, time] = fetchNext(parfeval_futures, int_time);
     
-    integration{i}.t.(type).(subtype) = t_job/t_scale;
-    integration{i}.modal_amp.(type).(subtype) = modal_amp_job;
-    
-    % update wait bar
-    waitbar(j/(cnt-1), h, sprintf('Galerkin system with %s %s finished in %6.1fs', ...
-        strrep(type, '_', ' '), strrep(subtype, '_', ' '), time));
+    if ~isempty(type) && ~isempty(subtype) && ~isempty(time)
+        integration{i}.t.(type).(subtype) = t_job/t_scale;
+        integration{i}.modal_amp.(type).(subtype) = modal_amp_job;
+
+        % update wait bar
+        waitbar(j/(cnt-1), h, sprintf('Galerkin system with %s %s finished in %6.1fs', ...
+            strrep(type, '_', ' '), strrep(subtype, '_', ' '), time));
+    end
 end
 
+cnt = 1;
+
+% Fill in model/submodels with a structure telling integration took too long
+for j = 1:m_comps
+    s = flow_comps(system{i}.coef.(m{j}));
+    s_comps = flow_ncomps(system{i}.coef.(m{j}));
+    
+    % Fill in blank model
+    if ~isfield(integration{1}.t, m{j})
+        integration{1}.t.(m{j}) = struct;
+        integration{1}.modal_amp.(m{j}) = struct;
+    end
+    
+    for k = 1:s_comps
+        % Fill in blank submodels
+        if ~isfield(integration{1}.t.(m{j}), s{k})
+            integration{1}.t.(m{j}).(s{k}) = [];
+            integration{1}.modal_amp.(m{j}).(s{k}) = [];
+            cancel(parfeval_futures(cnt))
+        end
+        % Report any errors and add the error structure
+        if ~isempty(parfeval_futures(cnt).Error)
+            integration{i}.t.(m{j}).(s{k}).error = true;
+            integration{i}.modal_amp.(m{j}).(s{k}).error = true;
+            disp(parfeval_futures(cnt).Error.message);
+        end
+        cnt = cnt + 1;
+    end
+end
 close(h);
 
 time = toc;

@@ -9,6 +9,10 @@ dp = water2Pa*data(:,4)/k;  % Dynamic Pressure (Pa)
 sp = water2Pa*data(:,5);    % Static Pressure (Pa)
 temp = (data(:,6) + 459.67)/1.8; % Temperature (K)
 test = regexp(direct, '[0-9]*', 'match');
-test = str2double(test)+1;
+if isempty(test)
+    test = 2;
+else
+    test = str2double(test) + 2;
+end
 u_scale = sqrt(2*R*temp(test)*(k*dp(test))/(k*(patm-sp(test)))); % Normalization velocity 
 end

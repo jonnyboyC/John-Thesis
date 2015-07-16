@@ -14,7 +14,7 @@ for i = 2:num_modes
         end
     end
     l_sum = l(i,i)*lambda2(i);
-    modal_eddy_vis(i) = -(vis + sum(sum(q_sum))/sum(l_sum));
+    modal_eddy_vis(i) = -(vis + sum(sum(q_sum))/l_sum);
     q_globe = q_globe + sum(sum(q_sum));
     l_globe = l_globe + sum(l_sum);
 end

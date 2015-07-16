@@ -18,6 +18,12 @@ if iscell(problem.num_modesG)
     problem.num_modesG(~idx) = [];
 end
 
+% Default for int_time
+if isempty(problem.int_time) || ~isscalar(problem.int_time)
+    fprintf('Using default value for int_time\nproblem.int_time = 3600\n\n');
+    problem.int_time = 3600;    
+end
+
 % Default for plot_type
 if isempty(problem.plot_type) || ~iscell(problem.plot_type);
     fprintf('Using default value for plot_type\nproblem.plot_type = {"amp", "fft", "energy"}\n\n');
