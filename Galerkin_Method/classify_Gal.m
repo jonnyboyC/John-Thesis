@@ -32,25 +32,31 @@ for j = 1:m_comps
         end
         
         % Classify each point to a cluster
-        sim_gm_groups = cluster(gm.models, integration{i}.modal_amp.(m{j}).(s{k})(:,2:end));
         sim_km_groups = knnsearch(km.centers, integration{i}.modal_amp.(m{j}).(s{k})(:,2:end));
+        sim_gm_groups = cluster(gm.models, integration{i}.modal_amp.(m{j}).(s{k})(:,2:end));
         
         % Generate a stochastic matrix from transitions
-        km_stoch_gal = gen_stochastic_matrix(num_clusters, sim_gm_groups);
-        gm_stoch_gal = gen_stochastic_matrix(num_clusters, sim_km_groups);      
+        km_MLE = gen_stochastic_matrix(num_clusters, sim_km_groups);
+        gm_MLE = gen_stochastic_matrix(num_clusters, sim_gm_groups);
         
-        % Determine the log probabiliy of observing a particular chain
-        sim_prob_km = calc_probability(km.stoch, sim_km_groups);
-        sim_prob_gm = calc_probability(gm.stoch, sim_gm_groups);
+        % log probability of observing the simulated chain using emp model
+        km_prob_ALE = calc_probability(km.stoch, sim_km_groups);
+        gm_prob_ALE = calc_probability(gm.stoch, sim_gm_groups);
         
-        frob_km.(m{j}).(s{k}) = norm(km_stoch_gal - km.stoch, 'fro');
-        frob_gm.(m{j}).(s{k}) = norm(gm_stoch_gal - gm.stoch, 'fro');
+        % log probability of observing the simulate chain using MLE model
+        km_prob_MLE = calc_probability(km_MLE, sim_km_groups);
+        gm_prob_MLE = calc_probability(gm_MLE, sim_gm_groups);
         
-        prob_km.(m{j}).(s{k}) = sim_prob_km - km.prob;
-        prob_gm.(m{j}).(s{k}) = sim_prob_gm - gm.prob;
+        % Frobenius norm of transition matrices
+        frob_km.(m{j}).(s{k}) = norm(km_MLE - km.stoch, 'fro');
+        frob_gm.(m{j}).(s{k}) = norm(gm_MLE - gm.stoch, 'fro');
         
-        plot_stochastic_matrix(km_stoch_gal, sim_km_groups, save_figures, direct, h_km);
-        plot_stochastic_matrix(gm_stoch_gal, sim_gm_groups, save_figures, direct, h_gm);
+        % Relative likelihood between observed chains
+        prob_km.(m{j}).(s{k}) = km_prob_ALE - km_prob_MLE;
+        prob_gm.(m{j}).(s{k}) = gm_prob_ALE - gm_prob_MLE;
+        
+        plot_stochastic_matrix(km_MLE, sim_km_groups, save_figures, direct, h_km);
+        plot_stochastic_matrix(gm_MLE, sim_gm_groups, save_figures, direct, h_gm);
         
         % Temporary reporting
         if integration{i}.t.(m{j}).(s{k})(end) == tspan(end)

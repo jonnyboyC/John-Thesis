@@ -1,4 +1,4 @@
-function system_coefs = load_coef(direct, run_num, custom)
+function system_coefs = load_coef(direct, run_num, num_modes, custom)
 % LOAD_COEF load the coefficients of a previous run for time integration
 %
 % system_coefs = LOAD_COEF(direct, run_num, custom)
@@ -12,5 +12,5 @@ else
         filesep 'Coefficients_run_' num2str(run_num) '.mat'], 'results_coef');
 end
 
-system_coefs = vars.results_coef.system_coefs;
+system_coefs = vars.results_coef.system;
 end

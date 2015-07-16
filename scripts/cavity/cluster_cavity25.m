@@ -8,11 +8,12 @@ setup_proj;
 problem_cavity.direct = direct;
 
 
-for j = 1:3
+for j = 1
     problem_cavity.num_clusters = 8 + (j-1)*2;
     POD_Gen(problem_cavity);
 end
 
+problem_cavity.int_time = 7200;
 problem_cavity.tspan = 'test';
 problem_cavity.num_modesG = 4:6;
 Galerkin_Proj(problem_cavity);

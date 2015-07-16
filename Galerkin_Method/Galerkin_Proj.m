@@ -326,7 +326,7 @@ for i = 1:length(num_modesG)
         
         % Load coefficient if only time integration was selected 
         if ~calc_coef 
-            system{i} = load_coef(direct, run_num, custom);            
+            system{i} = load_coef(direct, run_num, num_modes, custom);            
         end
         
         % Intial conditions and integration options
