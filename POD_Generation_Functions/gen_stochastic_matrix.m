@@ -1,4 +1,4 @@
-function stoc_matrix = gen_stochastic_matrix(num_clusters, groups)
+function stoc_matrix = gen_stochastic_matrix(num_clusters, groups, valid)
 % Generate the approximate stochastic matrix from the group data
 
 stoc_matrix = zeros(num_clusters);
@@ -16,8 +16,11 @@ for i = 1:num_clusters
         row_col = 1;
     end
     row = row/row_col;
-    blanks = sum(row == 0);
-    row = (1 - 0.001*blanks)*row;
-    row(row == 0) = 0.001;
+    % Modifiy stochastic matrix so all transitions are valid
+    if valid
+        blanks = sum(row == 0);
+        row = (1 - 0.001*blanks)*row;
+        row(row == 0) = 0.001;
+    end
     stoc_matrix(i,:) = row;
 end

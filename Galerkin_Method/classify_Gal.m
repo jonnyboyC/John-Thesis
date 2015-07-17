@@ -10,6 +10,8 @@ m_comps = flow_ncomps(integration{i}.modal_amp);
 h_km = figure;
 h_gm = figure;
 
+valid = false;
+
 % Loop through each model calculating scores
 for j = 1:m_comps
     
@@ -36,8 +38,8 @@ for j = 1:m_comps
         sim_gm_groups = cluster(gm.models, integration{i}.modal_amp.(m{j}).(s{k})(:,2:end));
         
         % Generate a stochastic matrix from transitions
-        km_MLE = gen_stochastic_matrix(num_clusters, sim_km_groups);
-        gm_MLE = gen_stochastic_matrix(num_clusters, sim_gm_groups);
+        km_MLE = gen_stochastic_matrix(num_clusters, sim_km_groups, valid);
+        gm_MLE = gen_stochastic_matrix(num_clusters, sim_gm_groups, valid);
         
         % log probability of observing the simulated chain using emp model
         km_prob_ALE = calc_probability(km.stoch, sim_km_groups);
