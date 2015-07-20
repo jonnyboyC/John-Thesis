@@ -28,6 +28,8 @@ for j = 1:m_comps
             prob_km.(m{j}).(s{k}) = [];
             prob_gm.(m{j}).(s{k}) = [];
             
+            completed.(m{j}).(s{k}) = false;
+            
             fprintf('%s %s took longer than %d seconds to integrate and was discarded\n', ...
                 strrep((m{j}), '_', ' '), strrep((s{k}), '_', ' '), int_time);
             continue;

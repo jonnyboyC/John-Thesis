@@ -47,6 +47,7 @@ drawnow;
 
 % Save figure in Figure\Galerkin folder
 saveas(h, file_name, 'fig');
+saveas(h, file_name, 'png');
 
 if nargout == 1
     handle = h;

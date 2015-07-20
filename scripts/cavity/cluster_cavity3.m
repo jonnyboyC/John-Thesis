@@ -13,7 +13,7 @@ for j = 1
     POD_Gen(problem_cavity);
 end
 
-problem_cavity.int_time = 7200;
+problem_cavity.int_time = 14400;
 problem_cavity.tspan = 'test';
 problem_cavity.num_modesG = 4:6;
 Galerkin_Proj(problem_cavity);

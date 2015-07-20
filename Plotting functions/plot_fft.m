@@ -36,29 +36,27 @@ freq_response_dB = 20*log10(freq_response);
 hf = figure;
 axf = newplot;
 
-% setup plot phase angle
-
-% Return if we have no information to avoid throwing error
-if size(freq_response_dB,1) < 2
-   if nargout == 1
-       handle = hf;
-   end
-   return
-end
-
-% plot frequency response Label axis and title
-plot(fspan, freq_response_dB(:, num_plot));
+% Label axis and title
 axf.XLabel.String = 'frequency (Hz)';
 axf.YLabel.String = 'Frequency Response (dB)';
 axf.Title.String  = ['Modal Frequency Response ' id];
 axf.XLim = xlim;
 
-% Generate legend
-leg_names = cell(size(num_plot,1),1);
-for i = 1:size(num_plot,2)
-   leg_names{i} = ['Modal FRF ' num2str(num_plot(i))]; 
+% setup plot phase angle
+
+% Return if we have no information to avoid throwing error
+if size(freq_response_dB,1) >= 2
+    % plot frequency response 
+    plot(fspan, freq_response_dB(:, num_plot));
+    
+    % Generate legend
+    leg_names = cell(size(num_plot,1),1);
+    for i = 1:size(num_plot,2)
+        leg_names{i} = ['Modal FRF ' num2str(num_plot(i))];
+    end
+    legend(leg_names);
 end
-legend(leg_names);
+
 
 if custom
     direct_ext = [direct filesep 'Figures' filesep type filesep 'modes_' ...
@@ -77,6 +75,7 @@ file_name = [file_name '_' num2str(ceil(sample_freq)) 'Hz'];
 drawnow;
 
 saveas(hf, file_name, 'fig');
+saveas(hf, file_name, 'png')
 
 if nargout == 1
     handle = hf;
