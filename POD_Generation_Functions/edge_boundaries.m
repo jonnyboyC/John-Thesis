@@ -14,7 +14,7 @@ grad = cell(dims, 1);
 [grad{:}] = gradient(bnd_idx);
 
 for i = 1:dims
-    bnd_X.(X.direct{i}) = grad{i};
+    bnd_X.(x{i}) = grad{i};
 end
 
 comps = flow_ncomps(bnd_X);
@@ -43,7 +43,6 @@ end
 % Generate a comps dimension matrix with true on the exterior
 exterior = false(size(bnd_idx));
 
-X = rmfield(X, 'direct');
 for i = 1:comps
     idx_1 = flow_index([1, 1], i, exterior);
     idx_end = flow_index([0, 0], i, exterior);

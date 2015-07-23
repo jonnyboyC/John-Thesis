@@ -8,9 +8,10 @@ function [s_X, nstencil] = generate_stencil(X, methods_X, dimensions)
 % produces a size(x) by 9 matrix for sX sY determining the weight at each
 % point
 
-x_dims = flow_comps_ip(X);
-x = X.(x_dims{1});
-y = X.(x_dims{2});
+xi = flow_comps_ip(X);
+x_dims = flow_comps_ip(methods_X);
+x = X.(xi{1});
+y = X.(xi{2});
 
 methodsX = methods_X.(x_dims{1});
 methodsY = methods_X.(x_dims{2});

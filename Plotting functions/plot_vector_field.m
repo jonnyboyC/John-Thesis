@@ -62,7 +62,7 @@ else
     if nargin == 2 
         hold(ax, 'on')
         h_dir = quiver(ax, short_X.(x{1}), short_X.(x{2}),  short_U.(u{1}),  ...
-            short_U.(u{2}), 'color', [0 0 0]);
+            short_U.(u{2}), 'color', [1 1 1]);
         hold(ax, 'off')
     else
         h_dir.UData = short_U.(u{1});

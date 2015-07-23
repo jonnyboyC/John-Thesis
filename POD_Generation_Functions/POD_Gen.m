@@ -87,7 +87,7 @@ fields = {  'num_images',   'load_raw',     'save_pod', ...
             'update_bnds',  'num_clusters', 'exp_sampling_rate',...
             'cluster',      'average_mesh', 'filter', ...
             'streamlines',  'non_dim',      'xy_units', ...
-            'load_handle',  'load_only'};
+            'load_handle',  'load_only',    'grid_direct'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -119,6 +119,7 @@ non_dim     = problem.non_dim;
 xy_units    = problem.xy_units;
 load_only   = problem.load_only;
 exp_sampling_rate = problem.exp_sampling_rate;
+grid_direct = problem.grid_direct;
 
 clear problem
 
