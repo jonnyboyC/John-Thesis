@@ -91,6 +91,7 @@ fields = {  'num_images',   'load_raw',     'save_pod', ...
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
+    
     problem = parse_inputs(fields, @setdefaults_pod, varargin{1});
 else
     fprintf('Provide a single structure as input, use help POD_Gen for information.\n');
