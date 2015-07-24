@@ -17,7 +17,7 @@ dims = flow_dims(X);
 % Crop images if requested
 if ~isempty(image_range)
     % Quick check if crop index matches number of components
-    if length(image_range) > comps
+    if length(image_range) ~= dims
         error('provide a image_range vector of 2 * number of components');
     end
     
@@ -47,46 +47,7 @@ if non_dim
     
     l_scale = 1;
     u_scale = 1;
-end
-
-% Find the direct alone the matrix cooresponding to the coordinates 
-X.direct = cell(dims,1);
-
-for i = 1:comps
-    grad = [];
-    
-    % switch based on size of coordinate matrix
-    switch ndims(X.(x{i})) %
-        case 1
-            grad{1} = gradient(X.(x{i}));
-        case 2
-            [grad{1}, grad{2}] = gradient(X.(x{i}));
-        case 3
-            [grad{1}, grad{2}, grad(3)] = gradient(X.(x{i}));
-    end
-    
-    % Get the average change along a dimension
-    grad = cellfun(@(x) mean(abs(x(:))), grad);
-    
-    % If no difference if found continue
-    if range(grad) == 0
-        continue;
-    end
-    [~, idx] = max(grad);
-    
-    % Assign the coordinate main to the index cooresponding to the
-    % dimension
-    if isempty(X.direct{idx}) 
-        X.direct{idx} = x{i};
-    else
-        for j = 1:dims;
-            if isempty(X.direct{j})
-               X.direct{j} = x{i}; 
-            end
-        end
-    end
-end
-    
+end    
 
 % if coordinates are in millimeters convert to meters
 if strcmp(xy_units, 'mm')

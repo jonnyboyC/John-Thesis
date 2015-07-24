@@ -25,6 +25,11 @@ if isempty(problem.load_only) || ~islogical(problem.load_only)
     problem.load_only = false;
 end
 
+% Default for read_only
+if isempty(problem.grid_direct) || ~iscell(problem.grid_direct)
+    fprintf('Using default value for grid_direct\nproblem.grid_direct = {}\n\n');
+    problem.grid_direct = {};
+end
 
 % Default for save_pod
 if isempty(problem.save_pod) || ~islogical(problem.save_pod)
@@ -70,13 +75,7 @@ end
 
 % Check to make sure incorrect strings are not passed
 correct = {'fig', 'jpg', 'png'};
-correct_members = ismember(problem.save_figures, correct);
-for i = 1:size(correct_members,2)
-    if ~correct_members(i)
-        fprintf('%s is not a correct input\n', problem.save_figure{i});
-    end
-end
-problem.save_figures = problem.save_figures(correct_members);
+problem.save_figures = list_check(problem.save_figures, correct, 'save_figures');
 
 % Default for xy_units
 if isempty(problem.xy_units) || ~ischar(problem.xy_units)
@@ -121,17 +120,9 @@ if  ~iscell(problem.flow_flip)
     problem.flow_flip = {};     % Save figures as .fig and .png
 end
 
-% TODO check that this is good
-
-% Check to make sure incorrect strings are not passed
+% Check entries are correct
 correct = {'x', 'y', 'z', 'u', 'v', 'w'};
-correct_members = ismember(problem.flow_flip, correct);
-for i = 1:size(correct_members,2)
-    if ~correct_members(i)
-        fprintf('%s is not a correct input\n', problem.flow_flip{i});
-    end
-end
-problem.flow_flip = problem.flow_flip(correct_members);
+problem.flow_flip = list_check(problem.flow_flip, correct, 'flow_flip');
 
 % Default for update_bnds
 if isempty(problem.update_bnds) || ~islogical(problem.update_bnds)

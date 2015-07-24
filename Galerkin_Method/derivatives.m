@@ -58,13 +58,13 @@ end
 %% Method selection and parametric transform setup
 
 % Select finite element method and produce mesh stenciles
-methods_X = select_method(bnd_idx, bnd_X, dimensions, true);
+methods_X = select_method(bnd_idx, bnd_X, dimensions, x, true);
 
 % If grid is not uniform set up parametric transform
 if ~uniform  
     
     % Copy dimensions for readability
-    xi = x;
+    xi = {'xi', 'eta', 'phi'};
     
     % Create meshs of indices 
     for i = 1:dims
@@ -78,16 +78,17 @@ if ~uniform
 
         Xi.(xi{i}) = repmat(indices, temp_dims);
     end
+    xi = flow_comps(Xi);
     
     % Select finite element method and produce mesh stenciles
-    [methods_Xi] = select_method(ones(dimensions), bnd_X, dimensions, true);
+    [methods_Xi] = select_method(ones(dimensions), bnd_X, dimensions, xi, true);
     [stencil_Xi, nstencil] = generate_stencil(Xi, methods_Xi, dimensions);
     
     % Preallocate indices derivatives
     for i = 1:dims
         XdXi.(xi{i}) = struct([]);
         for j = 1:dims
-            x_temp.(xi{j}) = zeros(dimensions);
+            x_temp.(x{j}) = zeros(dimensions);
         end
         XdXi.(xi{i}) = x_temp;
     end
@@ -110,7 +111,7 @@ if ~uniform
                 stencil_idx{end} = k;
                 idx = flow_index([10-k, 1-k], i, padded_var);
                 XdXi.(xi{j}).(x{i}) = XdXi.(xi{j}).(x{i}) + ...
-                    padded_var(idx{:}).*stencil_Xi.(x{i})(stencil_idx{:});
+                    padded_var(idx{:}).*stencil_Xi.(xi{i})(stencil_idx{:});
             end
         end
     end

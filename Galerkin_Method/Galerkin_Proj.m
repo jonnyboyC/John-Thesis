@@ -255,6 +255,9 @@ end
 for i = 1:length(num_modesG)
     fprintf('\n');
     
+    integration{i}.t = struct;
+    integration{i}.modal_amp = struct;
+    
     % Determine if custom modes have been used, and setup appropriately 
     if iscell(num_modesG)
         custom = true;
@@ -368,13 +371,13 @@ for i = 1:length(num_modesG)
 
         close all
         
-        m = flow_comps(system{i}.eddy);
-        m_comps = flow_ncomps(system{i}.eddy);
+        m = flow_comps(integration{i}.t);
+        m_comps = flow_ncomps(integration{i}.t);
         
         % Cycle through and plot all requested figures
         for j = 1:m_comps
-            s = flow_comps(system{i}.eddy.(m{j}));
-            s_comps = flow_ncomps(system{i}.eddy.(m{j}));
+            s = flow_comps(integration{i}.t.(m{j}));
+            s_comps = flow_ncomps(integration{i}.t.(m{j}));
             for k = 1:s_comps
                 if isempty(integration{i}.t.(m{j}).(s{k})) || ...
                         isfield(integration{i}.t.(m{j}).(s{k}), 'error')
