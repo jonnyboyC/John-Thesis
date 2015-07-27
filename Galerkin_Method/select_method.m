@@ -142,35 +142,41 @@ while i <= dimensions(1)
 end
 
 if closed_bnd
-    % Determine portion of boundary represented by solid surface
+    % Fine all points on a boundary
     solid_bnd = double(bnd_idx == 0);
+    range = [-2, -1, 1, 2];
     
+    % Remove those that are within 2 indices of the edge
+    for i = 1:comps
+        idx_front = flow_index([1 2], i, solid_bnd);
+        idx_back = flow_index([-1 0], i, solid_bnd);
+        solid_bnd(idx_front{:}) = 0;
+        solid_bnd(idx_back{:}) = 0;
+    end
+    
+    % Remove all portions of that are logistical boundaries
     for i = 1:comps
         solid_bnd(bnd_X.(x{i}) ~= 0) = 0;
     end
     
-    centralX = zeros(dimensions);
-    centralY = zeros(dimensions);
-    
-    % Index matrix of two indexes to the left and right of solid boundary
-    centralX(logical(circshift(solid_bnd, [1 0]) + circshift(solid_bnd, [2 0]) +...
-        circshift(solid_bnd, [-1 0]) + circshift(solid_bnd, [-2 0]))) = 1;
-    
-    % Index matrix of two indexes to the above and below of solid boundary
-    centralY(logical(circshift(solid_bnd, [0 1]) + circshift(solid_bnd, [0 2]) +...
-        circshift(solid_bnd, [0 -1]) + circshift(solid_bnd, [0 -2]))) = 1;
-    
-    % remove points in the boundary and by the edge of image
-    centralX(bnd_idx <=0) = 0;
-    centralX(1:2, :) = 0;
-    centralX(end-1:end, :) = 0;
-    
-    centralY(bnd_idx <=0) = 0;
-    centralY(:, 1:2) = 0;
-    centralY(:, end-1:end) = 0;
-
-    % Set these methods to 4th order central
-    methods_X.(xi{2})(logical(centralX)) = 9;
-    methods_X.(xi{1})(logical(centralY)) = 9;
+    % Change all phyiscal boundaries finite different to 4th order central
+    for i = 1:comps
+        central = zeros(dimensions);
+            
+        shift = zeros(1, comps);
+        shift(i) = 1;
+            
+        for j = 1:length(range)
+            central(logical(circshift(solid_bnd, range(j)*shift))) = 1;
+        end
+        
+        central(bnd_idx <= 0) = 0;
+        idx_front = flow_index([1 2], i, solid_bnd);
+        idx_back = flow_index([-1 0], i, solid_bnd);
+        
+        central(idx_front{:}) = 0;
+        central(idx_back{:}) = 0;
+        methods_X.(xi{i})(logical(central)) = 9;
+    end
 end
 end
