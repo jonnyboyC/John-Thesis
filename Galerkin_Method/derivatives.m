@@ -104,7 +104,7 @@ if ~uniform
         
         for j = 1:dims
             % Pad indices
-            padded_var = cat(i, padding, reshape(X.(x{j}), dimensions), padding);
+            padded_var = cat(i, padding, reshape(X.(xi{j}), dimensions), padding);
 
             % Calculte first order derivatives
             for k = 1:nstencil
