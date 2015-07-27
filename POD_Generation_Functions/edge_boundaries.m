@@ -13,6 +13,13 @@ grad = cell(dims, 1);
 % Determine the vector normal of the boundary
 [grad{:}] = gradient(bnd_idx);
 
+% gradient functions returnt the gradient in dim 2 first so switch
+if length(grad) >= 2
+    temp = grad{2};
+    grad{2} = grad{1};
+    grad{1} = temp;
+end
+
 for i = 1:dims
     bnd_X.(x{i}) = grad{i};
 end

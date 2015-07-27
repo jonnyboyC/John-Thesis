@@ -128,7 +128,7 @@ uiwait(f);
         flow_bounds = htable2.Data;
         
         % Intially set all to in flow
-        bnd_idx_temp = ones(dimensions);
+        bnd_idx_temp = zeros(dimensions);
                     
         idx = struct_index({[1 1]}, dims(end), U);
         comps = flow_ncomps(U);
@@ -145,7 +145,7 @@ uiwait(f);
         
         % Set all points with at least one image not captured as in boundary
         bnd_idx_temp(bnd_idx_temp > images/100) = -1;
-        bnd_idx_temp(bnd_idx_temp > 1) = 1;
+        bnd_idx_temp(bnd_idx_temp >= 0) = 1;
         
 
         % Check that a full row has been filled in 

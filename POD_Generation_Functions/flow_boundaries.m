@@ -14,7 +14,7 @@ images = size(U.(u{1}), dims);
 idx = flow_index({[1 1]}, dims(end), U);
 
 % Intially set all to in flow
-bnd_idx = ones(size(squeeze(U.(u{1})(idx{:}))));
+bnd_idx = zeros(size(squeeze(U.(u{1})(idx{:}))));
 
 if ~ismatrix(bnd_idx)
     error(['Error currently bnd_idx has [only had a partial conversion to full 3d' ...
@@ -37,7 +37,7 @@ end
 % Set sets points with more one percent of image of zero velocity to out of
 % the flow
 bnd_idx(bnd_idx > images/100) = -1;
-bnd_idx(bnd_idx > 1) = 1;
+bnd_idx(bnd_idx >= 0) = 1;
 
 % TODO another point where this needs to be updated to work for full 3D
 % Current thoughts is to manually apply individiual 1D convolutions of the
