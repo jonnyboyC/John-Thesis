@@ -75,9 +75,12 @@ function [res_pod, res_clust] = POD_Gen(varargin)
 %   select this option to simply load the files from raw and generate a
 %   mask. Primarily would be used to transfer data to a compute which can't
 %   use the proprietary read files
+%
+%   problem.num_cores = 'auto'
+%   Set the max number of cores to be used for POD_Gen, auto will set this
+%   to the number of cores in the computer.
 
 format long g
-%close all
 clc
 
 % List of fields that will be checked
@@ -87,7 +90,8 @@ fields = {  'num_images',   'load_raw',     'save_pod', ...
             'update_bnds',  'num_clusters', 'exp_sampling_rate',...
             'cluster',      'average_mesh', 'filter', ...
             'streamlines',  'non_dim',      'xy_units', ...
-            'load_handle',  'load_only',    'grid_direct'};
+            'load_handle',  'load_only',    'grid_direct', ...
+            'num_cores'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -99,34 +103,33 @@ else
 end
 
 % Create more readable names
-num_images  = problem.num_images;
-load_raw    = problem.load_raw;
-load_handle = problem.load_handle;
-save_pod    = problem.save_pod;
-image_range = problem.image_range;
-direct      = problem.direct;
-l_scale     = problem.l_scale;
-u_scale_gen = problem.u_scale_gen;
-save_figures= problem.save_figures;
-flow_flip   = problem.flow_flip;
-update_bnds = problem.update_bnds;
-num_clusters= problem.num_clusters;
-cluster     = problem.cluster;
-filter      = problem.filter;
-streamlines = problem.streamlines;
-average_mesh= problem.average_mesh;
-non_dim     = problem.non_dim;
-xy_units    = problem.xy_units;
-load_only   = problem.load_only;
+num_images      = problem.num_images;
+load_raw        = problem.load_raw;
+load_handle     = problem.load_handle;
+save_pod        = problem.save_pod;
+image_range     = problem.image_range;
+direct          = problem.direct;
+l_scale         = problem.l_scale;
+u_scale_gen     = problem.u_scale_gen;
+save_figures    = problem.save_figures;
+flow_flip       = problem.flow_flip;
+update_bnds     = problem.update_bnds;
+num_clusters    = problem.num_clusters;
+cluster         = problem.cluster;
+filter          = problem.filter;
+streamlines     = problem.streamlines;
+average_mesh    = problem.average_mesh;
+non_dim         = problem.non_dim;
+xy_units        = problem.xy_units;
+load_only       = problem.load_only;
 exp_sampling_rate = problem.exp_sampling_rate;
-grid_direct = problem.grid_direct;
+num_cores       = problem.num_cores;
+% grid_direct = problem.grid_direct; TODO double check before removing
 
 clear problem
 
-% Check status of parrallel pool
-if isempty(gcp('nocreate'));
-    parpool('local');
-end
+% Setup MATLAB to a max number of cores
+setup_cores(num_cores);
 
 %% Load and Preprocess Data
 

@@ -83,7 +83,7 @@ fields = {  'num_modesG',   'plot_type',    'save_coef', ...
             'direct' ,      'Re0_gen',      'fft_window', ...
             'run_num',      'dissapation',  'time_int', ...
             'use_chunks',   'calc_coef',    'classify_sim', ...
-            'odesolver',    'int_time'};
+            'odesolver',    'int_time',     'num_cores'};
         
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -112,13 +112,13 @@ time_int        = problem.time_int;
 classify_sim    = problem.classify_sim;
 use_chunks      = problem.use_chunks;
 odesolver       = problem.odesolver;
+num_cores       = problem.num_cores;
+
 
 clear problem
 
-% Check status of parrallel pool
-if isempty(gcp('nocreate'));
-    parpool('local');
-end
+% Setup MATLAB to a max number of cores
+setup_cores(num_cores);
 
 fprintf('\nLoading POD variables\n\n');
 
@@ -333,7 +333,8 @@ for i = 1:length(num_modesG)
         end
         
         % Intial conditions and integration options
-        options = odeset('RelTol', 1e-8, 'AbsTol', 1e-10);
+%         options = odeset('RelTol', 1e-8, 'AbsTol', 1e-10);
+        options = odeset('RelTol', 1e-6, 'AbsTol', 1e-8);
         ao = modal_amp(init,[1 modes]);
         
         % Perform final manipulation to prep integration

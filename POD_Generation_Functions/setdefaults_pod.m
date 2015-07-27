@@ -19,16 +19,23 @@ if isempty(problem.streamlines) || ~islogical(problem.streamlines)
     problem.streamlines = true;        % plot pod modes with quivers
 end
 
-% Default for read_only
-if isempty(problem.load_only) || ~islogical(problem.load_only)
-    fprintf('Using default value for read_only\nproblem.load_only = false\n\n');
-    problem.load_only = false;
+% Default for num_cores
+if isempty(problem.num_cores) || ~isscalar(problem.num_cores) || ...
+        (ischar(problem.num_cores) && strcmp(problem.num_cores, 'auto'))
+    fprintf('Using default value for num_cores\nproblem.num_cores = "num_cores"\n\n');
+    problem.num_cores = 'auto';        % set to system max
 end
 
 % Default for read_only
+if isempty(problem.load_only) || ~islogical(problem.load_only)
+    fprintf('Using default value for read_only\nproblem.load_only = false\n\n');
+    problem.load_only = false;      % load to produce mask and mat file
+end
+
+% Default for grid_direct
 if isempty(problem.grid_direct) || ~iscell(problem.grid_direct)
     fprintf('Using default value for grid_direct\nproblem.grid_direct = {}\n\n');
-    problem.grid_direct = {};
+    problem.grid_direct = {};       % TODO
 end
 
 % Default for save_pod

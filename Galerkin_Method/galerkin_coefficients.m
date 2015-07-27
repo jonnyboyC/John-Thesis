@@ -59,7 +59,7 @@ if use_chunks == false
     
     % If using more than 700 modes clear matlab workers for memory
     if num_modes > 700
-       delete(gcp('nocreate')); 
+       change_pool(0); 
     end
     
     % Quadractic terms preallocation
@@ -86,8 +86,9 @@ if use_chunks == false
 else
     
     % Create one worker to save files to harddrive
-    delete(gcp);
-    pool = parpool('local', 1);
+    if num_cores ~= 1
+        change_pool(1);
+    end
     
     exists = dir([direct '\Viscous Coeff\cduv.mat']);
     if size(exists,1) == 1
@@ -124,9 +125,6 @@ else
             wait(f);
         end
     end
-
-    % Delete 1 matlab worker
-    delete(pool)
     
     % Pull for matrix into memory
     q = data.q;
@@ -146,9 +144,8 @@ if ~custom
          'l', 'q', 'cutoff', 'run_num', '-v7.3'); 
 end
 
-if isempty(gcp('nocreate'));
-    parpool('local');
-end
+% restore parpool if changed
+change_pool(num_cores - 1);
 end
 
 % Allow writing to disk asynchronously
