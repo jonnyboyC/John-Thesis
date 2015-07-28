@@ -4,7 +4,7 @@ function pool = change_pool(request)
 % pool = CHANGE_POOL(request) change pool to request workers
 
 pool = gcp('nocreate');
-cluster = parcluster('local');
+cluster = parcluster;
 cores = feature('numcores');
 
 if ischar(request) && strcmp(request, 'auto')

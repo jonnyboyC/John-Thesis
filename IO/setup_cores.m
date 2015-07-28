@@ -5,7 +5,7 @@ function setup_cores(request)
 % set to system maximum
 
 cores = feature('numcores');
-cluster = parcluster('local');
+cluster = parcluster;
 
 % maxNumCompThread will be depreciated soon, but for now will use.
 warning('off', 'MATLAB:maxNumCompThreads:Deprecated');
