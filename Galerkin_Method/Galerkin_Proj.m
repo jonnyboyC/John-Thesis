@@ -3,74 +3,78 @@ function [res_coef, res_int, res_scores] = Galerkin_Proj(varargin)
 % Stokes. This requires POD_GEN to be run, can produce and save graphs
 % see below return results into RES if output is requested
 %
-% GALERKIN_PROJ() prompt user for analysis folders for a given test run,
-% will use all defaults detailed below
+%   GALERKIN_PROJ() prompt user for analysis folders for a given test run,
+%   will use all defaults detailed below
 % 
-% GALERKIN_PROJ(problem) Using fields provided in the structure PROBLEM
-% sets up analysis specified by PROBLEM. all unfilled fields go to defaults
+%   GALERKIN_PROJ(problem) Using fields provided in the structure PROBLEM
+%   sets up analysis specified by PROBLEM. all unfilled fields go to defaults
 %
-% problem.num_modesG = 10
-% Specify the number of modes that will calculated in Galerkin projection
+%   problem.num_modesG = 10
+%   Specify the number of modes that will calculated in Galerkin projection
 %
-% problem.plot_type = {'amp', 'fft', 'energy'}
-% Specify which outout graphes are desired, current options are modal
-% amplitude 'amp', fourier fast transform 'fft', system energy 'energy', 
-% 'video' which produces a video of the simulated flow using quivers, 
-% 'video stream' will produce a video of simulated flow using streamlines,
-% caution very slow
+%   problem.plot_type = {'amp', 'fft', 'energy'}
+%   Specify which outout graphes are desired, current options are modal
+%   amplitude 'amp', fourier fast transform 'fft', system energy 'energy', 
+%   'video' which produces a video of the simulated flow using quivers, 
+%   'video stream' will produce a video of simulated flow using streamlines,
+%   caution very slow
 % 
-% problem.save_coef = true
-% Save relvant values to at .mat file
+%   problem.save_coef = true
+%   Save relvant values to at .mat file
 %
-% problem.override_coef = false
-% Overwrite previous coefficients for the same run number, if the run
-% numbers are different new coefficients will be calcfinteulated
+%   problem.override_coef = false
+%   Overwrite previous coefficients for the same run number, if the run
+%   numbers are different new coefficients will be calcfinteulated
 %
-% problem.tspan = 0:0.0001:1
-% Specify time span for time integration. If the string "test" is instead
-% provided will integrate an equivalent amount of time as the empirical
-% data
+%   problem.tspan = 0:0.0001:1
+%   Specify time span for time integration. If the string "test" is instead
+%   provided will integrate an equivalent amount of time as the empirical
+%   data
 %
-% problem.int_time = 3600
-% Specifiy the maximum integration time in seconds.
+%   problem.int_time = 3600
+%   Specifiy the maximum integration time in seconds.
 % 
-% problem.init = 1
-% Specify which image will constitute the initial conditions
+%   problem.init = 1
+%   Specify which image will constitute the initial conditions
 %
-% problem.direct = ''
-% Specify directory that will be searched for POD data, default is to
-% prompt user
+%   problem.direct = ''
+%   Specify directory that will be searched for POD data, default is to
+%   prompt user
 %
-% problem.Re0_gen = @Re0_gen_shear
-% Fuction handle used to produced Reynolds number for the run, takes one
-% input of working project directory
+%   problem.Re0_gen = @Re0_gen_shear
+%   Fuction handle used to produced Reynolds number for the run, takes one
+%   input of working project directory
 %
-% problem.fft_window = [0 2000]
-% Specify the hertz range that the fft plot should capture
+%   problem.fft_window = [0 2000]
+%   Specify the hertz range that the fft plot should capture
 %
-% problem.run_num = 'first'
-% Specify which run this Galerkn Projection should be based from, default
-% is to use the most recent
+%   problem.run_num = 'first'
+%   Specify which run this Galerkn Projection should be based from, default
+%   is to use the most recent
 %
-% problem.dissapation = {'Least Squares', 'Averaged'}
-% Specify which viscious dissapation method(s) to use
+%   problem.dissapation = {'Least Squares', 'Averaged'}
+%   Specify which viscious dissapation method(s) to use
 %
-% problem.time_int = true
-% If false no time integration or plotting will be performed, used to
-% generated the Galerkin systems for MOD_POD
+%   problem.time_int = true
+%   If false no time integration or plotting will be performed, used to
+%   generated the Galerkin systems for MOD_POD
 %
-% problem.calc_coef = true
-% If false attempt to locate previous runs files to time integration
+%   problem.calc_coef = true
+%   If false attempt to locate previous runs files to time integration
 %
-% problem.use_chunks = false
-% Set this to true if you are running out of memeory well write values of q
-% to disk 
+%   problem.use_chunks = false
+%   Set this to true if you are running out of memeory well write values of q
+%   to disk 
 %
-% problem.classify_sim = true
-% Classify simulated results to emprical data
+%   problem.classify_sim = true
+%   Classify simulated results to emprical data
 % 
-% problem.odesolver = @ode113
-% Select the ode solver to be used for time integration.
+%   problem.odesolver = @ode113
+%   Select the ode solver to be used for time integration.
+%
+%   problem.num_cores = 'auto'
+%   Set the max number of cores to be used for POD_Gen, auto will set this
+%   to the number of cores in the computer.
 
 % Set format, clear figures, and set up correct directory
 format long g

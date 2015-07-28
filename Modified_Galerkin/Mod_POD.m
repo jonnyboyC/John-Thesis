@@ -54,6 +54,10 @@ function Mod_POD(varargin)
 %
 %   problem.classify_sim = true
 %   Classify simulated results to emprical data
+%
+%   problem.num_cores = 'auto'
+%   Set the max number of cores to be used for POD_Gen, auto will set this
+%   to the number of cores in the computer.
 
 format long g
 close all
@@ -64,7 +68,7 @@ fields = {  'num_modes',    'plot_type',    'save_mod', ...
             'init',         'line_range',   'direct' ,...
             'run_num',      'models',       'submodels',...   
             'fft_window',   'tspan',        'basis_modes',...
-            'custom',       'classify_sim'};
+            'custom',       'classify_sim', 'num_cores'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -89,13 +93,12 @@ fft_window  = problem.fft_window;
 tspan       = problem.tspan;
 custom      = problem.custom;
 classify_sim= problem.classify_sim;
+num_cores   = problem.num_cores;
 
 clear problem
 
-% Check status of parrallel pool
-if isempty(gcp('nocreate'));
-    parpool('local');
-end
+% Setup MATLAB to a max number of cores
+setup_cores(num_cores);
 
 % Handle File IO
 if strcmp(direct, '');
@@ -130,12 +133,12 @@ exp_sampling_rate = vars.results_pod.exp_sampling_rate; % empirical sampling
 % Determine sampling frequency from provided tspan
 if isnumeric(tspan)
     sample_freq = 1/(tspan(2) - tspan(1));
-    fprintf('Detected Sampling Frequency %6.2f Hz\n\n', sample_freq);
+    multiplier = 1;
+    fprintf('Simulated Sampling Frequency %6.2f Hz\n\n', sample_freq);
 end
-if ischar(tspan) && strcmp(tspan, 'test')
-    sample_freq = exp_sampling_rate;
-    tspan = 0:1/sample_freq:length(modal_amp)/sample_freq;
-    fprintf('Detected Sampling Frequency %6.2f Hz\n\n', sample_freq);
+if iscell(tspan) && strcmp(tspan{1}, 'test')
+    [tspan, sample_freq, multiplier] = calc_tspan(tspan, exp_sampling_rate, modal_amp);
+    fprintf('Simulated Sampling Frequency %6.2f Hz\n\n', sample_freq);
 end
 
 % Create non-dimensionalized timescale
@@ -155,6 +158,7 @@ if classify_sim
     frob_gm     = cell(length(num_modes),1);
     prob_km     = cell(length(num_modes),1);    
     prob_gm     = cell(length(num_modes),1);   
+    completed   = cell(length(num_modesG),1);
 end
 
 vars = load(direct_Gal, 'results_coef');
@@ -243,10 +247,15 @@ for i = 1:length(models)
         [pod_U_til, modal_amp_raw_til] = ...
             basis_transform(pod_Ut, modal_ampt, num_modes, X);
         
-        if classify_sim
-            idx = (cluster_range == num_modes);
-            [frob_km, frob_gm, prob_km, prob_gm, completed] = ...
-                classify_Gal(km{idx}, gm{idx}, integration, tspan, i, direct);
+        integration.(m{i}).(s{j}).t = t;
+        integration.(m{i}).(s{j}).modal_amp = modal_amp_til;
+        
+         % Classify simulation to to empirical clusters
+        if classify_sim && num_modes <= 40
+            idx = (cluster_range == num_modes-1);
+            [frob_km{i}, frob_gm{i}, prob_km{i}, prob_gm{i}, completed{i}] = ...
+                classify_Gal(km{idx}, gm{idx}, integration, tspan, num_clusters, ...
+                multiplier, 1, i, direct);
         end
         
         % Prepare data
