@@ -24,7 +24,8 @@ h_gm = figure;
 h_stoch = figure;
 h_stoch2 = figure;
 
-valid = true;
+valid = false;
+multiplier = 1;
 
 % Calculate cluster centers and stochastic matrices
 for i = 1:length(cluster_range);
@@ -48,8 +49,8 @@ for i = 1:length(cluster_range);
     end
     
     % Generate stochastic matrices for both clustering methods
-    km{i}.stoch = gen_stochastic_matrix(num_clusters, km{i}.groups, valid);
-    gm{i}.stoch = gen_stochastic_matrix(num_clusters, gm{i}.groups, valid);
+    km{i}.stoch = gen_stochastic_matrix(num_clusters, km{i}.groups, multiplier, valid);
+    gm{i}.stoch = gen_stochastic_matrix(num_clusters, gm{i}.groups, multiplier, valid);
     km{i}.stat = stationary(km{i}.stoch);
     gm{i}.stat = stationary(gm{i}.stoch);
     

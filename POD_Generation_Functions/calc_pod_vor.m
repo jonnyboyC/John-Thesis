@@ -1,5 +1,5 @@
 function [pod_W, mean_W] = calc_pod_vor(U, mean_U, dimensions, ...
-                                    bnd_idx, bnd_X, uniform, X)
+                                    bnd_idx, bnd_X, X)
 % CALC_POD_VOR determine the vorticity component of each POD mode
 %
 % [pod_vor, mean_vor] = CALC_POD_VOR(u, v, mean_u, mean_v, dimensions,
@@ -9,8 +9,8 @@ function [pod_W, mean_W] = calc_pod_vor(U, mean_U, dimensions, ...
 [~, u] = flow_comps_ip(X, U);
 
 % Calculate dervatives
-UdX = derivatives(U, bnd_idx, bnd_X, X, uniform, dimensions); %  X_direct,
-mean_UdX = derivatives(mean_U, bnd_idx, bnd_X, X, uniform, dimensions);
+UdX = derivatives(U, bnd_idx, bnd_X, X, dimensions); %
+mean_UdX = derivatives(mean_U, bnd_idx, bnd_X, X, dimensions);
 
 if any(strcmp(u, 'w')) && any(strcmp(u, 'v'))
     pod_W.u = UdX.w.y - UdX.v.z;

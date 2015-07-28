@@ -17,7 +17,7 @@ use_chunks  = coef_problem.use_chunks;
 bnd_idx     = coef_problem.bnd_idx;
 bnd_X       = coef_problem.bnd_X;
 custom      = coef_problem.custom;
-uniform     = coef_problem.uniform;
+num_cores   = coef_problem.num_cores;
 
 
 clear coef_problem
@@ -47,7 +47,7 @@ end
 
 % Calculate terms, allows for nonuniform mesh
 [pod_UdX, pod_U, volume, l] = ...
-    components(X, pod_U, dimensions, volume, num_modes, num_elem, uniform, bnd_idx, bnd_X);
+    components(X, pod_U, dimensions, volume, num_modes, num_elem, bnd_idx, bnd_X);
 
 % Free memory
 clear X bnd_idx bnd_X

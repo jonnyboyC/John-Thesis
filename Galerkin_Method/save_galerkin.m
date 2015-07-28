@@ -14,19 +14,37 @@ end
 folder = 'Galerkin Coeff';
 
 % Save all variables that were processed
-pool = gcp;
-if time_int && calc_coef && classify_sim
-    futures = parfeval(pool, @save_results, 0, num_modes, direct, folder, custom, ...
-        results_coef, results_int, results_scores);
-elseif calc_coef && time_int
-    futures = parfeval(pool, @save_results, 0, num_modes, direct, folder, custom, ...
-        results_coef, results_int);
-elseif time_int && classify_sim
-    futures = parfeval(pool, @save_results, 0, num_modes, direct, folder, custom, ...
-        results_int, results_scores);
-elseif time_int 
-    futures = parfeval(pool, @save_results, 0, num_modes, direct, folder, custom, results_int);
+pool = gcp('nocreate');
+
+if ~isempty(pool)
+    if time_int && calc_coef && classify_sim
+        futures = parfeval(pool, @save_results, 0, num_modes, direct, folder, custom, ...
+            results_coef, results_int, results_scores);
+    elseif calc_coef && time_int
+        futures = parfeval(pool, @save_results, 0, num_modes, direct, folder, custom, ...
+            results_coef, results_int);
+    elseif time_int && classify_sim
+        futures = parfeval(pool, @save_results, 0, num_modes, direct, folder, custom, ...
+            results_int, results_scores);
+    elseif time_int 
+        futures = parfeval(pool, @save_results, 0, num_modes, direct, folder, custom, results_int);
+    else
+        futures = parfeval(pool, @save_results, 0, num_modes, direct, folder, custom, results_coef);
+    end
 else
-    futures = parfeval(pool, @save_results, 0, num_modes, direct, folder, custom, results_coef);
+    if time_int && calc_coef && classify_sim
+        save_results(num_modes, direct, folder, custom, ...
+            results_coef, results_int, results_scores);
+    elseif calc_coef && time_int
+        save_results(num_modes, direct, folder, custom, ...
+            results_coef, results_int);
+    elseif time_int && classify_sim
+        save_results(num_modes, direct, folder, custom, ...
+            results_int, results_scores);
+    elseif time_int 
+        save_results(num_modes, direct, folder, custom, results_int);
+    else
+        save_results(num_modes, direct, folder, custom, results_coef);
+    end
 end
 end

@@ -150,8 +150,7 @@ modal_amp   = vars.results_pod.modal_amp;   % modal amplitude  from raw data
 exp_sampling_rate = vars.results_pod.exp_sampling_rate;
 
 if calc_coef
-    uniform     = vars.results_pod.uniform;      % Is the mesh uniform 
-    bnd_X       = vars.results_pod.bnd_X;       % location of flow boundaries normal to x
+    bnd_X       = vars.results_pod.bnd_X;     % location of flow boundaries normal to x
     volume      = vars.results_pod.volume;    % mesh area size
 end
 
@@ -186,12 +185,12 @@ end
 % Determine sampling frequency from provided tspan
 if isnumeric(tspan)
     sample_freq = 1/(tspan(2) - tspan(1));
-    fprintf('Detected Sampling Frequency %6.2f Hz\n\n', sample_freq);
+    multiplier = 1;
+    fprintf('Simulated Sampling Frequency %6.2f Hz\n\n', sample_freq);
 end
-if ischar(tspan) && strcmp(tspan, 'test')
-    sample_freq = exp_sampling_rate;
-    tspan = 0:1/sample_freq:length(modal_amp)/sample_freq;
-    fprintf('Detected Sampling Frequency %6.2f Hz\n\n', sample_freq);
+if iscell(tspan) && strcmp(tspan{1}, 'test')
+    [tspan, sample_freq, multiplier] = calc_tspan(tspan, exp_sampling_rate, modal_amp);
+    fprintf('Simulated Sampling Frequency %6.2f Hz\n\n', sample_freq);
 end
 
 % Create modify time scale if non-dimenionalized
@@ -216,7 +215,7 @@ if calc_coef
     coef_problem.override_coef  = override_coef;
     coef_problem.direct         = direct;
     coef_problem.custom         = false;
-    coef_problem.uniform        = uniform;
+    coef_problem.num_cores      = num_cores;
     
     % Free memory
     clear volume bnd_X 
@@ -351,7 +350,8 @@ for i = 1:length(num_modesG)
         if classify_sim && num_modes <= 40
             idx = (cluster_range == num_modes-1);
             [frob_km{i}, frob_gm{i}, prob_km{i}, prob_gm{i}, completed{i}] = ...
-                classify_Gal(km{idx}, gm{idx}, integration, tspan, num_clusters, int_time, i, direct);
+                classify_Gal(km{idx}, gm{idx}, integration, tspan, num_clusters, ...
+                multiplier, int_time, i, direct);
         end
 
         % Prepare data

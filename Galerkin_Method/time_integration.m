@@ -2,6 +2,7 @@ function [integration, time] = time_integration(odesolver, system, integration, 
                                             i, ao, t_scale, tspan, int_time, options)
 %#ok<*PFBNS>
 tic;
+pool = gcp('nocreate');
 
 vis = system{i}.vis;        
 
@@ -9,35 +10,60 @@ m = flow_comps(system{i}.coef);
 m_comps = flow_ncomps(system{i}.coef);
 
 cnt = 1;
-
-% Integrate Galerkin System usign async parallel execution
-parfeval_futures = parallel.FevalOnAllFuture;
-for j = 1:m_comps
-    s = flow_comps(system{i}.coef.(m{j}));
-    s_comps = flow_ncomps(system{i}.coef.(m{j}));
-    
-    for k = 1:s_comps
-        parfeval_futures(cnt) = parfeval(@integrator, 5, odesolver, system{i}.coef.(m{j}).(s{k}), ...
-                                    system{i}.eddy.(m{j}).(s{k}), vis, m{j}, s{k}, modal_TKE, ao, tspan, options);
-        cnt = cnt + 1;
-    end
-end
+models = flow_fields(system{i}.eddy);
 
 % Generate waiting bar
 h = waitbar(0, 'Performing time integration on models in parrallel');
 
-% Fetch results as they become available
-for j = 1:cnt-1
-    % fetch results if it take over an hour discard results
-    [~, t_job, modal_amp_job, type, subtype, time] = fetchNext(parfeval_futures, int_time);
-    
-    if ~isempty(type) && ~isempty(subtype) && ~isempty(time)
-        integration{i}.t.(type).(subtype) = t_job/t_scale;
-        integration{i}.modal_amp.(type).(subtype) = modal_amp_job;
+if ~isempty(pool)
 
-        % update wait bar
-        waitbar(j/(cnt-1), h, sprintf('Galerkin system with %s %s finished in %6.1fs', ...
-            strrep(type, '_', ' '), strrep(subtype, '_', ' '), time));
+    % Integrate Galerkin System usign async parallel execution
+    parfeval_futures = parallel.FevalOnAllFuture;
+    for j = 1:m_comps
+        s = flow_comps(system{i}.coef.(m{j}));
+        s_comps = flow_ncomps(system{i}.coef.(m{j}));
+
+        for k = 1:s_comps
+            parfeval_futures(cnt) = parfeval(@integrator, 5, odesolver, system{i}.coef.(m{j}).(s{k}), ...
+                system{i}.eddy.(m{j}).(s{k}), vis, m{j}, s{k}, modal_TKE, ao, tspan, options);
+            cnt = cnt + 1;
+        end
+    end
+
+    % Fetch results as they become available
+    for j = 1:models
+        % fetch results if it take over an hour discard results
+        [~, t_job, modal_amp_job, type, subtype, time] = fetchNext(parfeval_futures, int_time);
+
+        if ~isempty(type) && ~isempty(subtype) && ~isempty(time)
+            integration{i}.t.(type).(subtype) = t_job/t_scale;
+            integration{i}.modal_amp.(type).(subtype) = modal_amp_job;
+
+            % update wait bar
+            waitbar(j/(models), h, sprintf('Galerkin system with %s %s finished in %6.1fs', ...
+                strrep(type, '_', ' '), strrep(subtype, '_', ' '), time));
+        end
+    end
+else
+    for j = 1:m_comps
+        s = flow_comps(system{i}.coef.(m{j}));
+        s_comps = flow_ncomps(system{i}.coef.(m{j}));
+        for k = 1:s_comps
+            % Perform integration
+            [t_job, modal_amp_job, type, subtype, time] = integrator(odesolver, ...
+                system{i}.coef.(m{j}).(s{k}),system{i}.eddy.(m{j}).(s{k}), vis, ...
+                m{j}, s{k}, modal_TKE, ao, tspan, options);
+            
+            if ~isempty(type) && ~isempty(subtype) && ~isempty(time)
+                integration{i}.t.(type).(subtype) = t_job/t_scale;
+                integration{i}.modal_amp.(type).(subtype) = modal_amp_job;
+
+                % update wait bar
+                waitbar(cnt/(models), h, sprintf('Galerkin system with %s %s finished in %6.1fs', ...
+                    strrep(type, '_', ' '), strrep(subtype, '_', ' '), time));
+            end
+            cnt = cnt + 1;
+        end
     end
 end
 
@@ -62,7 +88,7 @@ for j = 1:m_comps
             cancel(parfeval_futures(cnt))
         end
         % Report any errors and add the error structure
-        if ~isempty(parfeval_futures(cnt).Error)
+        if ~isempty(pool) && ~isempty(parfeval_futures(cnt).Error)
             integration{i}.t.(m{j}).(s{k}).error = true;
             integration{i}.modal_amp.(m{j}).(s{k}).error = true;
             disp(parfeval_futures(cnt).Error.message);

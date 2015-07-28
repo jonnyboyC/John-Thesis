@@ -158,7 +158,7 @@ if uniform == false
 end
 
 % If request compress mesh by a factor of 2 in both directions
-if average_mesh && uniform
+if average_mesh
     [X, U] = compress_mesh(X, U);
     update_bnds = true;
 end
@@ -251,7 +251,7 @@ if cluster
 end
 
 % Calculate voritcity
-[pod_W, mean_W] = calc_pod_vor(pod_U, mean_U, dimensions, bnd_idx, bnd_X, uniform, X);
+[pod_W, mean_W] = calc_pod_vor(pod_U, mean_U, dimensions, bnd_idx, bnd_X, X);
 
 % Get components of vorticity
 w = flow_comps(pod_W);

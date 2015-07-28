@@ -9,27 +9,30 @@ problem_cavity.load_raw = true;
 problem_cavity.direct = 'D:\thesis\PIVData\cavity\2005_09_16\M030f0000v000a';
 
 
-for i = 1
+for i = 1:4
+    if i == 1
+        delete(gcp);
+    else
+        parpool('local', i-1);
+    end
     
-    maxNumCompThreads(1);
-    delete(gcp);
-%     if isempty(gcp('nocreate'));
-%         parpool('local', i-1);
-%     end
-
+    problem_mixing.num_cores = i;
     tic;
     POD_Gen(problem_mixing);
-    time.mixing(1) = toc;
+    time.mixing(i) = toc;
     
+    problem_mixing.num_cores = i;
     tic;
     POD_Gen(problem_cavity);
-    time.cavity(1) = toc;
+    time.cavity(i) = toc;
     
+    problem_mixing.num_cores = i;
     tic;
     POD_Gen(problem_jet);
-    time.jet(1) = toc;
+    time.jet(i) = toc;
     
+    problem_mixing.num_cores = i;
     tic;
     POD_Gen(problem_airfoil);
-    time.airfoil(1) = toc;
+    time.airfoil(i) = toc;
 end

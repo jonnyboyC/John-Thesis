@@ -1,11 +1,15 @@
-function stoc_matrix = gen_stochastic_matrix(num_clusters, groups, valid)
+function stoc_matrix = gen_stochastic_matrix(num_clusters, groups, multiplier, valid)
 % Generate the approximate stochastic matrix from the group data
 
 stoc_matrix = zeros(num_clusters);
 
 % Add values to each entry
-for i = 1:length(groups)-1;
-    stoc_matrix(groups(i), groups(i+1)) = stoc_matrix(groups(i), groups(i+1)) + 1;
+for i = 1:multiplier
+    sub_group = groups(i:multiplier:end);
+    for j = 1:length(sub_group)-1
+        stoc_matrix(sub_group(j), sub_group(j+1)) = ...
+            stoc_matrix(sub_group(j), sub_group(j+1)) + 1;
+    end
 end
 
 % determine probability as ratio

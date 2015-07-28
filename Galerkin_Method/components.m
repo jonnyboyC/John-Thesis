@@ -1,12 +1,12 @@
 function [pod_UdX, pod_U, volume, l] = ...
-    components(X, pod_U, dimensions, volume, num_modes, num_elem, uniform, bnd_idx, bnd_X)
+    components(X, pod_U, dimensions, volume, num_modes, num_elem, bnd_idx, bnd_X)
 % COMPONENT, calculate the derivative terms needed to calculate the
 % galerkin coefficients
 % 
 % type edit COMPONENT for input details
 
 % Calculate coefficients for for pod_u's & pod_v's derivatives
-[pod_UdX, pod_Ud2X] = derivatives(pod_U, bnd_idx, bnd_X, X, uniform, dimensions);
+[pod_UdX, pod_Ud2X] = derivatives(pod_U, bnd_idx, bnd_X, X, dimensions);
 
 [x, u] = flow_comps_ip(X, pod_U);
 dims = flow_dims(X);

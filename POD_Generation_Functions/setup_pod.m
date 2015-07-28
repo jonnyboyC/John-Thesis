@@ -41,8 +41,8 @@ problem_jet.xy_units = 'm';
 problem_jet.non_dim = true;
 problem_jet.open_flow = true;
 problem_jet.save_figures = {'fig', 'jpg'};
-problem_jet.exp_sampling_rate = 5000;
-problem_jet.u_scale_gen = 3.280839;
-problem_jet.l_scale = 1/0.3048;
+problem_jet.exp_sampling_rate = 20000000;
+problem_jet.u_scale_gen = @u_scale_gen_shear;
+problem_jet.l_scale = 0.0254;
 
 

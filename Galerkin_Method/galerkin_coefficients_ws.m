@@ -15,7 +15,6 @@ override_coef = coef_problem.override_coef;
 bnd_idx     = coef_problem.bnd_idx;
 bnd_X       = coef_problem.bnd_X;
 custom      = coef_problem.custom;
-uniform     = coef_problem.uniform;
 
 
 clear coef_problem
@@ -48,7 +47,7 @@ end
 
 % Calculate terms, allows for nonuniform mesh
 [pod_UdX, pod_U, bnd_X, volume] = ...
-    components_ws(X, pod_U, dimensions, volume, num_modes, num_elem, uniform, bnd_idx, bnd_X);
+    components_ws(X, pod_U, dimensions, volume, num_modes, num_elem, bnd_idx, bnd_X);
 
 % Replace Lapcalian term with weak formulation by green's identity 
 l_weak_volume = 0;

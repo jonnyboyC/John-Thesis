@@ -5,12 +5,37 @@ function pool = change_pool(request)
 
 pool = gcp('nocreate');
 cluster = parcluster('local');
+cores = feature('numcores');
+
+if ischar(request) && strcmp(request, 'auto')
+    request = cores;
+end
 
 % Delete pool if reques is zero otherwise change to requested
-if request == 0
-    delete(gcp);
-elseif pool.NumWorkers ~= request
-    delete(gcp);
-    parpool(cluster, request);
+% If for some reason a negative number is request set to 1
+if request <= 0
+   request = 1;
 end
+    
+% If more was requested than there are cores reduce request
+if request > cores
+    disp('requested to many cores reducing to system max');
+    request = cores;
+end
+
+% Setup parallel pool to reflect requested cores
+if request == 1
+    delete(gcp);
+else
+    pool = gcp('nocreate');
+    if isempty(pool);
+        parpool(cluster, request - 1);
+    end
+
+    if ~isempty(pool) && pool.NumWorkers ~= (request - 1)
+        delete(gcp);
+        parpool(cluster, request - 1);
+    end
+end
+
 end

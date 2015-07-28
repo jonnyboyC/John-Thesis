@@ -19,7 +19,7 @@ else
 end
 
 % If for some reason a negative number is request set to 1
-if request >= 0
+if request <= 0
    request = 1;
 end
     
@@ -39,7 +39,7 @@ else
         parpool(cluster, request - 1);
     end
 
-    if pool.NumWorkers ~= (request - 1)
+    if ~isempty(pool) && pool.NumWorkers ~= (request - 1)
         delete(gcp);
         parpool(cluster, request - 1);
     end

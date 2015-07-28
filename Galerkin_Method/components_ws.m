@@ -1,5 +1,5 @@
 function [pod_UdX, pod_U, bnd_X, volume] = ...
-        components_ws(X, pod_U, dimensions, volume, num_modes, num_elem, uniform, bnd_idx, bnd_X)
+        components_ws(X, pod_U, dimensions, volume, num_modes, num_elem, bnd_idx, bnd_X)
 % COMPONENT_WS, calculate the derivative terms needed to calculate the
 % galerkin coefficients of the weak formulation
 % 
@@ -7,7 +7,7 @@ function [pod_UdX, pod_U, bnd_X, volume] = ...
     
 
 % Calculate coefficients for for pod_u's & pod_v's derivatives
-pod_UdX = derivatives(pod_U, bnd_idx, bnd_X, X, uniform, dimensions);
+pod_UdX = derivatives(pod_U, bnd_idx, bnd_X, X, dimensions);
 
 [x, u] = flow_comps_ip(X, pod_U);
 dims = flow_dims(X);

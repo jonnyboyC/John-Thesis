@@ -1,4 +1,5 @@
-function [frob_km, frob_gm, prob_km, prob_gm, completed] = classify_Gal(km, gm, integration, tspan, num_clusters, int_time, i, direct)
+function [frob_km, frob_gm, prob_km, prob_gm, completed] = classify_Gal(km, gm, ...
+    integration, tspan, num_clusters, multiplier, int_time, i, direct)
  
 % inputs for gen_stochoastic_matrix
 save_figures = {};
@@ -10,7 +11,7 @@ m_comps = flow_ncomps(integration{i}.modal_amp);
 h_km = figure;
 h_gm = figure;
 
-valid = false;
+valid = true;
 
 % Loop through each model calculating scores
 for j = 1:m_comps
@@ -40,24 +41,20 @@ for j = 1:m_comps
         sim_gm_groups = cluster(gm.models, integration{i}.modal_amp.(m{j}).(s{k})(:,2:end));
         
         % Generate a stochastic matrix from transitions
-        km_MLE = gen_stochastic_matrix(num_clusters, sim_km_groups, valid);
-        gm_MLE = gen_stochastic_matrix(num_clusters, sim_gm_groups, valid);
-        
-        % log probability of observing the simulated chain using emp model
-        km_prob_ALE = calc_probability(km.stoch, sim_km_groups);
-        gm_prob_ALE = calc_probability(gm.stoch, sim_gm_groups);
+        km_MLE = gen_stochastic_matrix(num_clusters, sim_km_groups, multiplier, valid);
+        gm_MLE = gen_stochastic_matrix(num_clusters, sim_gm_groups, multiplier, valid);
         
         % log probability of observing the simulate chain using MLE model
-        km_prob_MLE = calc_probability(km_MLE, sim_km_groups);
-        gm_prob_MLE = calc_probability(gm_MLE, sim_gm_groups);
+        km_prob_ALE = calc_probability(km_MLE, km.groups);
+        gm_prob_ALE = calc_probability(gm_MLE, gm.groups);
         
         % Frobenius norm of transition matrices
         frob_km.(m{j}).(s{k}) = norm(km_MLE - km.stoch, 'fro');
         frob_gm.(m{j}).(s{k}) = norm(gm_MLE - gm.stoch, 'fro');
         
         % Relative likelihood between observed chains
-        prob_km.(m{j}).(s{k}) = km_prob_ALE - km_prob_MLE;
-        prob_gm.(m{j}).(s{k}) = gm_prob_ALE - gm_prob_MLE;
+        prob_km.(m{j}).(s{k}) = km_prob_ALE - km.prob;
+        prob_gm.(m{j}).(s{k}) = gm_prob_ALE - gm.prob;
         
         plot_stochastic_matrix(km_MLE, sim_km_groups, save_figures, direct, h_km);
         plot_stochastic_matrix(gm_MLE, sim_gm_groups, save_figures, direct, h_gm);
