@@ -29,12 +29,12 @@ if request == 1
 else
     pool = gcp('nocreate');
     if isempty(pool);
-        parpool(cluster, request - 1);
+        parpool(cluster, request);
     end
 
-    if ~isempty(pool) && pool.NumWorkers ~= (request - 1)
+    if ~isempty(pool) && pool.NumWorkers ~= request
         delete(gcp);
-        parpool(cluster, request - 1);
+        parpool(cluster, request);
     end
 end
 

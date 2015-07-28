@@ -145,7 +145,7 @@ if ~custom
 end
 
 % restore parpool if changed
-change_pool(num_cores - 1);
+change_pool(num_cores);
 end
 
 % Allow writing to disk asynchronously
