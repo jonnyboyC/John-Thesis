@@ -45,9 +45,12 @@ function Mod_POD(varargin)
 %   Specify which run this Galerkn Projection should be based from, default
 %   is to use the most recent
 %
-%   problem.models = 1:8
-%   Specify which Galerkin Models from GALKERKIN_PROJ are corrected with a
-%   basis transform. 
+%   problem.models = {'GM', 'GM1'}
+%   Specify which class of Galerkin models from GALKERKIN_PROJ are corrected 
+%   with a basis transform. specify 'all' to use all models
+%   
+%   problem.submodels = {'base', 'weak'}
+%   Specify which submodles will be used in 
 %
 %   problem.fft_window = [0 2000]
 %   Specify the hertz range that the fft plot should capture
@@ -153,12 +156,14 @@ if classify_sim
     km = vars.results_clust.km;     % k-means cluster data
     gm = vars.results_clust.gm;     % gaussian mixture data
     cluster_range = vars.results_clust.cluster_range;    % number of variables in cluster
+    num_clusters = vars.results_clust.num_clusters;
+
     
     frob_km     = cell(length(num_modes),1);
     frob_gm     = cell(length(num_modes),1);
     prob_km     = cell(length(num_modes),1);    
     prob_gm     = cell(length(num_modes),1);   
-    completed   = cell(length(num_modesG),1);
+    completed   = cell(length(num_modes),1);
 end
 
 vars = load(direct_Gal, 'results_coef');
@@ -247,8 +252,8 @@ for i = 1:length(models)
         [pod_U_til, modal_amp_raw_til] = ...
             basis_transform(pod_Ut, modal_ampt, num_modes, X);
         
-        integration.(m{i}).(s{j}).t = t;
-        integration.(m{i}).(s{j}).modal_amp = modal_amp_til;
+        integration{1}.t.(m{i}).(s{j}) = t;
+        integration{1}.modal_amp.(m{i}).(s{j}) = modal_amp_til;
         
          % Classify simulation to to empirical clusters
         if classify_sim && num_modes <= 40

@@ -115,7 +115,11 @@ else
         end
         
         % Write to disk on a separate thread
-        f = parfeval(pool, @save_q, 0, data, q, k);
+        if num_cores == 1
+            save_q(data, q, k);
+        else
+            f = parfeval(pool, @save_q, 0, data, q, k);
+        end
         
         % Update wait bar
         waitbar(k/num_modes, h, sprintf('%d of %d coefficients computed\n', k, num_modes))

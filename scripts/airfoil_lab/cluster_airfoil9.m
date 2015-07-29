@@ -1,6 +1,6 @@
 addpath(genpath('/home/chabotja/Thesis/John-Thesis'))
 
-direct = '/home/chabotja/Thesis/PIVData/Airfoil/Test';
+direct = '/home/chabotja/Thesis/PIVData/Airfoil/Test_24';
 
 setup_pod;
 setup_proj;
@@ -13,8 +13,8 @@ for j = 1
     POD_Gen(problem_airfoil);
 end
 
-problem_airfoil.int_time = 3600;
-problem_airfoil.tspan = {'test', 100};
+problem_airfoil.int_time = 7200;
+problem_airfoil.tspan = 'test';
 problem_airfoil.num_modesG = 4:6;
 Galerkin_Proj(problem_airfoil);
 

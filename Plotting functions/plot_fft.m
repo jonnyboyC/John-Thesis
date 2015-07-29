@@ -7,6 +7,10 @@ else
     num_plot = 1:num_modes;
 end
 
+% setup plot frequency response
+hf = figure;
+axf = newplot;
+
 % Number of points per windows, set to the next power of 2
 window_samples = ceil(size(modal_amp,1)/4);
 NFFT    = 2^nextpow2(window_samples); 
@@ -32,22 +36,18 @@ end
 
 freq_response_dB = 20*log10(freq_response);
 
-% setup plot frequency response
-hf = figure;
-axf = newplot;
-
-% Label axis and title
-axf.XLabel.String = 'frequency (Hz)';
-axf.YLabel.String = 'Frequency Response (dB)';
-axf.Title.String  = ['Modal Frequency Response ' id];
-axf.XLim = xlim;
-
 % setup plot phase angle
 
 % Return if we have no information to avoid throwing error
 if size(freq_response_dB,1) >= 2
     % plot frequency response 
-    plot(fspan, freq_response_dB(:, num_plot));
+    plot(axf, fspan, freq_response_dB(:, num_plot));
+    
+    % Label axis and title
+    axf.XLabel.String = 'frequency (Hz)';
+    axf.YLabel.String = 'Frequency Response (dB)';
+    axf.Title.String  = ['Modal Frequency Response ' id];
+    axf.XLim = xlim;
     
     % Generate legend
     leg_names = cell(size(num_plot,1),1);

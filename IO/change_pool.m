@@ -11,7 +11,7 @@ if ischar(request) && strcmp(request, 'auto')
     request = cores;
 end
 
-% Delete pool if reques is zero otherwise change to requested
+% Delete pool if request is zero otherwise change to requested
 % If for some reason a negative number is request set to 1
 if request <= 0
    request = 1;

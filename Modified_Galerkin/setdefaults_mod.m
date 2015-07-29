@@ -103,23 +103,13 @@ end
 % Default for previous galerkin type
 if isempty(problem.models) || (~iscell(problem.models) && ~ischar(problem.models))
     fprintf('Using default value for models\nproblem.models = {"GM"}\n\n');
-    problem.models = {'GM'};            % Generating basis model
+    problem.models = {'GM', 'GM1'};            % Generating basis model
 end
 
 if iscell(problem.models)
     % Check to make sure incorrect strings are not passed
-    correct = {'GM', 'GM1', 'GM2', 'GM3'};
+    correct = {'GM', 'GM1', 'GM2', 'GM3', 'all'};
     problem.models = list_check(problem.models, correct, 'models');
-end
-
-% Check to make sure incorrect strings are not passed
-if ischar(problem.models)
-    correct = {'all'};
-    correct_members = ismember(problem.models, correct);
-    if ~correct_members 
-        fprintf('%s is not a correct input for problem.models\n', problem.models);
-        problem.models = 'all';
-    end
 end
 
 % Default for previous galerkin type
@@ -130,7 +120,7 @@ end
 
 if iscell(problem.submodels)
     % Check to make sure incorrect strings are not passed
-    correct = {'base', 'weak'};
+    correct = {'base', 'weak', 'all'};
     problem.submodels = list_check(problem.submodels, correct, 'models');
 end
 

@@ -247,7 +247,7 @@ close all
 
 % Cluster resulting POD modes
 if cluster
-    [km, gm] = cluster_POD(modal_amp, num_clusters, direct, save_figures);
+    [km, gm] = cluster_POD(modal_amp, num_clusters, num_cores, direct, save_figures);
 end
 
 % Calculate voritcity

@@ -1,4 +1,4 @@
-function [km, gm] = cluster_POD(modal_amp, num_clusters, direct, save_figures)
+function [km, gm] = cluster_POD(modal_amp, num_clusters, num_cores, direct, save_figures)
 % CLUSTER_POD return clusters of the POD modal amplitudes by k-mean and
 % gaussian mixture model type edit to find list of imputs and outputs
 
@@ -15,7 +15,11 @@ gm = cell(length(cluster_range),1);
 km = cell(length(cluster_range),1);
 
 % Clustering options
-options = statset('UseParallel', 1);
+if num_cores ~= 1
+    options = statset('UseParallel', true);
+else
+    options = statset('UseParallel', false);
+end
 gm_options = statset('MaxIter', 1000);
 
 % ready figures
