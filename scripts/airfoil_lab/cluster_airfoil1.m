@@ -1,6 +1,5 @@
-addpath(genpath('/home/chabotja/Thesis/John-Thesis'))
 
-direct = '/home/chabotja/Thesis/PIVData/Airfoil/Test';
+direct = 'D:\John Chabot\PIVData\airfoil\Test';
 
 setup_pod;
 setup_proj;
