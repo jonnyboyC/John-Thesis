@@ -103,7 +103,7 @@ end
 % Default for previous galerkin type
 if isempty(problem.models) || (~iscell(problem.models) && ~ischar(problem.models))
     fprintf('Using default value for models\nproblem.models = {"GM"}\n\n');
-    problem.models = {'GM', 'GM1'};            % Generating basis model
+    problem.models = {'GM'};            % Generating basis model
 end
 
 if iscell(problem.models)

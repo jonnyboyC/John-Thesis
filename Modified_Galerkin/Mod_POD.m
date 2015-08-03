@@ -29,8 +29,9 @@ function Mod_POD(varargin)
 %   Specify which image will constitute the initial conditions
 %
 %   problem.tspan = 0:0.0001:1
-%   Specify for how long integration will be performed will be sampled at
-%   sampling frequency of base data
+%   Specify time span for time integration. If tspan{1} = {"test"} then the
+%   data will be integrated over the range of empirical data, if tspan{2}
+%   is set to a number n it will run n times shorters
 %
 %   problem.line_range = 100
 %   Specify a relatively range of epsilon values to search to be course
@@ -260,7 +261,7 @@ for i = 1:length(models)
             idx = (cluster_range == num_modes-1);
             [frob_km{i}, frob_gm{i}, prob_km{i}, prob_gm{i}, completed{i}] = ...
                 classify_Gal(km{idx}, gm{idx}, integration, tspan, num_clusters, ...
-                multiplier, 1, i, direct);
+                multiplier, tspan, 1, direct);
         end
         
         % Prepare data

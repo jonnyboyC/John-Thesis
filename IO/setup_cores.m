@@ -32,7 +32,7 @@ end
 
 % Setup parallel pool to reflect requested cores
 if request == 1
-    delete(gcp);
+    delete(gcp('nocreate'));
 else
     pool = gcp('nocreate');
     if isempty(pool);
