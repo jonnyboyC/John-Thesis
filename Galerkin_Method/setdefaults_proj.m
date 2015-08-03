@@ -113,7 +113,7 @@ correct = {'Least Squares', 'Averaged'};
 problem.dissapation = list_check(problem.dissapation, correct, 'dissapation');
 
 % Default for run_num
-if isempty(problem.run_num) || ~isscalar(problem.run_num) || ~ischar(problem.run_num)
+if isempty(problem.run_num) || (~isscalar(problem.run_num) && ~ischar(problem.run_num))
     fprintf('Using default value for run_num\nproblem.run_num = "first"\n\n');
     problem.run_num = 'first';        % use 10 modes
 end

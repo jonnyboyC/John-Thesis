@@ -4,6 +4,7 @@ function U = load_velocity_dat(direct, num_images, num_zones)
 %
 %   U = LOW_VELOCITY_DAT(direct, num_images, num_zones)
  %#ok<*AGROW>
+ft2meters = 0.3048;
 
 u = [];
 v = [];
@@ -79,7 +80,7 @@ for zone = 1:num_zones
     end
 end
 
-U.u = u;
-U.v = v;
-U.w = w;
+U.u = u*ft2meters;
+U.v = v*ft2meters;
+U.w = w*ft2meters;
 end

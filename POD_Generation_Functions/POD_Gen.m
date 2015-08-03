@@ -193,6 +193,8 @@ end
 % Exactly define flow boundaries
 [bnd_X, bnd_idx] = refine_bounds(X_dis, U, mean_U, direct, streamlines, update_bnds);
 if load_only
+    res_pod.X = X;
+    res_pod.U = U;
     return;
 end
 

@@ -5,6 +5,7 @@ function [X, num_zones] = load_grid_dat(direct)
 %#ok<*AGROW>
 
 % convert from ft to meters
+ft2meters = 0.3048;
 
 % Currently hard coded may change
 grid_file = fopen([direct filesep 'Raw Data' filesep 'grid.dat']);
@@ -55,7 +56,7 @@ for zone = 1:num_zones
     end
 end
 
-X.x = x;
-X.y = y;
-X.z = z;
+X.x = x*ft2meters;
+X.y = y*ft2meters;
+X.z = z*ft2meters;
 end

@@ -26,12 +26,6 @@ if isempty(problem.num_cores) || ~isscalar(problem.num_cores) || ...
     problem.num_cores = 'auto';        % set to system max
 end
 
-% Default for read_only
-if isempty(problem.load_only) || ~islogical(problem.load_only)
-    fprintf('Using default value for read_only\nproblem.load_only = false\n\n');
-    problem.load_only = false;      % load to produce mask and mat file
-end
-
 % Default for grid_direct
 if isempty(problem.grid_direct) || ~iscell(problem.grid_direct)
     fprintf('Using default value for grid_direct\nproblem.grid_direct = {}\n\n');
@@ -150,5 +144,24 @@ if isempty(problem.exp_sampling_rate) || ~isscalar(problem.exp_sampling_rate)
 end
 
 
+% Default for load_only
+if isempty(problem.load_only) || ~islogical(problem.load_only)
+    fprintf('Using default value for read_only\nproblem.load_only = false\n\n');
+    problem.load_only = false;      % load to produce mask and mat file
+end
+
+% Override previous flags load only is set
+if problem.load_only == true
+    if problem.load_raw == false
+        problem.load_raw = true;
+        fprintf(['Overriding setting for load_raw because load_only = true' ...
+            '\nproblem.load_raw = true\n\n']); 
+    end
+    if problem.update_bnds == false
+        problem.update_bnds = true;
+        fprintf(['Overriding setting for update_bnds because load_only = true' ...
+            '\nproblem.update_bnds = true\n\n']);
+    end
+end
 end
 
