@@ -26,7 +26,7 @@ function [res_coef, res_int, res_scores] = Galerkin_Proj(varargin)
 %   Overwrite previous coefficients for the same run number, if the run
 %   numbers are different new coefficients will be calcfinteulated
 %
-%   problem.tspan = 0:0.0001:1
+%   problem.tspan = {'test'}
 %   Specify time span for time integration. If tspan{1} = {"test"} then the
 %   data will be integrated over the range of empirical data, if tspan{2}
 %   is set to a number n it will run n times shorters
