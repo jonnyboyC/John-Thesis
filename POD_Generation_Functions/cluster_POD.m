@@ -23,8 +23,6 @@ end
 gm_options = statset('MaxIter', 1000);
 
 % ready figures
-h_km = figure;
-h_gm = figure;
 h_stoch = figure;
 h_stoch2 = figure;
 
@@ -37,18 +35,27 @@ for i = 1:length(cluster_range);
     [km{i}.groups, km{i}.centers] = kmeans(modal_amp(:,1:cluster_range(i)), ...
         num_clusters, 'Replicates', k_replicate, 'Options', options);
     
-    % Create gaussian mixture model
-    gm{i}.models = fitgmdist(modal_amp(:,1:cluster_range(i)), num_clusters, ...
-        'Replicates', gm_replicate, 'SharedCov', true, 'Options', gm_options);
+    % Create gaussian attempt to use independent covariance matrix first
+    try 
+        gm{i}.models = fitgmdist(modal_amp(:,1:cluster_range(i)), num_clusters, ...
+            'Replicates', gm_replicate, 'SharedCov', false, 'Options', gm_options);
+    catch error
+        if (strcmp(error.identifer, 'stats:gmdistribution:IllCondCov')
+            gm{i}.models = fitgmdist(modal_amp(:,1:cluster_range(i)), num_clusters, ...
+                'Replicates', gm_replicate, 'SharedCov', true, 'Options', gm_options);
+        else
+            rethrow(error);
+        end
+    end
     
     % Cluster based on gaussian mixture model
     gm{i}.groups = cluster(gm{i}.models, modal_amp(:,1:cluster_range(i)));
     
     % in 2D phase space plot clusters
     if i == 1 && ~isempty(save_figures)
-        cluster_plot(h_km, modal_amp, km{i}.groups, km{i}.centers, cluster_modes, num_clusters, ...
+        cluster_plot(modal_amp, km{i}.groups, km{i}.centers, cluster_modes, num_clusters, ...
             direct, save_figures);
-        gm_cluster_plot(h_gm, modal_amp, gm{i}.groups, gm{i}.models, cluster_modes, ...
+        gm_cluster_plot(modal_amp, gm{i}.groups, gm{i}.models, cluster_modes, ...
             num_clusters, direct, save_figures);
     end
     
