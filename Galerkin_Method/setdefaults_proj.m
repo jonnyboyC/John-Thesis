@@ -57,18 +57,23 @@ end
 if isempty(problem.tspan) || ((~(isnumeric(problem.tspan) && ...
         size(problem.tspan, 1) == 1 && size(problem.tspan,2) > 1)) && ~iscell(problem.tspan))
     fprintf('Using default value for tspan\nproblem.tspan = 0:0.01:100\n\n');
-    problem.tspan = 0:0.0001:1;     % time range of integration
+    problem.tspan = {'test'};     % time range of integration
 end
 
 % Check to make sure incorrect strings are not passed
 if iscell(problem.tspan)
     correct = {'test'};
-    problem.tspan(1) = list_check({problem.tspan{1}}, correct, 'tspan');
+    problem.tspan(1) = list_check(problem.tspan(1), correct, 'tspan');
 end
 
-if iscell(problem.tspan) && size(problem.tspan, 2) == 2 && ~isnumeric(problem.tspan{2})
+if iscell(problem.tspan) && size(problem.tspan, 2) >= 2 && ~isnumeric(problem.tspan{2})
    fprintf('Using default value for tspan multiplier\nproblem.tspan{2} = 1\n\n');
-   problem.tspan = problem.tspan{1};
+   problem.tspan = problem.tspan(1);
+end
+
+if iscell(problem.tspan) && size(problem.tspan, 2) == 3 && ~isnumeric(problem.tspan{3})
+   fprintf('Using default value for tspan extender\nproblem.tspan{2} = 1\n\n');
+   problem.tspan = problem.tspan(1);
 end
 
 % Default for init

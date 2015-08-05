@@ -1,7 +1,7 @@
-direct{1} = 'D:\thesis\PIVData\mixing layer\Baseline';
-direct{2} = 'D:\thesis\PIVData\mixing layer\Forced';
+% direct{1} = 'D:\thesis\PIVData\mixing layer\Baseline';
+direct{1} = 'D:\thesis\PIVData\mixing layer\Forced';
 
-for k = 1:2
+for k = 1
     setup_pod;
     setup_proj;
     
