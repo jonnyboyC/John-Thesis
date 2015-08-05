@@ -32,7 +32,7 @@ if isempty(problem.int_time) || ~isscalar(problem.int_time)
 end
 
 % Default for plot_type
-if isempty(problem.plot_type) || ~iscell(problem.plot_type);
+if isempty(problem.plot_type) && ~iscell(problem.plot_type);
     fprintf('Using default value for plot_type\nproblem.plot_type = {"amp", "fft", "energy"}\n\n');
     problem.plot_type = {'amp', 'fft', 'energy'};      % plot types to be used
 end
@@ -108,7 +108,7 @@ if isempty(problem.fft_window) || (isnumeric(problem.fft_window) && ...
 end
 
 % Default for dissapation
-if isempty(problem.dissapation) || ~iscell(problem.dissapation);
+if isempty(problem.dissapation) && ~iscell(problem.dissapation);
     fprintf('Using default value for dissapation\nproblem.dissapation = {"Least Squares", "Averaged"}\n\n');
     problem.dissapation = {'Least Squares', 'Averaged'};      % plot types to be used
 end
