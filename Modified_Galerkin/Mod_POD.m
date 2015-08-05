@@ -9,13 +9,13 @@ function Mod_POD(varargin)
 %   MOD_POD(problem) Using fields provided in the structure PROBLEM sets up
 %   analysis specified by PROBLEM. all unfilled fields go to defaults
 %
-%   problem.RD_nm = 10
+%   problem.num_modes = 10
 %   Specify the number of modes that will be calculated the basis
 %   transformation
 %
-%   problem.OG_nm = 'double'
+%   problem.basis_modes = 'double'
 %   Specify the basis that you want the reduced model to be constructed 
-%   from by default a basis of 2*RD_nm is selected
+%   from by default a basis of 2*num_modes is selected
 %
 %   problem.plot_type = {'amp', 'fft', 'energy'}
 %   Specify which outout graphes are desired, current options are modal
