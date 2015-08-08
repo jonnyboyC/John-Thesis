@@ -434,6 +434,7 @@ for i = 1:length(num_modesG)
         results_int.name = 'results_int';
         results_int.num_modesG = num_modes-1;
         results_int.run_num = run_num;
+        results_int.tspan = tspan;
 
         results_int.integration = integration{i};
     end

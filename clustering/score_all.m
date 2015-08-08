@@ -54,15 +54,45 @@ else
     gmm = struct;
 end
 
-galerkin_folder = [filesep 'Galerkin Coeff' filesep];
-galerkin_folder = [direct, galerkin_folder];
-folders = dir(galerkin_folder);
+galerkin_path = [filesep 'Galerkin Coeff' filesep];
+galerkin_path = [direct, galerkin_path];
+files = dir(galerkin_path);
 
-for i = 3:length(folders)
-    if ~folders.isdir
+for i = 3:length(files)
+    if ~files(i).isdir
         continue;
     end
     
+    % If folder concat full path
+    full_path = [galerkin_path, files(i).name];
+    
+    % Get first mat file in that folder
+    file = get_file(run_num, full_path);
+    
+    vars = load([full_path filesep file]);
+    
+    
+    % TODO have to get tspan from one dude that actually competed 
+    % and backcalculate shit... god damn it
+    
+    % Ready score info Structure
+    score_info.km = km;
+    score_info.gmm = gmm;
+    score_info.integration = vars.results_int.integration
+    score_info.tspan = tspan;
+    score_info.modal_amp = modal_amp;
+    score_info.num_clusters = num_clusters;
+    score_info.int_time = int_time;
+    score_info.num_cores = num_cores;
+    score_info.modes = modes;
+    score_info.custom = custom;
+    score_info.direct = direct;
+    score_info.multiplier = multiplier;
+    score_info.MOD = false;
+    
+    % score results
+    [frob_km{i}, frob_gmm{i}, prob_km{i}, prob_gmm{i}, completed{i}] = ...
+        score_model(score_info);
 end
 
 

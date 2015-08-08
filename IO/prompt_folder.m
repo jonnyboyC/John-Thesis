@@ -56,22 +56,22 @@ if num_modes ~= 0
 end
 
 % Get .mat wildcard
-wildcard = get_wildcard(run_num, full_path);
+file = get_wildcard(run_num, full_path);
 
 % Look in provided directory for .mat files
-files = dir([full_path filesep wildcard]);
+file_path = dir([full_path filesep file]);
 
 % If none are found prompt user to run previous level code
-if size(files,1) == 0
+if size(file_path,1) == 0
     error(['Run required code to generate' data ' data for run ' num2str(run_num)]); 
 
 % If only one is found use that as the file location
-elseif size(files, 1) == 1
-    file_loc = [full_path filesep files(1).name];
+elseif size(file_path, 1) == 1
+    file_loc = [full_path filesep file_path(1).name];
 
 % If more than one is found, either select the provided mat_name from
 % input or prompt user to select mat
-elseif size(files, 1) > 1
+elseif size(file_path, 1) > 1
    cd(full_path);
     fprintf(1, 'Please choose specific .mat file\n');
     file_name = uigetfile({'*.mat'}, 'Choose .mat file');
