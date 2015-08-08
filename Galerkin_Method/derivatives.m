@@ -58,7 +58,7 @@ end
 %% Method selection and parametric transform setup
 
 % Select finite element method and produce mesh stenciles
-methods_X = select_method(bnd_idx, bnd_X, dimensions, x, true);
+methods_X = select_method(bnd_idx, bnd_X, dimensions, x);
 
 % Set parametric transform
     
@@ -80,7 +80,7 @@ end
 xi = flow_comps(Xi);
 
 % Select finite element method and produce mesh stenciles
-[methods_Xi] = select_method(ones(dimensions), bnd_X, dimensions, xi, true);
+[methods_Xi] = select_method(ones(dimensions), bnd_X, dimensions, xi);
 [stencil_Xi, nstencil] = generate_stencil(Xi, methods_Xi, dimensions);
 
 % Preallocate indices derivatives

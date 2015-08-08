@@ -1,10 +1,14 @@
-function symbols = dumb(derp)
+function symbols = finite_diff_code(codes)
+% FINITE_DIFF_CODE convert SELECT_METHODS outputs to text for use in an
+% for plotting purposes
+%
+% symbols = FINITE_DIFF_CODE(codes
 
-symbols = cell(size(derp));
+symbols = cell(size(codes));
 
-for i = 1:size(derp,1)
-    for j = 1:size(derp,2)
-        switch derp(i,j)
+for i = 1:size(codes,1)
+    for j = 1:size(codes,2)
+        switch codes(i,j)
             case 0
                 symbols{i,j} = '0';
             case 1

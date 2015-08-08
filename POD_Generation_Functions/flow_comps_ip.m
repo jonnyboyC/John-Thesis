@@ -1,9 +1,9 @@
 function [x_ip, u_ip] = flow_comps_ip(X, U)
-% INPLANE_COMPS returns the velocity vectors that are in the plane of the
+% FLOW_COMPS_IP returns the velocity vectors that are in the plane of the
 % non-singleton mesh dimensions assumes that x -> u, y -> v, z -> w
 %
-%   x = INPLANE_COMPS(X)
-%   [x, u] = INPLANE_COMPS(X, U)
+%   x = FLOW_COMPS_IP(X)
+%   [x, u] = FLOW_COMPS_IP(X, U)
 
 if nargin == 1 && nargout == 1
     x_ip = flow_comps_ns(X);
