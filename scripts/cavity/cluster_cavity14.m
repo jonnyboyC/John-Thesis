@@ -7,12 +7,8 @@ setup_proj;
 
 problem_cavity.direct = direct;
 
-
-% for j = 1
-%     problem_cavity.num_clusters = 8 + (j-1)*2;
-%     POD_Gen(problem_cavity);
-% end
-
+problem_cavity.num_clusters = 10;
+POD_Gen(problem_cavity);
 problem_cavity.int_time = 3600;
 problem_cavity.tspan = {'test', 200, 4};
 problem_cavity.num_modesG = 4:6;

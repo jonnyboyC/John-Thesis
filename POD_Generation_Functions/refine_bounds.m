@@ -6,7 +6,7 @@ function [bnd_X, bnd_idx] = refine_bounds(X, U, mean_U, direct, streamlines, upd
 % bounds if information is not already cached to a mat file
 
 % Load boundaries if already determined
-if exist([direct filesep 'Processed Data' filesep 'Mask' filesep 'Mask.mat'], 'file') && ~update_bnds
+if ~update_bnds && exist([direct filesep 'Processed Data' filesep 'Mask' filesep 'Mask.mat'], 'file') 
     load([direct filesep 'Processed Data' filesep 'Mask' filesep 'Mask.mat'], 'bnd_idx', 'bnd_X');
 else
     % Determine flow boundaries
