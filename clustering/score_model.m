@@ -8,7 +8,7 @@ function [frob_km, frob_gm, prob_km, prob_gm, completed] = score_model(score_inf
 
 % unpack variables
 km              = score_info.km;
-gmm         = score_info.gmm;
+gmm             = score_info.gmm;
 integration     = score_info.integration;
 tspan           = score_info.tspan;
 modal_amp       = score_info.modal_amp;

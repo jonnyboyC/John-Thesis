@@ -130,7 +130,7 @@ uiwait(f);
         % Intially set all to in flow
         bnd_idx_temp = zeros(dimensions);
                     
-        idx = struct_index({[1 1]}, dims(end), U);
+        idx = flow_index({[1 1]}, dims(end), U);
         comps = flow_ncomps(U);
         
         % Make all images with a pixel out of flow as part of boundary

@@ -66,7 +66,7 @@ function [res_coef, res_int, res_scores] = Galerkin_Proj(varargin)
 %   Set this to true if you are running out of memeory well write values of q
 %   to disk 
 %
-%   problem.score_model = true
+%   problem.score = true
 %   Score produces models using Surrogate Markov Models
 % 
 %   problem.odesolver = @ode113
@@ -86,7 +86,7 @@ fields = {  'num_modesG',   'plot_type',    'save_coef', ...
             'override_coef','tspan',        'init', ...
             'direct' ,      'Re0_gen',      'fft_window', ...
             'run_num',      'dissapation',  'time_int', ...
-            'use_chunks',   'calc_coef',    'score_model', ...
+            'use_chunks',   'calc_coef',    'score', ...
             'odesolver',    'int_time',     'num_cores'};
         
 % Parse problem structure provided to set it up correctly
@@ -113,7 +113,7 @@ fft_window      = problem.fft_window;
 dissapation     = problem.dissapation;
 calc_coef       = problem.calc_coef;
 time_int        = problem.time_int;
-score_model    = problem.score_model;
+score           = problem.score;
 use_chunks      = problem.use_chunks;
 odesolver       = problem.odesolver;
 num_cores       = problem.num_cores;
@@ -158,7 +158,7 @@ if calc_coef
     volume      = vars.results_pod.volume;    % mesh area size
 end
 
-if time_int && classify_sim
+if time_int && score
     if isfield(vars, 'results_clust');
         km = vars.results_clust.km; % k-means cluster information
         gmm = vars.results_clust.gmm; % gaussian mixture model cluster information
@@ -169,9 +169,6 @@ if time_int && classify_sim
         gmm = struct;
         num_clusters = 10;
     end
-    
-    % Free memory
-    clear check
 end
 
 % Free memory
@@ -249,7 +246,7 @@ if time_int
 end
 
 % Initialize scores if clustering
-if classify_sim
+if score
     frob_km     = cell(length(num_modesG), 1);
     frob_gmm     = cell(length(num_modesG), 1);
     prob_km     = cell(length(num_modesG), 1);    
@@ -353,7 +350,7 @@ for i = 1:length(num_modesG)
         %____ Plotting functions ____%
 
         % Classify simulation to to empirical clusters
-        if score_model
+        if score
             
             % Ready score info Structure
             score_info.km = km;
@@ -442,7 +439,7 @@ for i = 1:length(num_modesG)
     end
     
     % Include scores if requested 
-    if classify_sim
+    if score
         results_scores.name = 'results_scores';
         results_scores.frob_km = frob_km{i};
         results_scores.frob_gmm = frob_gmm{i};
@@ -453,7 +450,7 @@ for i = 1:length(num_modesG)
     
     % Save relavent coefficients
     if save_coef == true
-        futures = save_galerkin(direct, custom, time_int, calc_coef, classify_sim, i, ...
+        futures = save_galerkin(direct, custom, time_int, calc_coef, score, i, ...
             futures, num_modes-1, results_coef, results_int, results_scores);
     end
 end

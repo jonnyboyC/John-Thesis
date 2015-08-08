@@ -1,7 +1,7 @@
 function save_results(num_modes, direct, folder, custom, varargin)
 % check if folder exist create if empty
 if custom
-    direct_ext = [direct filesep folder filesep 'modes_' num_modes '_custom'];
+    direct_ext = [direct filesep folder filesep 'custom_modes_' num2str(num_modes)];
 else
     direct_ext = [direct filesep folder filesep 'modes_' num2str(num_modes)];
 end

@@ -47,9 +47,6 @@ end
 
 function file_loc = get_data(data_folder, data, direct, run_num, num_modes, custom)
 
-% Get .mat wildcard
-wildcard = get_wild(run_num, direct, data_folder, num_modes);
-
 % If num_modes requested, look in Galerkin folder for mode data
 full_path = [direct filesep data_folder];
 if num_modes > 0
@@ -64,6 +61,9 @@ if num_modes > 0
             num_modes);
     end
 end
+
+% Get .mat wildcard
+wildcard = get_wildcard(run_num, direct, data_folder, num_modes);
 
 % Look in provided directory for .mat files
 files = dir([full_path filesep wildcard]);
@@ -87,54 +87,3 @@ end
 
 end
 
-% TODO clean this up
-function wildcard = get_wild(run_num, direct, data_folder, num_modes)
-if ischar(run_num)
-    if strcmp(run_num, 'first')
-        % Find newest file
-        full_path = [direct filesep data_folder];
-        
-        % if num_modes specify move down the file tree
-        if num_modes > 0
-            full_path = [full_path filesep 'modes_' num2str(num_modes)];
-            if ~isdir(full_path)
-                % exit if folder not found
-               error('Galerkin coefficients for %d modes have not been produced', ...
-                   num_modes);
-            end
-        end
-        
-        % short files by order
-        files = dir(full_path);
-        [~, idx] = sort([files.datenum], 2, 'descend');
-        files = files(idx);
-        matches_idx = 0;
-        
-        % Return newest file not folder
-        for i = 1:length(idx)
-            if ~files(i).isdir 
-                if ~matches_idx(1)
-                    wildcard = files(i).name;
-                    return;
-                else
-                if i == matches_idx(1)
-                    wildcard = files(i).name;
-                    return;
-                end
-                end
-            end
-        end
-        
-        % if not direct match return generic wild card
-        wildcard = '*.mat';
-    end
-elseif isscalar(run_num)
-    if run_num > 0
-        wildcard = ['*' num2str(run_num) '*.mat'];
-    else
-        wildcard = '*.mat';
-    end
-else
-    wildcard = '*.mat';
-end
-end

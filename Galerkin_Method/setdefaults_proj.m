@@ -7,17 +7,10 @@ if isempty(problem.num_modesG) || ~isnumeric(problem.num_modesG) && ~iscell(prob
     problem.num_modesG = 10;        % use 10 modes
 end
 
-% Default for num_cores
-if isempty(problem.num_cores) || ~isscalar(problem.num_cores) || ...
-        (ischar(problem.num_cores) && strcmp(problem.num_cores, 'auto'))
-    fprintf('Using default value for num_cores\nproblem.num_cores = "num_cores"\n\n');
-    problem.num_cores = 'auto';        % set to system max
-end
-
 % Default for save_coef
-if isempty(problem.score_model) || ~islogical(problem.score_model)
-    fprintf('Using default value for score_model\nproblem.score_model = true\n\n');
-    problem.score_model = true;        % save projection values
+if isempty(problem.score) || ~islogical(problem.score)
+    fprintf('Using default value for score\nproblem.score = true\n\n');
+    problem.score = true;        % save projection values
 end
 
 if iscell(problem.num_modesG)

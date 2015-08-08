@@ -31,6 +31,9 @@ end
 if ~exist([direct filesep 'Figures'], 'dir')
    mkdir([direct filesep 'Figures']);
 end
+if ~exist([direct filesep 'Figures'], 'dir')
+   mkdir([direct filesep 'Figures']);
+end
 if ~exist([direct filesep 'Figures' filesep 'POD'], 'dir')
    mkdir([direct filesep 'Figures' filesep 'POD']);
 end
