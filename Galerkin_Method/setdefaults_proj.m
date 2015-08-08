@@ -24,6 +24,13 @@ if isempty(problem.int_time) || ~isscalar(problem.int_time)
     problem.int_time = 3600;    
 end
 
+% Default for num_cores
+if isempty(problem.num_cores) || ~isscalar(problem.num_cores) || ...
+        (ischar(problem.num_cores) && strcmp(problem.num_cores, 'auto'))
+    fprintf('Using default value for num_cores\nproblem.num_cores = "num_cores"\n\n');
+    problem.num_cores = 'auto';        % set to system max
+end
+
 % Default for plot_type
 if isempty(problem.plot_type) && ~iscell(problem.plot_type);
     fprintf('Using default value for plot_type\nproblem.plot_type = {"amp", "fft", "energy"}\n\n');

@@ -39,14 +39,19 @@ run_num = vars.results_pod.run_num;
 modal_amp = vars.results_pod.modal_amp;
 
 if isfield(vars, 'results_clust');
-    km = vars.results_clust.km; % k-means cluster information
-    gmm = vars.results_clust.gmm; % gaussian mixture model cluster information
-    num_clusters = vars.results_clust.num_clusters; % number of clustered used
+    temp_clusters = vars.results_clust.num_clusters; % number of clustered used
+    if temp_clusters == num_clusters
+        km = vars.results_clust.km; % k-means cluster information
+        gmm = vars.results_clust.gmm; % gaussian mixture model cluster information
+    else
+        % Fill with stub if dissimilar
+        km = struct;
+        gmm = struct;
+    end
 else
     % Fill with stub if empty
     km = struct;
     gmm = struct;
-    num_clusters = 10;
 end
 
 galerkin_folder = [filesep 'Galerkin Coeff' filesep];
@@ -54,9 +59,9 @@ galerkin_folder = [direct, galerkin_folder];
 folders = dir(galerkin_folder);
 
 for i = 3:length(folders)
-   if ~folders.isdir
-       continue;
-   end
+    if ~folders.isdir
+        continue;
+    end
     
 end
 

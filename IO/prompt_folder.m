@@ -49,21 +49,14 @@ function file_loc = get_data(data_folder, data, direct, run_num, num_modes, cust
 
 % If num_modes requested, look in Galerkin folder for mode data
 full_path = [direct filesep data_folder];
-if num_modes > 0
-    if custom
-        full_path = [full_path filesep 'modes_' num2str(num_modes) '_custom'];
-    else
-        full_path = [full_path filesep 'modes_' num2str(num_modes)];
-    end
-    if ~isdir(full_path)
-        % Exit if mode folder isn't found
-        error('Galerkin coefficients for %d modes have not been produced', ...
-            num_modes);
-    end
+
+% If number of modes select, ie galerkin or Mod POD find mode folder
+if num_modes ~= 0
+    full_path = get_mode_folder(full_path, num_modes, custom);
 end
 
 % Get .mat wildcard
-wildcard = get_wildcard(run_num, direct, data_folder, num_modes);
+wildcard = get_wildcard(run_num, full_path);
 
 % Look in provided directory for .mat files
 files = dir([full_path filesep wildcard]);

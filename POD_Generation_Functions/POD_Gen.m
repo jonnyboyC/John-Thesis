@@ -94,8 +94,7 @@ fields = {  'num_images',   'load_raw',     'save_pod', ...
             'num_cores'};
 
 % Parse problem structure provided to set it up correctly
-if nargin == 1
-    
+if nargin == 1   
     problem = parse_inputs(fields, @setdefaults_pod, varargin{1});
 else
     fprintf('Provide a single structure as input, use help POD_Gen for information.\n');
@@ -125,7 +124,6 @@ xy_units        = problem.xy_units;
 load_only       = problem.load_only;
 exp_sampling_rate = problem.exp_sampling_rate;
 num_cores       = problem.num_cores;
-% grid_direct = problem.grid_direct; TODO double check before removing
 
 clear problem
 
