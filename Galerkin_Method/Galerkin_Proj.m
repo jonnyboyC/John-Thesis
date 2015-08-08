@@ -66,8 +66,8 @@ function [res_coef, res_int, res_scores] = Galerkin_Proj(varargin)
 %   Set this to true if you are running out of memeory well write values of q
 %   to disk 
 %
-%   problem.classify_sim = true
-%   Classify simulated results to emprical data
+%   problem.score_model = true
+%   Score produces models using Surrogate Markov Models
 % 
 %   problem.odesolver = @ode113
 %   Select the ode solver to be used for time integration.
@@ -86,7 +86,7 @@ fields = {  'num_modesG',   'plot_type',    'save_coef', ...
             'override_coef','tspan',        'init', ...
             'direct' ,      'Re0_gen',      'fft_window', ...
             'run_num',      'dissapation',  'time_int', ...
-            'use_chunks',   'calc_coef',    'classify_sim', ...
+            'use_chunks',   'calc_coef',    'score_model', ...
             'odesolver',    'int_time',     'num_cores'};
         
 % Parse problem structure provided to set it up correctly
@@ -113,7 +113,7 @@ fft_window      = problem.fft_window;
 dissapation     = problem.dissapation;
 calc_coef       = problem.calc_coef;
 time_int        = problem.time_int;
-classify_sim    = problem.classify_sim;
+score_model    = problem.score_model;
 use_chunks      = problem.use_chunks;
 odesolver       = problem.odesolver;
 num_cores       = problem.num_cores;
@@ -137,7 +137,7 @@ end
 update_folders(direct);
 
 % Load POD variables
-vars = load(direct_POD, 'results_pod');
+vars = load(direct_POD);
 
 % Create more readable names
 X           = vars.results_pod.X;           % mesh coordinates
@@ -158,21 +158,24 @@ if calc_coef
     volume      = vars.results_pod.volume;    % mesh area size
 end
 
-% Free memory
-clear vars
-
 if time_int && classify_sim
-    % Load Cluster variables
-    vars = load(direct_POD, 'results_clust');
-    
-    km = vars.results_clust.km; % k-means cluster information
-    gm = vars.results_clust.gm; % gaussian mixture model cluster information
-    cluster_range = vars.results_clust.cluster_range; % number of variables in cluster
-    num_clusters = vars.results_clust.num_clusters; % number of clustered used
+    if isfield(vars, 'results_clust');
+        km = vars.results_clust.km; % k-means cluster information
+        gmm = vars.results_clust.gmm; % gaussian mixture model cluster information
+        num_clusters = vars.results_clust.num_clusters; % number of clustered used
+    else
+        % Fill with stub if empty
+        km = struct;
+        gmm = struct;
+        num_clusters = 10;
+    end
     
     % Free memory
-    clear vars
+    clear check
 end
+
+% Free memory
+clear vars 
 
 
 % Initialize coefficeints
@@ -242,16 +245,16 @@ dims = flow_dims(X);
 
 % Initialize if time integration is being performed
 if time_int
-    integration = cell(length(num_modesG),1);
+    integration = cell(length(num_modesG), 1);
 end
 
 % Initialize scores if clustering
 if classify_sim
-    frob_km     = cell(length(num_modesG),1);
-    frob_gm     = cell(length(num_modesG),1);
-    prob_km     = cell(length(num_modesG),1);    
-    prob_gm     = cell(length(num_modesG),1);
-    completed   = cell(length(num_modesG),1);
+    frob_km     = cell(length(num_modesG), 1);
+    frob_gmm     = cell(length(num_modesG), 1);
+    prob_km     = cell(length(num_modesG), 1);    
+    prob_gmm     = cell(length(num_modesG), 1);
+    completed   = cell(length(num_modesG), 1);
 end
 
 % Perform calculation on each set of modes requested
@@ -264,8 +267,8 @@ for i = 1:length(num_modesG)
     % Determine if custom modes have been used, and setup appropriately 
     if iscell(num_modesG)
         custom = true;
-        num_modes = length(num_modesG{i})+1;
-        modes = num_modesG{i}+1;
+        num_modes = length(num_modesG{i}) + 1;
+        modes = num_modesG{i} + 1;
     else
         custom = false;
         num_modes = num_modesG(i)+1;
@@ -336,7 +339,6 @@ for i = 1:length(num_modesG)
         end
         
         % Intial conditions and integration options
-%         options = odeset('RelTol', 1e-8, 'AbsTol', 1e-10);
         options = odeset('RelTol', 1e-6, 'AbsTol', 1e-8);
         ao = modal_amp(init,[1 modes]);
         
@@ -351,11 +353,26 @@ for i = 1:length(num_modesG)
         %____ Plotting functions ____%
 
         % Classify simulation to to empirical clusters
-        if classify_sim && num_modes <= 40
-            idx = (cluster_range == num_modes-1);
-            [frob_km{i}, frob_gm{i}, prob_km{i}, prob_gm{i}, completed{i}] = ...
-                classify_Gal(km{idx}, gm{idx}, integration, tspan, num_clusters, ...
-                multiplier, int_time, i, direct);
+        if score_model
+            
+            % Ready score info Structure
+            score_info.km = km;
+            score_info.gmm = gmm;
+            score_info.integration = integration{i};
+            score_info.tspan = tspan;
+            score_info.modal_amp = modal_amp;
+            score_info.num_clusters = num_clusters;
+            score_info.int_time = int_time;
+            score_info.num_cores = num_cores;
+            score_info.modes = modes;
+            score_info.custom = custom;
+            score_info.direct = direct;
+            score_info.multiplier = multiplier;
+            score_info.MOD = false;
+            
+            % score results
+            [frob_km{i}, frob_gmm{i}, prob_km{i}, prob_gmm{i}, completed{i}] = ...
+                score_model(score_info);
         end
 
         % Prepare data
@@ -425,12 +442,12 @@ for i = 1:length(num_modesG)
     end
     
     % Include scores if requested 
-    if classify_sim && num_modes <= 40
+    if classify_sim
         results_scores.name = 'results_scores';
         results_scores.frob_km = frob_km{i};
-        results_scores.frob_gm = frob_gm{i};
+        results_scores.frob_gmm = frob_gmm{i};
         results_scores.prob_km = prob_km{i};
-        results_scores.prob_gm = prob_gm{i};
+        results_scores.prob_gmm = prob_gmm{i};
         results_scores.completed = completed{i};
     end
     

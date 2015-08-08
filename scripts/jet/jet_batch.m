@@ -7,20 +7,18 @@ for k = 1:4
     setup_pod;
     setup_proj;
     
-    problem_jet.load_raw = true;
-    problem_jet.update_bnds = true;
-    problem_jet.cluster = false;
+    problem_jet.update_bnds = false;
+    problem_jet.load_raw = false;
+%     problem_jet.num_cores = 2;
     problem_jet.direct = direct{k};
-    
     
     for j = 1
         problem_jet.num_clusters = 8 + (j-1)*2;
         POD_Gen(problem_jet);
     end
-    
-    problem_jet.classify_sim = false;
+   
     problem_jet.int_time = 3600;
-    problem_jet.tspan = {'test'};
+    problem_jet.tspan = {'test', 1, 4};
     problem_jet.num_modesG = 4:6;
     Galerkin_Proj(problem_jet);
     
@@ -29,4 +27,11 @@ for k = 1:4
     
     problem_jet.num_modesG = 14:16;
     Galerkin_Proj(problem_jet);
+    
+    problem_jet.models = {'GM', 'GM1'};
+    problem_jet.num_modes = 5;
+    Mod_POD(problem_jet);
+
+    problem_jet.num_modes = 8;
+    Mod_POD(problem_jet);
 end

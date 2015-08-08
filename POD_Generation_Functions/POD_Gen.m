@@ -249,7 +249,7 @@ close all
 
 % Cluster resulting POD modes
 if cluster
-    [km, gm] = cluster_POD(modal_amp, num_clusters, num_cores, direct, save_figures);
+    [km, gmm] = cluster_POD(modal_amp, num_clusters, num_cores, direct, save_figures);
 end
 
 % Calculate voritcity
@@ -335,8 +335,7 @@ if cluster
     results_clust.km = km;
     
     % gaussian mixture model data
-    results_clust.gm = gm;
-    results_clust.cluster_range = 2:40;
+    results_clust.gmm = gmm;
     results_clust.num_clusters = num_clusters;
 end
 

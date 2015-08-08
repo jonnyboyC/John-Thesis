@@ -155,15 +155,14 @@ if classify_sim
     vars = load(direct_POD, 'results_clust');
     
     km = vars.results_clust.km;     % k-means cluster data
-    gm = vars.results_clust.gm;     % gaussian mixture data
-    cluster_range = vars.results_clust.cluster_range;    % number of variables in cluster
+    gmm = vars.results_clust.gmm;     % gaussian mixture data
     num_clusters = vars.results_clust.num_clusters;
 
     
     frob_km     = cell(length(num_modes),1);
-    frob_gm     = cell(length(num_modes),1);
+    frob_gmm    = cell(length(num_modes),1);
     prob_km     = cell(length(num_modes),1);    
-    prob_gm     = cell(length(num_modes),1);   
+    prob_gmm    = cell(length(num_modes),1);   
     completed   = cell(length(num_modes),1);
 end
 
@@ -253,15 +252,30 @@ for i = 1:length(models)
         [pod_U_til, modal_amp_raw_til] = ...
             basis_transform(pod_Ut, modal_ampt, num_modes, X);
         
-        integration{1}.t.(m{i}).(s{j}) = t;
-        integration{1}.modal_amp.(m{i}).(s{j}) = modal_amp_til;
+        integration.t.(m{i}).(s{j}) = t;
+        integration.modal_amp.(m{i}).(s{j}) = modal_amp_til;
         
          % Classify simulation to to empirical clusters
-        if classify_sim && num_modes <= 40
-            idx = (cluster_range == num_modes-1);
-            [frob_km{i}, frob_gm{i}, prob_km{i}, prob_gm{i}, completed{i}] = ...
-                classify_Gal(km{idx}, gm{idx}, integration, tspan, num_clusters, ...
-                multiplier, tspan, 1, direct);
+        if classify_sim 
+            
+            % Ready score info Structure
+            score_info.km = km;
+            score_info.gmm = gmm;
+            score_info.integration = integration;
+            score_info.tspan = tspan;
+            score_info.modal_amp = modal_amp_raw_til;
+            score_info.num_clusters = num_clusters;
+            score_info.int_time = 3600;
+            score_info.num_cores = num_cores;
+            score_info.modes = 1:num_modes;
+            score_info.custom = true;
+            score_info.direct = direct;
+            score_info.multiplier = multiplier;
+            score_info.MOD = true;
+            
+            % score results
+            [frob_km{i}, frob_gmm{i}, prob_km{i}, prob_gmm{i}, completed{i}] = ...
+                score_model(score_info);
         end
         
         % Prepare data
@@ -307,9 +321,9 @@ for i = 1:length(models)
         
         if classify_sim
             results_mod_scores.frob_km      = frob_km;
-            results_mod_scores.frob_gm      = frob_gm;
+            results_mod_scores.frob_gmm     = frob_gmm;
             results_mod_scores.prob_km      = prob_km;
-            results_mod_scores.prob_gm      = prob_gm;
+            results_mod_scores.prob_gmm     = prob_gmm;
             results_mod_scores.completed    = completed;
             results_mod_scores.run_num      = run_num;
         end

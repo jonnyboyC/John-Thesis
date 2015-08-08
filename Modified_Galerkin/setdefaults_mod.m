@@ -75,7 +75,7 @@ end
 % Default for line range 
 if isempty(problem.line_range) || ~isscalar(problem.line_range)
     fprintf('Using default value for line_range\nproblem.line_range = 100\n\n');
-    problem.line_range = 100;  % use 10 modes
+    problem.line_range = 200;  % use 10 modes
 end
 
 % Default for direct

@@ -15,9 +15,9 @@ if isempty(problem.num_cores) || ~isscalar(problem.num_cores) || ...
 end
 
 % Default for save_coef
-if isempty(problem.classify_sim) || ~islogical(problem.classify_sim)
-    fprintf('Using default value for save_coef\nproblem.classify_sim = true\n\n');
-    problem.classify_sim = true;        % save projection values
+if isempty(problem.score_model) || ~islogical(problem.score_model)
+    fprintf('Using default value for score_model\nproblem.score_model = true\n\n');
+    problem.score_model = true;        % save projection values
 end
 
 if iscell(problem.num_modesG)

@@ -1,21 +1,24 @@
-function h = cluster_plot(modal_amp, cl_idx, cl_center, cluster_modes, k, direct, save_figures)
+function h = cluster_plot(modal_amp, km, cluster_modes, k, direct, save_figures)
 % Create 2D representation of clusters centers
 
 % Create new figure and axis handles
 h = figure;
 ax = newplot;
 
+centers = km.centers;
+groups = km.groups;
+
 % Loop through and plot each cluster
 hold(ax, 'on');
 for i = 1:k
     figure(h);
-    plot(ax, modal_amp(cl_idx == i, cluster_modes(1)), modal_amp(cl_idx == i, cluster_modes(2)), '.', ...
+    plot(ax, modal_amp(groups == i, cluster_modes(1)), modal_amp(groups == i, cluster_modes(2)), '.', ...
         'MarkerFaceColor', rand(1,3), 'MarkerEdgeColor', rand(1,3));
-    plot(ax, cl_center(i,cluster_modes(1)), cl_center(i,cluster_modes(2)), 'kx');
+    plot(ax, centers(i,cluster_modes(1)), centers(i,cluster_modes(2)), 'kx');
 end
 
 % Generate voronoi cells
-voronoi(ax, cl_center(1:k,cluster_modes(1)), cl_center(1:k,cluster_modes(2)))
+voronoi(ax, centers(1:k,cluster_modes(1)), centers(1:k,cluster_modes(2)))
 
 % Formatting
 hold(ax, 'off');

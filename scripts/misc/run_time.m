@@ -32,8 +32,8 @@ problem_cavity.direct = 'D:\thesis\PIVData\cavity\2005_09_16\M030f0000v000a';
 % %     time_pod.airfoil(i) = toc(tstart);
 % end
 
-for i = 1:4
-    
+% for i = 1:4
+%     
 %     problem_mixing.num_cores = i;
 %     problem_mixing.num_modesG = 10;
 %     problem_mixing.tspan = {'test', 20};
@@ -41,14 +41,14 @@ for i = 1:4
 %     tstart = tic;
 %     Galerkin_Proj(problem_mixing);
 %     time_gal.mixing(i) = toc(tstart);
-    
-    problem_cavity.num_cores = i;
-    problem_cavity.num_modesG = 10;
-    problem_cavity.tspan = {'test', 20};
-    problem_cavity.override_coef = true;
-    tic;
-    Galerkin_Proj(problem_cavity);
-    time_gal.cavity(i) = toc;
+%     
+%     problem_cavity.num_cores = i;
+%     problem_cavity.num_modesG = 10;
+%     problem_cavity.tspan = {'test', 400};
+%     problem_cavity.override_coef = true;
+%     tic;
+%     Galerkin_Proj(problem_cavity);
+%     time_gal.cavity(i) = toc;
 %     
 %     problem_jet.num_cores = i;
 %     problem_jet.num_modesG = 10;
@@ -62,11 +62,11 @@ for i = 1:4
 %     problem_airfoil.num_modesG = 10;
 %     problem_airfoil.tspan = {'test', 20};
 %     problem_airfoil.override_coef = true;
-
+% 
 %     tstart = tic;
 %     Galerkin_Proj(problem_airfoil);
 %     time_gal.airfoil(i) = toc(tstart);
-end
+% end
 
 setup_mod
 for i = 1:4
