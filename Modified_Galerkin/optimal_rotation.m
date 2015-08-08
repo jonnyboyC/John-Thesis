@@ -36,7 +36,7 @@ Q_til=reshape(Q_til,num_modes,num_modes*num_modes);
 Gal_coeff=[C_til L_til Q_til]; 
 Mod = true;
 
-reduced_model_coeff = ode_coefficients2(num_modes, Gal_coeff, Mod);
+reduced_model_coeff = ode_coefficients(num_modes, Gal_coeff, Mod);
 
 %Solution of the system of equation
 options = odeset('RelTol', 1e-8, 'AbsTol', 1e-10);

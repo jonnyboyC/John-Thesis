@@ -13,12 +13,11 @@ da = model_coef(:,1);
 % Linear terms
 da = da + sum(model_coef(:, 2:num_modes+1).*repmat(a',num_modes,1),2);
 
+% offset for convective terms
 idx = num_modes+2;
 
-% Quadractic terms, index upper half of matrix
-for j = 1:num_modes
-    for k = j:num_modes
-        da = da + model_coef(:,idx).*repmat(a(j)*a(k),num_modes,1);
-        idx = idx + 1;
-    end
+% Convective terms
+da = da + ...
+    squeeze(sum(sum(regroup(model_coef(:,idx:end)',[num_modes, num_modes])...
+    .*repmat(a*a',1,1,num_modes),1),2));
 end

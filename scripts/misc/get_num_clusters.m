@@ -14,97 +14,97 @@ h = plot(eval_mixing_forced1);
 title('Mixing Forced Gap');
 saveas(h, 'eval_mixing_forced1', 'fig');
 
-% figure;
-% eval_mixing_forced2 = evalclusters(modal_amp, 'gmdistribution', 'silhouette', 'KList', 4:16);
-% h = plot(eval_mixing_forced2);
-% title('Mixing Forced silhouette');
-% saveas(h, 'eval_mixing_forced2', 'fig');
-% 
-% figure;
-% eval_mixing_forced3 = evalclusters(modal_amp, 'gmdistribution', 'CalinskiHarabasz', 'KList', 4:16);
-% h = plot(eval_mixing_forced3);
-% title('Mixing Forced Calinski Harabasz');
-% saveas(h, 'eval_mixing_forced3', 'fig');
-% 
-% clear results_pod results_clust
+figure;
+eval_mixing_forced2 = evalclusters(modal_amp, 'gmdistribution', 'silhouette', 'KList', 4:16);
+h = plot(eval_mixing_forced2);
+title('Mixing Forced silhouette');
+saveas(h, 'eval_mixing_forced2', 'fig');
+
+figure;
+eval_mixing_forced3 = evalclusters(modal_amp, 'gmdistribution', 'CalinskiHarabasz', 'KList', 4:16);
+h = plot(eval_mixing_forced3);
+title('Mixing Forced Calinski Harabasz');
+saveas(h, 'eval_mixing_forced3', 'fig');
+
+clear results_pod results_clust
 
 
 %%
-% load('D:\thesis\PIVData\mixing layer\Baseline\POD Data\POD_run_61768.mat');
-% 
-% modal_amp = results_pod.modal_amp(:,2:11);
-% 
-% figure;
-% eval_mixing_base1 = evalclusters(modal_amp, 'gmdistribution', 'gap', 'KList', 4:16);
-% h = plot(eval_mixing_base1);
-% title('Mixing Base Gap');
-% saveas(h, 'eval_mixing_base1', 'fig');
-% 
-% figure;
-% eval_mixing_base2 = evalclusters(modal_amp, 'gmdistribution', 'silhouette', 'KList', 4:16);
-% h = plot(eval_mixing_base2);
-% title('Mixing Base silhouette');
-% saveas(h, 'eval_mixing_base2', 'fig');
-% 
-% figure;
-% eval_mixing_base3 = evalclusters(modal_amp, 'gmdistribution', 'CalinskiHarabasz', 'KList', 4:16);
-% h = plot(eval_mixing_base3);
-% title('Mixing Base Calinski Harabasz');
-% saveas(h, 'eval_mixing_base3', 'fig');
-% 
-% clear results_pod results_clust
+load('D:\thesis\PIVData\mixing layer\Baseline\POD Data\POD_run_61768.mat');
+
+modal_amp = results_pod.modal_amp(:,2:11);
+
+figure;
+eval_mixing_base1 = evalclusters(modal_amp, 'gmdistribution', 'gap', 'KList', 4:16);
+h = plot(eval_mixing_base1);
+title('Mixing Base Gap');
+saveas(h, 'eval_mixing_base1', 'fig');
+
+figure;
+eval_mixing_base2 = evalclusters(modal_amp, 'gmdistribution', 'silhouette', 'KList', 4:16);
+h = plot(eval_mixing_base2);
+title('Mixing Base silhouette');
+saveas(h, 'eval_mixing_base2', 'fig');
+
+figure;
+eval_mixing_base3 = evalclusters(modal_amp, 'gmdistribution', 'CalinskiHarabasz', 'KList', 4:16);
+h = plot(eval_mixing_base3);
+title('Mixing Base Calinski Harabasz');
+saveas(h, 'eval_mixing_base3', 'fig');
+
+clear results_pod results_clust
 
 %%
 
-% load('D:\thesis\PIVData\airfoil\Test_2\POD Data\POD_run_34400.mat');
-% 
-% modal_amp = results_pod.modal_amp(:,2:11);
-% 
-% figure;
-% eval_airfoil_base1 = evalclusters(modal_amp, 'gmdistribution', 'gap', 'KList', 4:16);
-% h = plot(eval_airfoil_base1);
-% title('Arifoil Base Gap');
-% saveas(h, 'eval_airfoil_base1', 'fig');
-% 
-% figure;
-% eval_airfoil_base2 = evalclusters(modal_amp, 'gmdistribution', 'silhouette', 'KList', 4:16);
-% h = plot(eval_airfoil_base2);
-% title('Arifoil Base silhouette');
-% saveas(h, 'eval_airfoil_base2', 'fig');
-% 
-% figure;
-% eval_airfoil_base3 = evalclusters(modal_amp, 'gmdistribution', 'CalinskiHarabasz', 'KList', 4:16);
-% h = plot(eval_airfoil_base3);
-% title('Arifoil Base Calinski Harabasz');
-% saveas(h, 'eval_airfoil_base3', 'fig');
-% 
-% clear results_pod results_clust
+load('D:\thesis\PIVData\airfoil\Test_2\POD Data\POD_run_34400.mat');
+
+modal_amp = results_pod.modal_amp(:,2:11);
+
+figure;
+eval_airfoil_base1 = evalclusters(modal_amp, 'gmdistribution', 'gap', 'KList', 4:16);
+h = plot(eval_airfoil_base1);
+title('Arifoil Base Gap');
+saveas(h, 'eval_airfoil_base1', 'fig');
+
+figure;
+eval_airfoil_base2 = evalclusters(modal_amp, 'gmdistribution', 'silhouette', 'KList', 4:16);
+h = plot(eval_airfoil_base2);
+title('Arifoil Base silhouette');
+saveas(h, 'eval_airfoil_base2', 'fig');
+
+figure;
+eval_airfoil_base3 = evalclusters(modal_amp, 'gmdistribution', 'CalinskiHarabasz', 'KList', 4:16);
+h = plot(eval_airfoil_base3);
+title('Arifoil Base Calinski Harabasz');
+saveas(h, 'eval_airfoil_base3', 'fig');
+
+clear results_pod results_clust
 
 
 %%
-% load('D:\thesis\PIVData\airfoil\Test_1\POD Data\POD_run_96670.mat');
-% 
-% modal_amp = results_pod.modal_amp(:,2:11);
-% 
-% figure;
-% eval_airfoil_forced1 = evalclusters(modal_amp, 'gmdistribution', 'gap', 'KList', 4:16);
-% h = plot(eval_airfoil_forced1);
-% title('Arifoil Forced Gap');
-% saveas(h, 'eval_airfoil_forced1', 'fig');
-% 
-% figure;
-% eval_airfoil_forced2 = evalclusters(modal_amp, 'gmdistribution', 'silhouette', 'KList', 4:16);
-% h = plot(eval_airfoil_forced2);
-% title('Arifoil Forced silhouette');
-% saveas(h, 'eval_airfoil_forced2', 'fig');
-% 
-% figure;
-% eval_airfoil_forced3 = evalclusters(modal_amp, 'gmdistribution', 'CalinskiHarabasz', 'KList', 4:16);
-% h = plot(eval_airfoil_forced3);
-% title('Arifoil Forced Calinski Harabasz');
-% saveas(h, 'eval_airfoil_forced3', 'fig');
-% 
-% clear results_pod results_clust
+load('D:\thesis\PIVData\airfoil\Test_1\POD Data\POD_run_96670.mat');
+
+modal_amp = results_pod.modal_amp(:,2:11);
+
+figure;
+eval_airfoil_forced1 = evalclusters(modal_amp, 'gmdistribution', 'gap', 'KList', 4:16);
+h = plot(eval_airfoil_forced1);
+title('Arifoil Forced Gap');
+saveas(h, 'eval_airfoil_forced1', 'fig');
+
+figure;
+eval_airfoil_forced2 = evalclusters(modal_amp, 'gmdistribution', 'silhouette', 'KList', 4:16);
+h = plot(eval_airfoil_forced2);
+title('Arifoil Forced silhouette');
+saveas(h, 'eval_airfoil_forced2', 'fig');
+
+figure;
+eval_airfoil_forced3 = evalclusters(modal_amp, 'gmdistribution', 'CalinskiHarabasz', 'KList', 4:16);
+h = plot(eval_airfoil_forced3);
+title('Arifoil Forced Calinski Harabasz');
+saveas(h, 'eval_airfoil_forced3', 'fig');
+
+clear results_pod results_clust
 
 %%
 load('D:\thesis\PIVData\cavity\2005_09_16\M030f0000v000a\POD Data\POD_run_49728');
