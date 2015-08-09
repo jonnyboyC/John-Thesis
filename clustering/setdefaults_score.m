@@ -15,7 +15,7 @@ end
 % Default for num_pod 
 if isempty(problem.num_clusters) || ~isnumeric(problem.num_clusters) && ~iscell(problem.num_clusters) 
     fprintf('Using default value for num_modesG\nproblem.num_modesG = 10\n\n');
-    problem.num_modesG = 10;        % use 10 modes
+    problem.num_clusters = 10;        % use 10 modes
 end
 
 % Default for num_cores

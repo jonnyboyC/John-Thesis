@@ -12,7 +12,7 @@ if ischar(run_num) && strcmp(run_num, 'first')
     [~, idx] = sort([files.datenum], 2, 'descend');
     files = files(idx);
 
-    % Return newest file not folder
+    % Return newest file not folder 
     for i = 1:length(files)
         if ~files(i).isdir 
             file = files(i).name;
@@ -34,8 +34,10 @@ match = regexp({files.name}, expr);
 for i = 1:length(files)
     if ~isempty(match{i}) && ~files(i).isdir
         file = files(i).name;
-        break;
+        return;
     end
 end
+
+file = 'not found';
 
 end

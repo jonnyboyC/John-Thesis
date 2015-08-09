@@ -310,6 +310,7 @@ for i = 1:length(models)
         results_mod_coef.C_til          = C_til;
         results_mod_coef.L_til          = L_til;
         results_mod_coef.Q_til          = Q_til;
+        results_mod_coef.modes          = modes;
         results_mod_coef.pod_U_til      = pod_U_til;
         results_mod_coef.modal_amp_til  = modal_amp_raw_til;
         results_mod_coef.epsilon_final  = epsilon_final;
