@@ -56,7 +56,7 @@ function Mod_POD(varargin)
 %   problem.fft_window = [0 2000]
 %   Specify the hertz range that the fft plot should capture
 %
-%   problem.classify_sim = true
+%   problem.score = true
 %   Classify simulated results to emprical data
 %
 %   problem.num_cores = 'auto'
@@ -72,7 +72,8 @@ fields = {  'num_modes',    'plot_type',    'save_mod', ...
             'init',         'line_range',   'direct' ,...
             'run_num',      'models',       'submodels',...   
             'fft_window',   'tspan',        'basis_modes',...
-            'custom',       'classify_sim', 'num_cores'};
+            'custom',       'score',        'num_cores', ...
+            'garbage_mode'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -96,8 +97,10 @@ submodels   = problem.submodels;
 fft_window  = problem.fft_window;
 tspan       = problem.tspan;
 custom      = problem.custom;
-classify_sim= problem.classify_sim;
+score       = problem.score;
 num_cores   = problem.num_cores;
+garbage_mode    = problem.garbage_mode;
+
 
 clear problem
 
@@ -116,6 +119,7 @@ end
 
 % Make sure folders are up to date and load collected data
 update_folders(direct);
+fix_gmm(direct);
 
 % Load POD variables
 vars = load(direct_POD, 'results_pod');
@@ -149,7 +153,7 @@ end
 [t_scale, tspan] = calc_t_scale(u_scale, l_scale, non_dim, tspan);     
 
 % If requested load cluster data
-if classify_sim
+if score
     
     % Load Cluster variables
     vars = load(direct_POD, 'results_clust');
@@ -243,20 +247,21 @@ for i = 1:length(models)
         
         close all;
         
+        s_til{j} = ['til_' s{j}];
         
         % Final calculation of transformation matrix and new constant linear and
         % quadratic terms
-        [~, X, C_til, L_til, Q_til, modal_amp_til, t] = ...
+        [~, X_til, C_til, L_til, Q_til, modal_amp_til, t] = ...
             optimal_rotation(epsilon_final, C, L, Q, num_modes, basis_modes, lambda, modal_ampt, t_scale, tspan, init, 64000);
         
         [pod_U_til, modal_amp_raw_til] = ...
-            basis_transform(pod_Ut, modal_ampt, num_modes, X);
+            basis_transform(pod_Ut, modal_ampt, num_modes, X_til);
         
-        integration.t.(m{i}).(s{j}) = t;
-        integration.modal_amp.(m{i}).(s{j}) = modal_amp_til;
+        integration.t.(m{i}).(s_til{j}) = t;
+        integration.modal_amp.(m{i}).(s_til{j}) = modal_amp_til;
         
          % Classify simulation to to empirical clusters
-        if classify_sim 
+        if score 
             
             % Ready score info Structure
             score_info.km = km;
@@ -269,6 +274,7 @@ for i = 1:length(models)
             score_info.num_cores = num_cores;
             score_info.modes = 1:num_modes;
             score_info.custom = true;
+            score_info.garbage_mode = garbage_mode;
             score_info.direct = direct;
             score_info.multiplier = multiplier;
             score_info.MOD = true;
@@ -291,7 +297,7 @@ for i = 1:length(models)
         plot_data.Mod           = true;
         plot_data.plot_type     = plot_type;
         plot_data.sample_freq   = sample_freq;
-        plot_data.id            = strrep([m{i} ' ' s{j}], '_', ' ');
+        plot_data.id            = strrep([m{i} ' ' s_til{j}], '_', ' ');
         plot_data.modal_amp     = modal_amp_til;
         plot_data.t             = t;
         plot_data.X             = X;
@@ -300,41 +306,43 @@ for i = 1:length(models)
         
         % Generate plots
         produce_plots(plot_data);
-        
-        results_mod_coef.name           = 'results_mod_coef';
-        results_mod_int.name            = 'results_mod_int';
-        results_mod_scores.name         = 'results_mod_scores';
+       
         
         % Prepare data to be saved
-        results_mod_coef.X              = X;
-        results_mod_coef.C_til          = C_til;
-        results_mod_coef.L_til          = L_til;
-        results_mod_coef.Q_til          = Q_til;
-        results_mod_coef.modes          = modes;
-        results_mod_coef.pod_U_til      = pod_U_til;
-        results_mod_coef.modal_amp_til  = modal_amp_raw_til;
-        results_mod_coef.epsilon_final  = epsilon_final;
-        results_mod_coef.run_num        = run_num;
-        
-        results_mod_int.t               = t;
-        results_mod_int.modal_amp_til   = modal_amp_til;
-        results_mod_int.run_num        = run_num;
-        
-        if classify_sim
-            results_mod_scores.frob_km      = frob_km;
-            results_mod_scores.frob_gmm     = frob_gmm;
-            results_mod_scores.prob_km      = prob_km;
-            results_mod_scores.prob_gmm     = prob_gmm;
-            results_mod_scores.completed    = completed;
-            results_mod_scores.run_num      = run_num;
-        end
-        
-        % Save important coefficients
-        if save_mod == true
-            save_results(num_modes, direct, 'Mod Galerkin Coeff', custom, results_mod_coef, ...
-                results_mod_int, results_mod_scores);
-        end
+        system.X_til.(m{i}).(s_til{j}) = X_til;
+        system.C_til.(m{i}).(s_til{j}) = C_til;
+        system.L_til.(m{i}).(s_til{j}) = L_til;
+        system.Q_til.(m{i}).(s_til{j}) = Q_til;
+        system.X_til.(m{i}).(s_til{j}) = X_til;
+        system.pod_U_til.(m{i}).(s_til{j}) = pod_U_til;
+        system.modal_amp_til.(m{i}).(s_til{j}) = modal_amp_raw_til;
+        system.epsilon.(m{i}).(s_til{j}) = epsilon_final;
     end
+end
+
+results_mod_coef.name           = 'results_mod_coef';
+results_mod_int.name            = 'results_mod_int';
+results_mod_scores.name         = 'results_mod_scores';
+
+results_mod_coef.run_num        = run_num;
+results_mod_coef.modes          = 1:num_modes;
+results_mod_coef.system         = system;
+
+results_mod_int.integration     = integration;
+results_mod_int.run_num         = run_num;
+
+if score
+    results_mod_scores.frob_km      = frob_km;
+    results_mod_scores.frob_gmm     = frob_gmm;
+    results_mod_scores.prob_km      = prob_km;
+    results_mod_scores.prob_gmm     = prob_gmm;
+    results_mod_scores.completed    = completed;
+    results_mod_scores.run_num      = run_num;
+end
+
+if save_mod == true
+    save_results(num_modes, direct, 'Mod Galerkin Coeff', custom, results_mod_coef, ...
+        results_mod_int, results_mod_scores);
 end
 
 end

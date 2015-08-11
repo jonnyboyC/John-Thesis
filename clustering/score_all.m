@@ -2,7 +2,12 @@ function res_scores = score_all(varargin)
 % SCORE_ALL perform generate and score surrogate markov models for each
 % model present in a given folder
 
-fields = {  'run_num',  'direct',   'num_clusters' , 'num_cores'};
+format long g
+close all
+clc;
+
+fields = {  'run_num',      'direct',       'num_clusters' , ...
+            'num_cores',    'outlier_mode'};
     
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -18,6 +23,7 @@ run_num = problem.run_num;
 direct  = problem.direct;
 num_clusters = problem.num_clusters;
 num_cores = problem.num_cores;
+outlier_mode = problem.outlier_mode;
 
 % Setup MATLAB to a max number of cores
 setup_cores(num_cores);
@@ -31,6 +37,7 @@ end
 
 % Check folders are up to most recent format
 update_folders(direct);
+fix_gmm(direct);
 
 % Load POD variables
 vars = load(direct_POD);
@@ -56,74 +63,82 @@ else
 end
 
 results_scores = struct;
+TKE = struct;
 galerkin_path = [filesep 'Galerkin Coeff' filesep];
 galerkin_path = [direct, galerkin_path];
 files = dir(galerkin_path);
 
 % Skip . and ..
-% for i = 3:length(files)
-%     close all
-%     if ~files(i).isdir
-%         continue;
-%     end
-%     
-%     % If folder concat full path
-%     full_path = [galerkin_path, files(i).name];
-%     
-%     % Get first mat file in that folder
-%     file = get_file(run_num, full_path);
-%     
-%     if strcmp(file, 'not found')
-%         fprintf('folder %s has a not matching run_num for %d\n', files(i).name, run_num);
-%         continue;
-%     end
-%     
-%     vars = load([full_path filesep file]);
-%         
-%     % TODO have to get tspan from one dude that actually competed 
-%     % and backcalculate shit... god damn it
-%     
-%     integration = vars.results_int.integration;
-%     
-%     [tspan, multiplier] = back_calc_tspan(exp_sampling_rate, integration, modal_amp);
-%     
-%     % Ready score info Structure
-%     score_info.km = km;
-%     score_info.gmm = gmm;
-%     score_info.integration = integration;
-%     score_info.tspan = tspan;
-%     score_info.modal_amp = modal_amp;
-%     score_info.num_clusters = num_clusters;
-%     score_info.int_time = 3600;
-%     score_info.num_cores = num_cores;
-%     score_info.modes = vars.results_coef.modes;
-%     if strcmp(files(i).name, 'custom')
-%         score_info.custom = true;
-%     else
-%         score_info.custom = false;
-%     end
-%     score_info.direct = direct;
-%     score_info.multiplier = multiplier;
-%     score_info.MOD = false;
-%     
-%     % score results
-%     [frob_km, frob_gmm, prob_km, prob_gmm, completed] = ...
-%         score_model(score_info);
-%         
-%     m = flow_comps(frob_km);
-%     models = flow_ncomps(frob_km);
-%     for j = 1:models
-%         s = flow_comps(frob_km.(m{j}));
-%         sub_models = flow_ncomps(frob_km.(m{j}));
-%         for k = 1:sub_models
-%             results_scores.(files(i).name).(m{j}).(s{k}).('frob_km') = frob_km.(m{j}).(s{k});
-%             results_scores.(files(i).name).(m{j}).(s{k}).('frob_gmm') = frob_gmm.(m{j}).(s{k});
-%             results_scores.(files(i).name).(m{j}).(s{k}).('prob_km') = prob_km.(m{j}).(s{k});
-%             results_scores.(files(i).name).(m{j}).(s{k}).('prob_gmm') = prob_gmm.(m{j}).(s{k});
-%             results_scores.(files(i).name).(m{j}).(s{k}).('completed') = completed.(m{j}).(s{k});
-%         end
-%     end
-% end
+for i = 3:length(files)
+    close all
+    if ~files(i).isdir
+        continue;
+    end
+    
+    % If folder concat full path
+    full_path = [galerkin_path, files(i).name];
+    
+    % Get first mat file in that folder
+    file = get_file(run_num, full_path);
+    
+    if strcmp(file, 'not found')
+        fprintf('folder %s has a not matching run_num for %d\n', files(i).name, run_num);
+        continue;
+    end
+    
+    % Load variables
+    vars = load([full_path filesep file]);
+       
+    % Unpack variables
+    integration = vars.results_int.integration;
+    modes = vars.results_coef.modes;
+    MOD = false;
+    
+    [tspan, multiplier] = back_calc_tspan(exp_sampling_rate, integration, modal_amp);
+    
+    % Ready score info Structure
+    score_info.km = km;
+    score_info.gmm = gmm;
+    score_info.integration = integration;
+    score_info.tspan = tspan;
+    score_info.modal_amp = modal_amp;
+    score_info.num_clusters = num_clusters;
+    score_info.int_time = 3600;
+    score_info.num_cores = num_cores;
+    score_info.outlier_mode = outlier_mode;
+    score_info.modes = modes;
+    score_info.direct = direct;
+    score_info.multiplier = multiplier;
+    score_info.MOD = MOD;
+    
+    % Can eventually remove this as well
+    if strcmp(files(i).name, 'custom')
+        score_info.custom = true;
+    else
+        score_info.custom = false;
+    end
+    
+    % score results
+    [frob_km, frob_gmm, prob_km, prob_gmm, completed] = ...
+        score_model(score_info);
+    
+    % Get model names
+    m = flow_comps(frob_km);
+    models = flow_ncomps(frob_km);
+    
+    for j = 1:models
+        % Get submodel names
+        s = flow_comps(frob_km.(m{j}));
+        sub_models = flow_ncomps(frob_km.(m{j}));
+        
+        for k = 1:sub_models  
+            % Calculate TKE and pack results
+            TKE = calc_energy(TKE, integration, completed, modal_amp, m{j}, s{k}, files(i), modes, MOD);
+            results_scores = pack_results(results_scores, completed, frob_km, frob_gmm, ...
+                prob_km, prob_gmm, m{j}, s{k}, files(i));
+        end
+    end
+end
 
 mod_path = [filesep 'Mod Galerkin Coeff' filesep];
 mod_path = [direct, mod_path];
@@ -146,16 +161,18 @@ for i = 3:length(files)
         continue;
     end
     
+    % Load variables
     vars = load([full_path filesep file]);
-        
-    % TODO have to get tspan from one dude that actually competed 
-    % and backcalculate shit... god damn it
     
+    % Unpack variables
     integration = vars.results_mod_int.integration;
+    modes = vars.results_mod_coef.modes;
+    MOD = true;
     
+    % Back calculate tspan and multiplier eventually can remove
     [tspan, multiplier] = back_calc_tspan(exp_sampling_rate, integration, modal_amp);
     
-    % Ready score info Structure
+    % Ready score info structure
     score_info.km = km;
     score_info.gmm = gmm;
     score_info.integration = integration;
@@ -164,40 +181,57 @@ for i = 3:length(files)
     score_info.num_clusters = num_clusters;
     score_info.int_time = 3600;
     score_info.num_cores = num_cores;
-    score_info.modes = vars.results_coef.modes;
+    score_info.outlier_mode = outlier_mode;
+    score_info.modes = modes;
+    score_info.modes = vars.results_mod_coef.modes;
+    score_info.direct = direct;
+    score_info.multiplier = multiplier;
+    score_info.MOD = MOD;
+    score_info.modal_amp_til = vars.results_mod_coef.system.modal_amp_til;
+    
+    % Can eventually remove this as well
     if strcmp(files(i).name, 'custom')
         score_info.custom = true;
     else
         score_info.custom = false;
     end
-    score_info.direct = direct;
-    score_info.multiplier = multiplier;
-    score_info.MOD = true;
     
-    % score results
+    % Score results
     [frob_km, frob_gmm, prob_km, prob_gmm, completed] = ...
         score_model(score_info);
         
+    % Get Model names
     m = flow_comps(frob_km);
     models = flow_ncomps(frob_km);
+    
     for j = 1:models
+        % Get submodel names
         s = flow_comps(frob_km.(m{j}));
         sub_models = flow_ncomps(frob_km.(m{j})); 
-        s_new = cell(size(s));
+        
         for k = 1:sub_models
-            s_new{i} = ['mod_' s{i}];
-        end
-        for k = 1:sub_models
-            results_scores.(files(i).name).(m{j}).(s_new{k}).('frob_km') = frob_km.(m{j}).(s{k});
-            results_scores.(files(i).name).(m{j}).(s_new{k}).('frob_gmm') = frob_gmm.(m{j}).(s{k});
-            results_scores.(files(i).name).(m{j}).(s_new{k}).('prob_km') = prob_km.(m{j}).(s{k});
-            results_scores.(files(i).name).(m{j}).(s_new{k}).('prob_gmm') = prob_gmm.(m{j}).(s{k});
-            results_scores.(files(i).name).(m{j}).(s_new{k}).('completed') = completed.(m{j}).(s{k});
+            % Caculate TKE and pack results
+            TKE = calc_energy(TKE, integration, completed, modal_amp, m{j}, s{k}, files(i), modes, MOD);
+            results_scores = pack_results(results_scores, completed, frob_km, frob_gmm, ...
+                prob_km, prob_gmm, m{j}, s{k}, files(i));
         end
     end
 end
 
+[fkm_list, model]  = merge_struct(results_scores, 'frob_km');
+[fgmm_list, ~] = merge_struct(results_scores, 'frob_gmm');
+[pkm_list, ~] = merge_struct(results_scores, 'prob_km');
+[pgmm_list, ~] = merge_struct(results_scores, 'prob_gmm');
+[tke_list, ~] = merge_struct(TKE, 'mean_diff');
+[tke2_list, ~] = merge_struct(TKE, 'std_diff');
+
+% derp = strncmp(model, 'GM3', 3)
+
 if nargout == 1
     res_scores = results_scores;
+end
+
+% TKE = sum(1/2*modal_amp'.^2);
+
 end
 

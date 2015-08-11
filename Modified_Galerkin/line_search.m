@@ -104,6 +104,11 @@ if ~isempty(pool)
                         epsilon_high = epsilon(j+1);
                         return;
                     else
+                        if isempty(parfeval_futures)
+                            epsilon_low = epsilon(j);
+                            epsilon_high = epsilon(j+1);
+                            return;
+                        end
                         % If not restart jobs
                         for k = 1:length(parfeval_futures)
                             parfeval_futures(k) = parfeval(parfeval_futures(k).Function, ...

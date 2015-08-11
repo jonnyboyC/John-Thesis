@@ -12,10 +12,10 @@ if isempty(problem.plot_type) || ~ischar(problem.plot_type) || iscell(problem.pl
     problem.plot_type = {'amp', 'fft', 'energy'};      % plot_types to be used
 end
 
-% Default for save_coef
-if isempty(problem.classify_sim) || ~islogical(problem.classify_sim)
-    fprintf('Using default value for save_coef\nproblem.classify_sim = true\n\n');
-    problem.classify_sim = true;        % save projection values
+% Default for score
+if isempty(problem.score) || ~islogical(problem.score)
+    fprintf('Using default value for save_coef\nproblem.score = true\n\n');
+    problem.score = true;        % save projection values
 end
 
 % Default for num_cores
@@ -23,6 +23,33 @@ if isempty(problem.num_cores) || ~isscalar(problem.num_cores) || ...
         (ischar(problem.num_cores) && strcmp(problem.num_cores, 'auto'))
     fprintf('Using default value for num_cores\nproblem.num_cores = "num_cores"\n\n');
     problem.num_cores = 'auto';        % set to system max
+end
+
+% Default for garbage_mode
+if isempty(problem.garbage_mode) || ~isstruct(problem.garbage_mode)
+    fprintf(['Using default value for garbage_mode\nproblem.garbage_mode.km = []' ...
+       '\nproblem.garbage_mode.gm = [] \n\n']);
+    problem.garbage_mode.km = [];
+    problem.garbage_mode.gmm = [];
+end
+
+if isstruct(problem.garbage_mode)
+    match = {'km', 'gmm'};
+    fields =  fieldnames(problem.garbage_mode);
+    rm_fields = fields(~ismember(fields, match));
+    if ~isempty(rm_fields)
+        for i = 1:size(rm_fields,1);
+            fprintf('Removing field "%s"\n', rm_fields{i});
+        end
+        problem.garbage_mode = rmfield(problem.garbage_mode, rm_fields);
+    end
+    
+    fields =  fieldnames(problem.garbage_mode);
+    for i = 1:length(fields)
+        if ~isscalar(problem.garbage_mode.(fields{i}))
+           problem.garbage_mode.fields{i} = []; 
+        end
+    end
 end
 
 % Check to make sure incorrect strings are not passed

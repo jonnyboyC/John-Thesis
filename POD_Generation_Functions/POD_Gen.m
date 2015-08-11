@@ -91,7 +91,8 @@ fields = {  'num_images',   'load_raw',     'save_pod', ...
             'cluster',      'average_mesh', 'filter', ...
             'streamlines',  'non_dim',      'xy_units', ...
             'load_handle',  'load_only',    'grid_direct', ...
-            'num_cores'};
+            'num_cores',    'outlier_mode';
+};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1   
@@ -124,6 +125,7 @@ xy_units        = problem.xy_units;
 load_only       = problem.load_only;
 exp_sampling_rate = problem.exp_sampling_rate;
 num_cores       = problem.num_cores;
+outlier_mode    = problem.outlier_mode;
 
 clear problem
 
@@ -247,7 +249,7 @@ close all
 
 % Cluster resulting POD modes
 if cluster
-    [km, gmm] = cluster_POD(modal_amp, num_clusters, num_cores, direct, save_figures);
+    [km, gmm] = cluster_POD(modal_amp, num_clusters, num_cores, outlier_mode, direct, save_figures);
 end
 
 % Calculate voritcity

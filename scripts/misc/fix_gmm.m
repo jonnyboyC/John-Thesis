@@ -20,15 +20,16 @@ catch
 end
 
 vars = matfile(direct_POD, 'Writable', true);
+variables = whos(vars);
 
-if isfield(vars, 'results_clust')
+if any(cellfun(@(x)strcmp('results_clust', x),{variables.name}))
     results_clust = vars.results_clust;
     if isfield(results_clust, 'gm')
         results_clust.gmm = results_clust.gm;
         results_clust = rmfield(results_clust, 'gm');
-        fprintf('Data directory %s fixed gm to gmm\n', direct);
+        fprintf('Data directory %s changed variable gm to gmm\n', direct);
     end
     vars.results_clust = results_clust;
 else
-    fprintf('Clustering has not been performed on %s%', direct);
+    fprintf('Clustering has not been performed on %s%\n', direct);
 end

@@ -5,7 +5,7 @@ function problem = parse_inputs(fields, setdefaults, varargin)
 
 % if no input is provided or a variable create a blank structure
 if nargin == 2 || ~isstruct(varargin{1})
-    fprintf('Non-Struct provided, setting POD_Gen to defaults\n\n');
+    fprintf('Non-Struct provided, using defaults\n\n');
     problem = struct(); 
 else
     problem = varargin{1};

@@ -7,10 +7,9 @@ for k = 1:2
     
     problem_mixing.direct = direct{k};
     
-    for j = 1
-        problem_mixing.num_clusters = 8 + (j-1)*2;
-        POD_Gen(problem_mixing);
-    end
+    problem_mixing.num_clusters = 10;
+    POD_Gen(problem_mixing);
+
     
     problem_mixing.int_time = 3600;
     problem_mixing.tspan = {'test', 400, 4};

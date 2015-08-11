@@ -17,9 +17,14 @@ int_time        = score_info.int_time;
 num_cores       = score_info.num_cores;
 modes           = score_info.modes;
 custom          = score_info.custom;
+outlier_mode    = score_info.outlier_mode;
 direct          = score_info.direct;
 multiplier      = score_info.multiplier;
 MOD             = score_info.MOD;
+
+if MOD
+    modal_amp_til = score_info.modal_amp_til;
+end
 
 % Free memory
 clear score_info
@@ -34,26 +39,29 @@ m_comps = flow_ncomps(integration.modal_amp);
 h_km = figure;
 h_gm = figure;
 
-% Strip off mean mode if we need to cluster
-if ~MOD
-   modal_amp = modal_amp(:,2:end); 
-end
+% Strip off mean mode from raw data
+modal_amp = modal_amp(:,2:end);
 
 % Select or generate clusters from data
-if custom
-    [gmm, km] = gen_clusters(modal_amp, modes, num_clusters, num_cores);
-else
-    if (length(modes) - 1) <= length(km)
-        idx = length(modes) - 1;
-        km = km{idx};
-        gmm = gmm{idx};
-    else
-       [gmm, km] = gen_clusters(modal_amp, modes, num_clusters, num_cores); 
-    end
+if ~MOD
+    
+    % Post thesis we can change this back
+    [gmm, km] = gen_clusters(modal_amp, modes, num_clusters, num_cores, outlier_mode);
+%     if custom
+%         [gmm, km] = gen_clusters(modal_amp, modes, num_clusters, num_cores);
+%     else
+%         if (length(modes) - 1) <= length(km)
+%             idx = length(modes) - 1;
+%             km = km{idx};
+%             gmm = gmm{idx};
+%         else
+%             [gmm, km] = gen_clusters(modal_amp, modes, num_clusters, num_cores);
+%         end
+%     end
 end
     
 
-valid_transition = true;
+classify = true;
 
 % Loop through each model calculating scores
 for j = 1:m_comps
@@ -78,30 +86,33 @@ for j = 1:m_comps
             continue;
         end
         
-        % Classify each point to a cluster
+        % Strip off first mode if not not modified
         if MOD
-            km_sim.groups = knnsearch(km.centers, integration.modal_amp.(m{j}).(s{k}));
-            gmm_sim.groups = cluster(gmm.models, integration.modal_amp.(m{j}).(s{k}));
+            modal_amp_model = integration.modal_amp.(m{j}).(s{k});
+            [gmm, km] = gen_clusters(modal_amp_til.(m{j}).(s{k}), modes, ...
+                num_clusters, num_cores, outlier_mode);
         else
-            km_sim.groups = knnsearch(km.centers, integration.modal_amp.(m{j}).(s{k})(:,2:end));
-            gmm_sim.groups = cluster(gmm.models, integration.modal_amp.(m{j}).(s{k})(:,2:end));
+            modal_amp_model = integration.modal_amp.(m{j}).(s{k})(:,2:end);
         end
         
+        % Classify each point to a cluster
+        [gmm_sim, km_sim] = classify_model(km, gmm, modal_amp_model, num_clusters, outlier_mode);
+        
         % Generate a stochastic matrix from transitions
-        km_sim.stoch = gen_stochastic_matrix(num_clusters, km_sim.groups, multiplier, valid_transition);
-        gmm_sim.stoch = gen_stochastic_matrix(num_clusters, gmm_sim.groups, multiplier, valid_transition);
+        km_sim.stoch = gen_stochastic_matrix(num_clusters, km_sim.groups, multiplier, classify, outlier_mode);
+        gmm_sim.stoch = gen_stochastic_matrix(num_clusters, gmm_sim.groups, multiplier, classify, outlier_mode);
         
         % log probability of observing the simulate chain using MLE model
-        km_sim.prob = calc_probability(km_sim.stoch, km.groups);
-        gmm_sim.prob = calc_probability(gmm_sim.stoch, gmm.groups);
+        km_sim.like = calc_likelihood(km_sim.stoch, km.groups);
+        gmm_sim.like = calc_likelihood(gmm_sim.stoch, gmm.groups);
         
         % Frobenius norm of transition matrices
         frob_km.(m{j}).(s{k}) = norm(km_sim.stoch - km.stoch, 'fro');
         frob_gm.(m{j}).(s{k}) = norm(gmm_sim.stoch - gmm.stoch, 'fro');
         
         % Relative likelihood between observed chains
-        prob_km.(m{j}).(s{k}) = km_sim.prob - km.prob;
-        prob_gm.(m{j}).(s{k}) = gmm_sim.prob - gmm.prob;
+        prob_km.(m{j}).(s{k}) = km_sim.like - km.like;
+        prob_gm.(m{j}).(s{k}) = gmm_sim.like- gmm.like;
         
         plot_stochastic_matrix(km_sim, save_figures, direct, h_km);
         plot_stochastic_matrix(gmm_sim, save_figures, direct, h_gm);

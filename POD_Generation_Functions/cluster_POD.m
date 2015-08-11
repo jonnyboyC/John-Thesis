@@ -1,4 +1,4 @@
-function [km, gmm] = cluster_POD(modal_amp, num_clusters, num_cores, direct, save_figures)
+function [km, gmm] = cluster_POD(modal_amp, num_clusters, num_cores, garbage_mode, direct, save_figures)
 % CLUSTER_POD return clusters of the POD modal amplitudes by k-mean and
 % gaussian mixture. Generates modes for 2-40 modes, with plots
 %
@@ -24,7 +24,7 @@ for i = 1:length(cluster_range);
     modes = 1:cluster_range(i);
     
     % Generate clusters for the empirical data
-    [gmm{i}, km{i}] = gen_data_clusters(modal_amp, modes, num_clusters, num_cores);
+    [gmm{i}, km{i}] = gen_clusters(modal_amp, modes, num_clusters, num_cores, garbage_mode);
     
     % in 2D phase space plot clusters
     if i == 1 && ~isempty(save_figures)

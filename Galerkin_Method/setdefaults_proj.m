@@ -24,6 +24,33 @@ if isempty(problem.int_time) || ~isscalar(problem.int_time)
     problem.int_time = 3600;    
 end
 
+% Default for outlier_mode
+if isempty(problem.outlier_mode) || ~isstruct(problem.outlier_mode)
+    fprintf(['Using default value for outlier_mode\nproblem.outlier_mode.km = []' ...
+       '\nproblem.outlier_mode.gm = [] \n\n']);
+    problem.outlier_mode.km = [];
+    problem.outlier_mode.gmm = [];
+end
+
+if isstruct(problem.outlier_mode)
+    match = {'km', 'gmm'};
+    fields =  fieldnames(problem.outlier_mode);
+    rm_fields = fields(~ismember(fields, match));
+    if ~isempty(rm_fields)
+        for i = 1:size(rm_fields,1);
+            fprintf('Removing field "%s"\n', rm_fields{i});
+        end
+        problem.outlier_mode = rmfield(problem.outlier_mode, rm_fields);
+    end
+    
+    fields =  fieldnames(problem.outlier_mode);
+    for i = 1:length(fields)
+        if ~isscalar(problem.outlier_mode.(fields{i}))
+           problem.outlier_mode.fields{i} = []; 
+        end
+    end
+end
+
 % Default for num_cores
 if isempty(problem.num_cores) || ~isscalar(problem.num_cores) || ...
         (ischar(problem.num_cores) && strcmp(problem.num_cores, 'auto'))

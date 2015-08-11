@@ -87,7 +87,8 @@ fields = {  'num_modesG',   'plot_type',    'save_coef', ...
             'direct' ,      'Re0_gen',      'fft_window', ...
             'run_num',      'dissapation',  'time_int', ...
             'use_chunks',   'calc_coef',    'score', ...
-            'odesolver',    'int_time',     'num_cores'};
+            'odesolver',    'int_time',     'num_cores', ...
+            'outlier_mode'};
         
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -117,6 +118,7 @@ score           = problem.score;
 use_chunks      = problem.use_chunks;
 odesolver       = problem.odesolver;
 num_cores       = problem.num_cores;
+outlier_mode    = problem.outlier_mode;
 
 
 clear problem
@@ -135,6 +137,7 @@ end
 
 % Check folders are up to most recent format
 update_folders(direct);
+fix_gmm(direct);
 
 % Load POD variables
 vars = load(direct_POD);
@@ -363,6 +366,7 @@ for i = 1:length(num_modesG)
             score_info.num_cores = num_cores;
             score_info.modes = modes;
             score_info.custom = custom;
+            score_info.outlier_mode = outlier_mode;
             score_info.direct = direct;
             score_info.multiplier = multiplier;
             score_info.MOD = false;
