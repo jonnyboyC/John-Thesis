@@ -14,8 +14,13 @@ end
 
 % Default for direct
 if isempty(problem.score_mod) || ~ischar(problem.score_mod) 
-    fprintf('Using default values for score_mod\nproblem.score_mod = ""\n\n');
+    fprintf('Using default values for score_mod\nproblem.score_mod = false\n\n');
     problem.score_mod = false;    % User prompt
+end
+
+if isempty(problem.target_freq) || ~isscalar(problem.target_freq)
+    fprintf('Using default values for target_freq\nproblem.target_freq = 0\n\n');
+    problem.target_freq = 0; 
 end
 
 % Default for num_pod 

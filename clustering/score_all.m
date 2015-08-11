@@ -7,7 +7,8 @@ close all
 clc;
 
 fields = {  'run_num',      'direct',       'num_clusters' , ...
-            'num_cores',    'outlier_mode', 'score_mod'};
+            'num_cores',    'outlier_mode', 'score_mod', ...
+            'target_freq'};
     
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -23,6 +24,8 @@ run_num = problem.run_num;
 direct  = problem.direct;
 num_clusters = problem.num_clusters;
 num_cores = problem.num_cores;
+score_mod = problem.score_mod;
+target_freq = problem.target_freq;
 outlier_mode = problem.outlier_mode;
 
 % Setup MATLAB to a max number of cores
@@ -64,6 +67,8 @@ end
 
 results_scores = struct;
 TKE = struct;
+frequency = struct;
+
 galerkin_path = [filesep 'Galerkin Coeff' filesep];
 galerkin_path = [direct, galerkin_path];
 files = dir(galerkin_path);
@@ -119,7 +124,7 @@ for i = 3:length(files)
     end
     
     % score results
-    [frob_km, frob_gmm, prob_km, prob_gmm, completed] = ...
+    [frob_km, frob_gmm, like_km, like_gmm, completed] = ...
         score_model(score_info);
     
     % Get model names
@@ -133,9 +138,13 @@ for i = 3:length(files)
         
         for k = 1:sub_models  
             % Calculate TKE and pack results
+            if target_freq ~= 0
+                frequency = freq_score(frequency, modal_amp, sample_freq, ...
+                    target_freq, m{j}, s{k}, files(i));
+            end
             TKE = calc_energy(TKE, integration, completed, modal_amp, m{j}, s{k}, files(i), modes, MOD);
             results_scores = pack_results(results_scores, completed, frob_km, frob_gmm, ...
-                prob_km, prob_gmm, m{j}, s{k}, files(i));
+                like_km, like_gmm, m{j}, s{k}, files(i));
         end
     end
 end
@@ -198,7 +207,7 @@ for i = 3:length(files)
     end
     
     % Score results
-    [frob_km, frob_gmm, prob_km, prob_gmm, completed] = ...
+    [frob_km, frob_gmm, like_km, like_gmm, completed] = ...
         score_model(score_info);
         
     % Get Model names
@@ -211,10 +220,14 @@ for i = 3:length(files)
         sub_models = flow_ncomps(frob_km.(m{j})); 
         
         for k = 1:sub_models
+            if target_freq ~= 0
+                frequency = freq_score(modal_amp, sample_freq, target_freq);
+            end
+            
             % Caculate TKE and pack results
             TKE = calc_energy(TKE, integration, completed, modal_amp, m{j}, s{k}, files(i), modes, MOD);
             results_scores = pack_results(results_scores, completed, frob_km, frob_gmm, ...
-                prob_km, prob_gmm, m{j}, s{k}, files(i));
+                like_km, like_gmm, m{j}, s{k}, files(i));
         end
     end
 end
@@ -222,8 +235,8 @@ end
 
 [fkm_list, model]  = merge_struct(results_scores, 'frob_km');
 [fgmm_list, ~] = merge_struct(results_scores, 'frob_gmm');
-[pkm_list, ~] = merge_struct(results_scores, 'prob_km');
-[pgmm_list, ~] = merge_struct(results_scores, 'prob_gmm');
+[pkm_list, ~] = merge_struct(results_scores, 'like_km');
+[pgmm_list, ~] = merge_struct(results_scores, 'like_gmm');
 [tke_list, ~] = merge_struct(TKE, 'mean_diff');
 [tke2_list, ~] = merge_struct(TKE, 'std_diff');
 

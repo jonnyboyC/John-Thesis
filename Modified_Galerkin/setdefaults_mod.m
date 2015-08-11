@@ -25,29 +25,29 @@ if isempty(problem.num_cores) || ~isscalar(problem.num_cores) || ...
     problem.num_cores = 'auto';        % set to system max
 end
 
-% Default for garbage_mode
-if isempty(problem.garbage_mode) || ~isstruct(problem.garbage_mode)
-    fprintf(['Using default value for garbage_mode\nproblem.garbage_mode.km = []' ...
-       '\nproblem.garbage_mode.gm = [] \n\n']);
-    problem.garbage_mode.km = [];
-    problem.garbage_mode.gmm = [];
+% Default for outlier_mode
+if isempty(problem.outlier_mode) || ~isstruct(problem.outlier_mode)
+    fprintf(['Using default value for outlier_mode\nproblem.outlier_mode.km = []' ...
+       '\nproblem.outlier_mode.gm = [] \n\n']);
+    problem.outlier_mode.km = [];
+    problem.outlier_mode.gmm = [];
 end
 
-if isstruct(problem.garbage_mode)
+if isstruct(problem.outlier_mode)
     match = {'km', 'gmm'};
-    fields =  fieldnames(problem.garbage_mode);
+    fields =  fieldnames(problem.outlier_mode);
     rm_fields = fields(~ismember(fields, match));
     if ~isempty(rm_fields)
         for i = 1:size(rm_fields,1);
             fprintf('Removing field "%s"\n', rm_fields{i});
         end
-        problem.garbage_mode = rmfield(problem.garbage_mode, rm_fields);
+        problem.outlier_mode = rmfield(problem.outlier_mode, rm_fields);
     end
     
-    fields =  fieldnames(problem.garbage_mode);
+    fields =  fieldnames(problem.outlier_mode);
     for i = 1:length(fields)
-        if ~isscalar(problem.garbage_mode.(fields{i}))
-           problem.garbage_mode.fields{i} = []; 
+        if ~isscalar(problem.outlier_mode.(fields{i}))
+           problem.outlier_mode.fields{i} = []; 
         end
     end
 end

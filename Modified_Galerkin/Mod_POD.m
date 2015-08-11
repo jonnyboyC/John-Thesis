@@ -73,7 +73,7 @@ fields = {  'num_modes',    'plot_type',    'save_mod', ...
             'run_num',      'models',       'submodels',...   
             'fft_window',   'tspan',        'basis_modes',...
             'custom',       'score',        'num_cores', ...
-            'garbage_mode'};
+            'outlier_mode'};
 
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -99,7 +99,7 @@ tspan       = problem.tspan;
 custom      = problem.custom;
 score       = problem.score;
 num_cores   = problem.num_cores;
-garbage_mode    = problem.garbage_mode;
+outlier_mode    = problem.outlier_mode;
 
 
 clear problem
@@ -274,7 +274,7 @@ for i = 1:length(models)
             score_info.num_cores = num_cores;
             score_info.modes = 1:num_modes;
             score_info.custom = true;
-            score_info.garbage_mode = garbage_mode;
+            score_info.outlier_mode = outlier_mode;
             score_info.direct = direct;
             score_info.multiplier = multiplier;
             score_info.MOD = true;
