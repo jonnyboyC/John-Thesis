@@ -98,6 +98,7 @@ for i = 3:length(files)
     integration = vars.results_int.integration;
     modes = vars.results_coef.modes;
     MOD = false;
+    sample_freq = vars.results_coef.sample_freq;
     
     [tspan, multiplier] = back_calc_tspan(exp_sampling_rate, integration, modal_amp);
     
@@ -221,13 +222,15 @@ for i = 3:length(files)
         
         for k = 1:sub_models
             if target_freq ~= 0
-                frequency = freq_score(modal_amp, sample_freq, target_freq);
+                frequency = freq_score(frequency, modal_amp, sample_freq, ...
+                    target_freq, m{j}, s{k}, files(i));
             end
             
             % Caculate TKE and pack results
-            TKE = calc_energy(TKE, integration, completed, modal_amp, m{j}, s{k}, files(i), modes, MOD);
-            results_scores = pack_results(results_scores, completed, frob_km, frob_gmm, ...
-                like_km, like_gmm, m{j}, s{k}, files(i));
+            TKE = calc_energy(TKE, integration, completed, modal_amp, m{j}, ...
+                s{k}, files(i), modes, MOD);
+            results_scores = pack_results(results_scores, completed, frob_km, ...
+                frob_gmm, like_km, like_gmm, m{j}, s{k}, files(i));
         end
     end
 end
@@ -239,6 +242,8 @@ end
 [pgmm_list, ~] = merge_struct(results_scores, 'like_gmm');
 [tke_list, ~] = merge_struct(TKE, 'mean_diff');
 [tke2_list, ~] = merge_struct(TKE, 'std_diff');
+[fft_list, ~] = merge_struct(frequency, 'diff');
+[fft2_list, ~] = merge_struct(frequency, 'mode');
 
 % derp = strncmp(model, 'GM3', 3)
 
