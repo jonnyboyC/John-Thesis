@@ -16,8 +16,13 @@ if nargout >= 3
     peaks = zeros(pks, modes);
     loc = zeros(pks,modes);
     for i = 1:modes
-        [peaks(:,i), location] = findpeaks(FRF(:,i), 'SortStr', 'descend', ...
+        if length(FRF(:,1)) < pks
+            break;
+        end
+        [peaks_temp, location] = findpeaks(FRF(:,i), 'SortStr', 'descend', ...
             'MinPeakDistance', count, 'NPeaks', pks);
-        loc(:,i) = fspan(location);
+        found_peaks = length(peaks_temp);
+        loc(1:found_peaks,i) = fspan(location);
+        peaks(1:found_peaks,i) = peaks_temp;
     end
 end

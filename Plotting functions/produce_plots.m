@@ -18,7 +18,7 @@ bnd_idx     = plot_data.bnd_idx;
 custom      = plot_data.custom;
 
 % If using Mod add a mode zero to make it work like Galerkin
-if Mod == true
+if Mod
     [modal_amp, pod_Ut] = add_mode_zero_mod(modal_amp, pod_Ut, plot_data.mean_U);
 end
 

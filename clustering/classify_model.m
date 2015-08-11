@@ -16,7 +16,7 @@ if ~isempty(outlier_mode.km)
     km_sim.groups(distance > center_dis) = outlier;
     
     % outlier modes in gmm
-    gauss_sigma = outlier_mode.gmm*chi2inv(normcdf(1), num_clusters);
+    gauss_sigma = outlier_mode.gmm;
     mahal_distance = min(mahal_distance,[],2);
     gmm_sim.groups(mahal_distance > gauss_sigma) = outlier;
 end

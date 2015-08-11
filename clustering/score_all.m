@@ -65,9 +65,11 @@ else
     gmm = struct;
 end
 
-results_scores = struct;
-TKE = struct;
-frequency = struct;
+results_scores  = struct;
+TKE             = struct;
+frequency       = struct;
+amplitude1      = struct;
+amplitude2      = struct;
 
 galerkin_path = [filesep 'Galerkin Coeff' filesep];
 galerkin_path = [direct, galerkin_path];
@@ -90,6 +92,8 @@ for i = 3:length(files)
         fprintf('folder %s has a not matching run_num for %d\n', files(i).name, run_num);
         continue;
     end
+    
+    fprintf('Calculating scores for %s\n', files(i).name)
     
     % Load variables
     vars = load([full_path filesep file]);
@@ -139,13 +143,23 @@ for i = 3:length(files)
         
         for k = 1:sub_models  
             % Calculate TKE and pack results
+            modal_amp_sim = integration.modal_amp.(m{j}).(s{k})(:,2:end);
             if target_freq ~= 0
-                frequency = freq_score(frequency, modal_amp, sample_freq, ...
-                    target_freq, m{j}, s{k}, files(i));
+                frequency = compare_freq(frequency, modal_amp_sim, sample_freq, ...
+                    completed, target_freq, m{j}, s{k}, files(i));
             end
-            TKE = calc_energy(TKE, integration, completed, modal_amp, m{j}, s{k}, files(i), modes, MOD);
-            results_scores = pack_results(results_scores, completed, frob_km, frob_gmm, ...
-                like_km, like_gmm, m{j}, s{k}, files(i));
+            
+            % Caculate TKE and pack results
+            TKE = calc_energy(TKE, modal_amp_sim, completed, modal_amp, m{j}, ...
+                s{k}, files(i), modes);
+            
+            % Caculate values for first 2 modes
+            [amplitude1, amplitude2] = compare_amp(amplitude1, amplitude2, ...
+                modal_amp_sim, modal_amp, m{j}, s{k}, files(i), modes, completed);
+            
+            % Pack results of scores
+            results_scores = pack_results(results_scores, completed, frob_km, ...
+                frob_gmm, like_km, like_gmm, m{j}, s{k}, files(i));
         end
     end
 end
@@ -221,14 +235,21 @@ for i = 3:length(files)
         sub_models = flow_ncomps(frob_km.(m{j})); 
         
         for k = 1:sub_models
+            modal_amp_sim = integration.modal_amp.(m{j}).(s{k});
             if target_freq ~= 0
-                frequency = freq_score(frequency, modal_amp, sample_freq, ...
-                    target_freq, m{j}, s{k}, files(i));
+                frequency = compare_freq(frequency, modal_amp_sim, sample_freq, ...
+                    completed, target_freq, m{j}, s{k}, files(i));
             end
             
             % Caculate TKE and pack results
-            TKE = calc_energy(TKE, integration, completed, modal_amp, m{j}, ...
-                s{k}, files(i), modes, MOD);
+            TKE = calc_energy(TKE, modal_amp_sim, completed, modal_amp, m{j}, ...
+                s{k}, files(i), modes);
+            
+            % Caculate values for first 2 modes
+            [amplitude1, amplitude2] = compare_amp(amplitude1, amplitude2, ...
+                modal_amp_sim, modal_amp, m{j}, s{k}, files(i), modes, completed);
+            
+            % Pack results of scores
             results_scores = pack_results(results_scores, completed, frob_km, ...
                 frob_gmm, like_km, like_gmm, m{j}, s{k}, files(i));
         end
