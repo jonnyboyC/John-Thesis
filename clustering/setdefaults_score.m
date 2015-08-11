@@ -12,6 +12,12 @@ if isempty(problem.direct) || ~ischar(problem.direct)
     problem.direct = '';    % User prompt
 end
 
+% Default for direct
+if isempty(problem.score_mod) || ~ischar(problem.score_mod) 
+    fprintf('Using default values for score_mod\nproblem.score_mod = ""\n\n');
+    problem.score_mod = false;    % User prompt
+end
+
 % Default for num_pod 
 if isempty(problem.num_clusters) || ~isnumeric(problem.num_clusters) && ~iscell(problem.num_clusters) 
     fprintf('Using default value for num_modesG\nproblem.num_modesG = 10\n\n');

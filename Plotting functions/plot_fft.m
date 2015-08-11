@@ -1,10 +1,14 @@
-function handle = plot_fft(modal_amp, num_modes, sample_freq, xlim, direct, type, custom, id)
+function handle = plot_fft(modal_amp, num_modes, sample_freq, xlim, direct, type, custom, id, varargin)
 % Calculate the modal frequency response using fft
 
-if num_modes > 4
-    num_plot = 1:4;
+if num_modes > 8
+    num_plot = 1:8;
 else
     num_plot = 1:num_modes;
+end
+
+if nargin == 9
+    plot_peaks = varargin{1};
 end
 
 % setup plot handles
@@ -12,7 +16,12 @@ hf = figure;
 axf = newplot;
 
 % Calculate frequency response
-[freq_response, fspan] = calc_FRF(modal_amp, num_modes, sample_freq);
+if plot_peaks
+    [freq_response, fspan, peaks, loc] = calc_FRF2(modal_amp, sample_freq);
+else
+    [freq_response, fspan] = calc_FRF2(modal_amp, sample_freq);
+end
+% [freq_response, fspan] = calc_FRF(modal_amp, num_modes, sample_freq);
 
 freq_response_dB = 20*log10(freq_response);
 
@@ -22,6 +31,11 @@ freq_response_dB = 20*log10(freq_response);
 if size(freq_response_dB,1) >= 2
     % plot frequency response 
     plot(axf, fspan, freq_response_dB(:, num_plot));
+    
+    if plot_peaks
+        hold(axf, 'on');
+        plot(axf, fspan(loc(:, num_plot)), 20*log10(peaks(:, num_plot)));
+    end
     
     % Label axis and title
     axf.XLabel.String = 'frequency (Hz)';

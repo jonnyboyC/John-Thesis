@@ -1,9 +1,9 @@
-function [frob_km, frob_gm, prob_km, prob_gm, completed] = score_model(score_info)
+function [frob_km, frob_gm, like_km, like_gm, completed] = score_model(score_info)
 %  SCORE_GAL generate model scores based on method outline in John Chabot's
 %  Thesis 2015 classify simulated data then apply score metrics. If
 %  clusters were not precompiled from POD_Gen will generate them here
 %
-% [frob_km, frob_gm, prob_km, prob_gm, completed] = SCORE_GAL(km, gmm, ...
+% [frob_km, frob_gm, like_km, like_gm, completed] = SCORE_GAL(km, gmm, ...
 %   integration, tspan, num_clusters, mutiplier, int_time, it, direct)
 
 % unpack variables
@@ -76,8 +76,8 @@ for j = 1:m_comps
             frob_km.(m{j}).(s{k}) = [];
             frob_gm.(m{j}).(s{k}) = [];
             
-            prob_km.(m{j}).(s{k}) = [];
-            prob_gm.(m{j}).(s{k}) = [];
+            like_km.(m{j}).(s{k}) = [];
+            like_gm.(m{j}).(s{k}) = [];
             
             completed.(m{j}).(s{k}) = false;
             
@@ -111,8 +111,8 @@ for j = 1:m_comps
         frob_gm.(m{j}).(s{k}) = norm(gmm_sim.stoch - gmm.stoch, 'fro');
         
         % Relative likelihood between observed chains
-        prob_km.(m{j}).(s{k}) = km_sim.like - km.like;
-        prob_gm.(m{j}).(s{k}) = gmm_sim.like- gmm.like;
+        like_km.(m{j}).(s{k}) = -(km_sim.like - km.like);
+        like_gm.(m{j}).(s{k}) = -(gmm_sim.like- gmm.like);
         
         plot_stochastic_matrix(km_sim, save_figures, direct, h_km);
         plot_stochastic_matrix(gmm_sim, save_figures, direct, h_gm);
@@ -121,12 +121,12 @@ for j = 1:m_comps
         if integration.t.(m{j}).(s{k})(end) == tspan(end)
             fprintf('%s %s finished got km_frob = %2.4f and gm_frob = %2.4f and km_prob = %2.4f and gm_prob = %2.4f\n', ...
                 strrep((m{j}), '_', ' '), strrep((s{k}), '_', ' '),frob_km.(m{j}).(s{k}), ...
-                frob_gm.(m{j}).(s{k}), prob_km.(m{j}).(s{k}), prob_gm.(m{j}).(s{k}));
+                frob_gm.(m{j}).(s{k}), like_km.(m{j}).(s{k}), like_gm.(m{j}).(s{k}));
             completed.(m{j}).(s{k}) = true;
         else
             fprintf('%s %s diverged got km_frob = %2.4f and gm_frob = %2.4f and km_prob = %2.4f and gm_prob = %2.4f\n', ...
                 strrep((m{j}), '_', ' '), strrep((s{k}), '_', ' '),frob_km.(m{j}).(s{k}), ...
-                frob_gm.(m{j}).(s{k}), prob_km.(m{j}).(s{k}), prob_gm.(m{j}).(s{k}));
+                frob_gm.(m{j}).(s{k}), like_km.(m{j}).(s{k}), like_gm.(m{j}).(s{k}));
             completed.(m{j}).(s{k}) = false;
         end
     end

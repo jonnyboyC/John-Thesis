@@ -7,7 +7,7 @@ close all
 clc;
 
 fields = {  'run_num',      'direct',       'num_clusters' , ...
-            'num_cores',    'outlier_mode'};
+            'num_cores',    'outlier_mode', 'score_mod'};
     
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -144,6 +144,7 @@ mod_path = [filesep 'Mod Galerkin Coeff' filesep];
 mod_path = [direct, mod_path];
 files = dir(mod_path);
 
+if score_mod
 for i = 3:length(files)
     close all
     if ~files(i).isdir
@@ -216,6 +217,7 @@ for i = 3:length(files)
                 prob_km, prob_gmm, m{j}, s{k}, files(i));
         end
     end
+end
 end
 
 [fkm_list, model]  = merge_struct(results_scores, 'frob_km');

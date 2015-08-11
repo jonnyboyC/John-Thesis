@@ -252,8 +252,8 @@ end
 if score
     frob_km     = cell(length(num_modesG), 1);
     frob_gmm     = cell(length(num_modesG), 1);
-    prob_km     = cell(length(num_modesG), 1);    
-    prob_gmm     = cell(length(num_modesG), 1);
+    like_km     = cell(length(num_modesG), 1);    
+    like_gmm     = cell(length(num_modesG), 1);
     completed   = cell(length(num_modesG), 1);
 end
 
@@ -372,7 +372,7 @@ for i = 1:length(num_modesG)
             score_info.MOD = false;
             
             % score results
-            [frob_km{i}, frob_gmm{i}, prob_km{i}, prob_gmm{i}, completed{i}] = ...
+            [frob_km{i}, frob_gmm{i}, like_km{i}, like_gmm{i}, completed{i}] = ...
                 score_model(score_info);
         end
 
@@ -448,8 +448,8 @@ for i = 1:length(num_modesG)
         results_scores.name = 'results_scores';
         results_scores.frob_km = frob_km{i};
         results_scores.frob_gmm = frob_gmm{i};
-        results_scores.prob_km = prob_km{i};
-        results_scores.prob_gmm = prob_gmm{i};
+        results_scores.like_km = like_km{i};
+        results_scores.like_gmm = like_gmm{i};
         results_scores.completed = completed{i};
     end
     
