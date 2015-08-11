@@ -9,6 +9,8 @@ end
 
 if nargin == 9
     plot_peaks = varargin{1};
+else
+    plot_peaks = false;
 end
 
 % setup plot handles

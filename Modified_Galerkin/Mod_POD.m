@@ -260,6 +260,16 @@ for i = 1:length(models)
         integration.t.(m{i}).(s_til{j}) = t;
         integration.modal_amp.(m{i}).(s_til{j}) = modal_amp_til;
         
+        % Prepare data to be saved
+        system.X_til.(m{i}).(s_til{j}) = X_til;
+        system.C_til.(m{i}).(s_til{j}) = C_til;
+        system.L_til.(m{i}).(s_til{j}) = L_til;
+        system.Q_til.(m{i}).(s_til{j}) = Q_til;
+        system.X_til.(m{i}).(s_til{j}) = X_til;
+        system.pod_U_til.(m{i}).(s_til{j}) = pod_U_til;
+        system.modal_amp_til.(m{i}).(s_til{j}) = modal_amp_raw_til;
+        system.epsilon.(m{i}).(s_til{j}) = epsilon_final;
+        
          % Classify simulation to to empirical clusters
         if score 
             
@@ -278,6 +288,7 @@ for i = 1:length(models)
             score_info.direct = direct;
             score_info.multiplier = multiplier;
             score_info.MOD = true;
+            score_info.modal_amp_til = system.modal_amp_til;
             
             % score results
             [frob_km{i}, frob_gmm{i}, prob_km{i}, prob_gmm{i}, completed{i}] = ...
@@ -307,16 +318,6 @@ for i = 1:length(models)
         % Generate plots
         produce_plots(plot_data);
        
-        
-        % Prepare data to be saved
-        system.X_til.(m{i}).(s_til{j}) = X_til;
-        system.C_til.(m{i}).(s_til{j}) = C_til;
-        system.L_til.(m{i}).(s_til{j}) = L_til;
-        system.Q_til.(m{i}).(s_til{j}) = Q_til;
-        system.X_til.(m{i}).(s_til{j}) = X_til;
-        system.pod_U_til.(m{i}).(s_til{j}) = pod_U_til;
-        system.modal_amp_til.(m{i}).(s_til{j}) = modal_amp_raw_til;
-        system.epsilon.(m{i}).(s_til{j}) = epsilon_final;
     end
 end
 
