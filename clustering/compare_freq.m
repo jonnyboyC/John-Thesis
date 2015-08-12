@@ -1,5 +1,5 @@
-function frequency = compare_freq(frequency, modal_amp, sample_freq, completed, ...
-    target_freq, model, sub_model, file)
+function frequency = compare_freq(frequency, modal_amp, sample_freq, ...
+    target_freq, completed, km_steady, gmm_steady, model, sub_model, file)
 % FREQ_SCORE attempt to match peaks in FRF that coorespond best to some
 % target_frequency
 %
@@ -16,4 +16,9 @@ for i = 1:3
     frequency.(file.name).(model).(sub_model).mode = i;
 end
 frequency.(file.name).(model).(sub_model).completed = completed.(model).(sub_model);
+frequency.(file.name).(model).(sub_model).steady = km_steady.(model).(sub_model);
+
+% Look into later
+% frequency.(file.name).(model).(sub_model).completed = completed.(model).(sub_model);
+
 end

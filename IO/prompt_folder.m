@@ -72,7 +72,7 @@ elseif size(file_path, 1) == 1
 % If more than one is found, either select the provided mat_name from
 % input or prompt user to select mat
 elseif size(file_path, 1) > 1
-   cd(full_path);
+   ocd(full_path);
     fprintf(1, 'Please choose specific .mat file\n');
     file_name = uigetfile({'*.mat'}, 'Choose .mat file');
     file_loc = [full_path file_name];

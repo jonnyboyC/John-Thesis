@@ -1,4 +1,4 @@
-function [frob_km, frob_gm, like_km, like_gm, completed] = score_model(score_info)
+function [frob_km, frob_gm, like_km, like_gm, completed, km_steady, gmm_steady] = score_model(score_info)
 %  SCORE_GAL generate model scores based on method outline in John Chabot's
 %  Thesis 2015 classify simulated data then apply score metrics. If
 %  clusters were not precompiled from POD_Gen will generate them here
@@ -25,6 +25,11 @@ MOD             = score_info.MOD;
 if MOD
     modal_amp_til = score_info.modal_amp_til;
 end
+
+% Declaring loop variables
+km_steady = struct;
+gmm_steady = struct;
+completed = struct;
 
 % Free memory
 clear score_info
@@ -104,12 +109,12 @@ for j = 1:m_comps
         [gmm_sim, km_sim] = classify_model(km, gmm, modal_amp_model, num_clusters, outlier_mode);
         
         % Generate a stochastic matrix from transitions
-        km_sim.stoch = gen_stochastic_matrix(num_clusters, km_sim.groups, multiplier, classify, outlier_mode);
-        gmm_sim.stoch = gen_stochastic_matrix(num_clusters, gmm_sim.groups, multiplier, classify, outlier_mode);
+        km_sim = gen_stochastic_matrix(km_sim, num_clusters, multiplier, classify, outlier_mode);
+        gmm_sim = gen_stochastic_matrix(gmm_sim, num_clusters, multiplier, classify, outlier_mode);
         
         % log probability of observing the simulate chain using MLE model
-        km_sim.like = calc_likelihood(km_sim.stoch, km.groups);
-        gmm_sim.like = calc_likelihood(gmm_sim.stoch, gmm.groups);
+        km_sim = calc_likelihood(km_sim);
+        gmm_sim = calc_likelihood(gmm_sim);
         
         % Frobenius norm of transition matrices
         frob_km.(m{j}).(s{k}) = norm(km_sim.stoch - km.stoch, 'fro');
@@ -121,6 +126,9 @@ for j = 1:m_comps
         
         plot_stochastic_matrix(km_sim, save_figures, direct, h_km);
         plot_stochastic_matrix(gmm_sim, save_figures, direct, h_gm);
+        
+        km_steady.(m{j}).(s{k}) = km_sim.steady;
+        gmm_steady.(m{j}).(s{k}) = gmm_sim.steady;
         
         % Temporary reporting
         if integration.t.(m{j}).(s{k})(end) == tspan(end)

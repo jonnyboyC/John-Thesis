@@ -1,6 +1,13 @@
 function [h, R2, R, p] = score_plot(full_name, sub_name, score, var, xaxis, yaxis, ...
     top_title, direct, num_clusters, save_name, scale)
 
+if length(full_name) <= 1
+    R2 = 0;
+    R = 0;
+    p = 0;
+    return;
+end
+
 % Set up figure
 h = figure;
 ax = newplot;
@@ -33,7 +40,7 @@ catch
     R = 0;
     p = 0;
     return;
-end
+end 
 
 direct_ext = [direct filesep 'Figures' filesep 'Scores' filesep 'clusters_' ...
     num2str(num_clusters)];

@@ -23,6 +23,12 @@ if isempty(problem.score_mod) || ~islogical(problem.score_mod)
     problem.score_mod = false;    % User prompt
 end
 
+% Default for stead
+if isempty(problem.steady) || ~islogical(problem.steady)
+    fprintf('Using default values for steady\nproblem.steady = false\n\n');
+    problem.steady = false;    % User prompt
+end
+
 if isempty(problem.target_freq) || ~isscalar(problem.target_freq)
     fprintf('Using default values for target_freq\nproblem.target_freq = 0\n\n');
     problem.target_freq = 0; 

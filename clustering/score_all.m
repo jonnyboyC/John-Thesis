@@ -8,7 +8,7 @@ clc;
 
 fields = {  'run_num',      'direct',       'num_clusters' , ...
             'num_cores',    'outlier_mode', 'score_mod', ...
-            'target_freq',  'phase'};
+            'target_freq',  'phase',        'steady'};
     
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -28,6 +28,7 @@ score_mod = problem.score_mod;
 target_freq = problem.target_freq;
 outlier_mode = problem.outlier_mode;
 phase = problem.phase;
+steady = problem.steady;
 
 % Setup MATLAB to a max number of cores
 setup_cores(num_cores);
@@ -138,7 +139,7 @@ for i = 3:length(files)
     end
     
     % score results
-    [frob_km, frob_gmm, like_km, like_gmm, completed] = ...
+    [frob_km, frob_gmm, like_km, like_gmm, completed, km_steady, gmm_steady] = ...
         score_model(score_info);
     
     % Get model names
@@ -153,30 +154,35 @@ for i = 3:length(files)
         for k = 1:sub_models  
             % Calculate TKE and pack results
             modal_amp_sim = integration.modal_amp.(m{j}).(s{k})(:,2:end);
+            
+            % Continue if we find an error
             if isstruct(modal_amp_sim)
                 continue
             end
+            
+            % If requested test frequency
             if target_freq ~= 0
                 frequency = compare_freq(frequency, modal_amp_sim, sample_freq, ...
-                    completed, target_freq, m{j}, s{k}, files(i));
+                    target_freq, completed, km_steady, gmm_steady, m{j}, s{k}, files(i));
             end
             
+            % If request test phase
             if ~isempty(phase)
                 phase_comp = phase_comparision(phase_comp, phase, modal_amp_sim, ...
-                    modal_amp, m{j}, s{k}, files(i), modes, completed);
+                    modal_amp, modes, completed, km_steady, gmm_steady, m{j}, s{k}, files(i));
             end
             
             % Caculate TKE and pack results
-            TKE = calc_energy(TKE, modal_amp_sim, completed, modal_amp, m{j}, ...
-                s{k}, files(i), modes);
+            TKE = calc_energy(TKE, modal_amp_sim, modal_amp,modes ,completed, ...
+                km_steady, gmm_steady, m{j}, s{k}, files(i));
             
             % Caculate values for first 2 modes
             [amplitude1, amplitude2] = compare_amp(amplitude1, amplitude2, ...
-                modal_amp_sim, modal_amp, m{j}, s{k}, files(i), modes, completed);
+                modal_amp_sim, modal_amp, modes, completed, km_steady, gmm_steady, m{j}, s{k}, files(i));
             
             % Pack results of scores
-            results_scores = pack_results(results_scores, completed, frob_km, ...
-                frob_gmm, like_km, like_gmm, m{j}, s{k}, files(i));
+            results_scores = pack_results(results_scores, frob_km, frob_gmm, ...
+                like_km, like_gmm,  completed, km_steady, gmm_steady, m{j}, s{k}, files(i));
         end
     end
 end
@@ -185,7 +191,7 @@ mod_path = [filesep 'Mod Galerkin Coeff' filesep];
 mod_path = [direct, mod_path];
 files = dir(mod_path);
 
-% if score_mod
+if score_mod
 for i = 3:length(files)
     close all
     if ~files(i).isdir
@@ -245,8 +251,8 @@ for i = 3:length(files)
         score_info.custom = false;
     end
     
-    % Score results
-    [frob_km, frob_gmm, like_km, like_gmm, completed] = ...
+    % score results
+    [frob_km, frob_gmm, like_km, like_gmm, completed, km_steady, gmm_steady] = ...
         score_model(score_info);
         
     % Get Model names
@@ -259,28 +265,34 @@ for i = 3:length(files)
         sub_models = flow_ncomps(frob_km.(m{j})); 
         
         for k = 1:sub_models
-            modal_amp_sim = integration.modal_amp.(m{j}).(s{k});
+            % Calculate TKE and pack results
+            modal_amp_sim = integration.modal_amp.(m{j}).(s{k})(:,2:end);
+            
+            % Continue if we find an error
             if isstruct(modal_amp_sim)
                 continue
             end
+            
+            % If requested test frequency
             if target_freq ~= 0
                 frequency = compare_freq(frequency, modal_amp_sim, sample_freq, ...
-                    completed, target_freq, m{j}, s{k}, files(i));
+                    target_freq, completed, km_steady, gmm_steady, m{j}, s{k}, files(i));
             end
             
             % Caculate TKE and pack results
-            TKE = calc_energy(TKE, modal_amp_sim, completed, modal_amp, m{j}, ...
-                s{k}, files(i), modes);
+            TKE = calc_energy(TKE, modal_amp_sim, modal_amp,modes ,completed, ...
+                km_steady, gmm_steady, m{j}, s{k}, files(i));
             
             % Caculate values for first 2 modes
             [amplitude1, amplitude2] = compare_amp(amplitude1, amplitude2, ...
-                modal_amp_sim, modal_amp, m{j}, s{k}, files(i), modes, completed);
+                modal_amp_sim, modal_amp, modes, completed, km_steady, gmm_steady, m{j}, s{k}, files(i));
             
             % Pack results of scores
-            results_scores = pack_results(results_scores, completed, frob_km, ...
-                frob_gmm, like_km, like_gmm, m{j}, s{k}, files(i));
+            results_scores = pack_results(results_scores, frob_km, frob_gmm, ...
+                like_km, like_gmm,  completed, km_steady, gmm_steady, m{j}, s{k}, files(i));
         end
     end
+end
 end
 
 
@@ -292,6 +304,7 @@ clusters_info.amplitude1        = amplitude1;
 clusters_info.amplitude2        = amplitude2;
 clusters_info.num_clusters      = num_clusters;
 clusters_info.direct            = direct;
+clusters_info.steady            = steady;
 
 relations = cluster_plots(clusters_info);
 
@@ -307,8 +320,6 @@ save([direct filesep 'Score' filesep num2str(num_clusters) 'cluster' filesep ...
 if nargout == 1
     res_scores = results_scores;
 end
-
-% TKE = sum(1/2*modal_amp'.^2);
 
 end
 

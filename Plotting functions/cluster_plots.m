@@ -9,6 +9,7 @@ amplitude1      = clusters_info.amplitude1;
 amplitude2      = clusters_info.amplitude2;
 num_clusters    = clusters_info.num_clusters;
 direct          = clusters_info.direct;
+steady          = clusters_info.steady;
 
 % Field names
 tke_fields  = {'mean', 'std', 'median'};
@@ -19,10 +20,10 @@ phase_fields= {'mean', 'std', 'median'};
 
 relations = struct;
 
-[fkm, full_name]    = merge_struct(results_scores,  'frob_km');
-fgmm                = merge_struct(results_scores,  'frob_gmm');
-pkm                 = merge_struct(results_scores,  'like_km');
-pgmm                = merge_struct(results_scores,  'like_gmm');
+[fkm, full_name]    = merge_struct(results_scores, steady, 'frob_km');
+fgmm                = merge_struct(results_scores, steady, 'frob_gmm');
+pkm                 = merge_struct(results_scores, steady, 'like_km');
+pgmm                = merge_struct(results_scores, steady, 'like_gmm');
 
 % If literally no models stayed bounded
 if isempty(full_name)
@@ -30,28 +31,28 @@ if isempty(full_name)
 end
 
 % Get continous lists of models and values
-tke.mean        = merge_struct(TKE, 'mean_diff');
-tke.std         = merge_struct(TKE, 'std_diff');
-tke.median      = merge_struct(TKE, 'median_diff');
+tke.mean        = merge_struct(TKE, steady, 'mean_diff');
+tke.std         = merge_struct(TKE, steady, 'std_diff');
+tke.median      = merge_struct(TKE, steady, 'median_diff');
 
-amp1.mean       = merge_struct(amplitude1, 'mean_diff');
-amp1.std        = merge_struct(amplitude1, 'std_diff');
-amp1.median     = merge_struct(amplitude1, 'median_diff');
+amp1.mean       = merge_struct(amplitude1, steady, 'mean_diff');
+amp1.std        = merge_struct(amplitude1, steady, 'std_diff');
+amp1.median     = merge_struct(amplitude1, steady, 'median_diff');
 
-amp2.mean       = merge_struct(amplitude2, 'mean_diff');
-amp2.std        = merge_struct(amplitude2, 'std_diff');
-amp2.median     = merge_struct(amplitude2, 'median_diff');
+amp2.mean       = merge_struct(amplitude2, steady, 'mean_diff');
+amp2.std        = merge_struct(amplitude2, steady, 'std_diff');
+amp2.median     = merge_struct(amplitude2, steady, 'median_diff');
 
 if ~isempty(frequency)
-    fft.amp1    = merge_struct(frequency, 'amp1_diff');
-    fft.amp2    = merge_struct(frequency, 'amp2_diff');
-    fft.amp3    = merge_struct(frequency, 'amp3_diff');
+    fft.amp1    = merge_struct(frequency, steady, 'amp1_diff');
+    fft.amp2    = merge_struct(frequency, steady, 'amp2_diff');
+    fft.amp3    = merge_struct(frequency, steady, 'amp3_diff');
 end
 
 if ~isempty(phase_comp)
-    phase.mean  = merge_struct(phase_comp, 'mean_diff');
-    phase.std   = merge_struct(phase_comp, 'std_diff');
-    phase.median= merge_struct(phase_comp, 'median_diff');
+    phase.mean  = merge_struct(phase_comp, steady, 'mean_diff');
+    phase.std   = merge_struct(phase_comp, steady, 'std_diff');
+    phase.median= merge_struct(phase_comp, steady, 'median_diff');
 end
 
 sub_name = cell(size(full_name));

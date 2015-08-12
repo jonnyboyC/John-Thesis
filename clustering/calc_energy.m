@@ -1,4 +1,4 @@
-function TKE = calc_energy(TKE, modal_amp_sim, completed, modal_amp, model, sub_model, file, modes)
+function TKE = calc_energy(TKE, modal_amp_sim, modal_amp, modes, completed, km_steady, gmm_steady, model, sub_model, file)
 % CALC_ENERGY calculate system energy in score_all, packs results into TKE
 % struct
 %
@@ -16,5 +16,7 @@ TKE.(file.name).(model).(sub_model).median_diff = abs(median(sum(1/2*modal_amp_s
 TKE.(file.name).(model).(sub_model).std_diff = abs(std(sum(1/2*modal_amp_sim'.^2)) ...
     - std(sum(1/2*temp_modal_amp'.^2)));
 TKE.(file.name).(model).(sub_model).completed = completed.(model).(sub_model);
+TKE.(file.name).(model).(sub_model).steady = km_steady.(model).(sub_model);
+
 
 end
