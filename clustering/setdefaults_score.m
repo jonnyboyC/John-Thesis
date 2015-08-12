@@ -18,7 +18,7 @@ if isempty(problem.direct) || ~ischar(problem.direct)
 end
 
 % Default for direct
-if isempty(problem.score_mod) || ~ischar(problem.score_mod) 
+if isempty(problem.score_mod) || ~islogical(problem.score_mod)
     fprintf('Using default values for score_mod\nproblem.score_mod = false\n\n');
     problem.score_mod = false;    % User prompt
 end

@@ -11,6 +11,7 @@ model_color = {'m', 'k', 'g', 'r'};
 sub_models = {'NL_', 'til_', ''};
 sub_shape = {'x', 'o', 's'};
 
+try 
 for i = 1:length(models)
     for j = 1:length(sub_models)
         match1 = strncmp(full_name, models{i}, 3);
@@ -26,6 +27,12 @@ for i = 1:length(models)
             lax.MarkerSize = 12;
         end
     end
+end
+catch 
+    R2 = 0;
+    R = 0;
+    p = 0;
+    return;
 end
 
 direct_ext = [direct filesep 'Figures' filesep 'Scores' filesep 'clusters_' ...

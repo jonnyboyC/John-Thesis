@@ -17,6 +17,7 @@ amp2_fields = {'mean', 'std', 'median'};
 freq_fields = {'amp1', 'amp2' 'amp3'};
 phase_fields= {'mean', 'std', 'median'};
 
+relations = struct;
 
 [fkm, full_name]    = merge_struct(results_scores,  'frob_km');
 fgmm                = merge_struct(results_scores,  'frob_gmm');
@@ -61,7 +62,6 @@ end
 
 %% TKE relations
 
-relations = struct;
 for i = 1:length(tke_fields)
     
     % compare to k-means trasnition norm score
@@ -185,43 +185,45 @@ end
 
 %% Frequency Relations
 
+if ~isempty(frequency)
 for i = 1:length(freq_fields)
     
     % compare to k-means trasnition norm score
-    [~, R2, R, p] = score_plot(full_name, sub_name, fkm, freq.(freq_fields{i}), 'k-means \sigma_{d}', ...
+    [~, R2, R, p] = score_plot(full_name, sub_name, fkm, fft.(freq_fields{i}), 'k-means \sigma_{d}', ...
         ['Frequency Offset ' freq_fields{i}], ['Frequency Offset ' freq_fields{i} ' vs. k-mean \sigma_{d}'], direct, ...
         num_clusters, ['fkm_v_freq_' freq_fields{i}], 'log');
     
-	relations.fkm.freq.(freq_fields{i}).R2 = R2;
- 	relations.fkm.freq.(freq_fields{i}).R = R;
-    relations.fkm.freq.(freq_fields{i}).p = p;
+	relations.fkm.fft.(freq_fields{i}).R2 = R2;
+ 	relations.fkm.fft.(freq_fields{i}).R = R;
+    relations.fkm.fft.(freq_fields{i}).p = p;
     
     % compare to gmm trasnition norm score
-    [~, R2, R, p] = score_plot(full_name, sub_name, fgmm, freq.(freq_fields{i}), 'GMM \sigma_{d}', ...
+    [~, R2, R, p] = score_plot(full_name, sub_name, fgmm, fft.(freq_fields{i}), 'GMM \sigma_{d}', ...
         ['Frequency Offset ' freq_fields{i}], ['Frequency Offset ' freq_fields{i} ' vs. GMM \sigma_{d}'], direct, ...
         num_clusters, ['fgmm_v_freq_' freq_fields{i}], 'log');
     
-	relations.fgmm.freq.(freq_fields{i}).R2 = R2;
- 	relations.fgmm.freq.(freq_fields{i}).R = R;
-    relations.fgmm.freq.(freq_fields{i}).p = p;
+	relations.fgmm.fft.(freq_fields{i}).R2 = R2;
+ 	relations.fgmm.fft.(freq_fields{i}).R = R;
+    relations.fgmm.fft.(freq_fields{i}).p = p;
     
     % compare to k-mean likelihood score
-    [~, R2, R, p] = score_plot(full_name, sub_name, pkm, freq.(freq_fields{i}), 'k-means \sigma_{l}', ...
+    [~, R2, R, p] = score_plot(full_name, sub_name, pkm, fft.(freq_fields{i}), 'k-means \sigma_{l}', ...
         ['Frequency Offset ' freq_fields{i}], ['Frequency Offset ' freq_fields{i} ' vs. k-mean \sigma_{l}'], direct, ...
         num_clusters, ['pkm_v_freq_' freq_fields{i}], 'log');
     
-	relations.pkm.freq.(freq_fields{i}).R2 = R2;
- 	relations.pkm.freq.(freq_fields{i}).R = R;
-    relations.pkm.freq.(freq_fields{i}).p = p;
+	relations.pkm.fft.(freq_fields{i}).R2 = R2;
+ 	relations.pkm.fft.(freq_fields{i}).R = R;
+    relations.pkm.fft.(freq_fields{i}).p = p;
     
     % compare to gmm likelihood score
-    [~, R2, R, p] = score_plot(full_name, sub_name, pgmm, freq.(freq_fields{i}), 'GMM \sigma_{l}', ...
+    [~, R2, R, p] = score_plot(full_name, sub_name, pgmm, fft.(freq_fields{i}), 'GMM \sigma_{l}', ...
         ['Frequency Offset ' freq_fields{i}], ['Frequency Offset ' freq_fields{i} ' vs. GMM \sigma_{l}'], direct, ...
         num_clusters, ['pgmm_v_freq_' freq_fields{i}], 'log');
     
-	relations.pgmm.freq.(freq_fields{i}).R2 = R2;
- 	relations.pgmm.freq.(freq_fields{i}).R = R;
-    relations.pgmm.freq.(freq_fields{i}).p = p;
+	relations.pgmm.fft.(freq_fields{i}).R2 = R2;
+ 	relations.pgmm.fft.(freq_fields{i}).R = R;
+    relations.pgmm.fft.(freq_fields{i}).p = p;
+end
 end
 
 %% Phase Relations

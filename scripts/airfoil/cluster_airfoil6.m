@@ -1,4 +1,4 @@
-addpath(genpath('/home/chabotja/Thesis/John-Thesis'))
+% addpath(genpath('/home/chabotja/Thesis/John-Thesis'))
 
 direct = '/home/chabotja/Thesis/PIVData/Airfoil/Test_13';
 

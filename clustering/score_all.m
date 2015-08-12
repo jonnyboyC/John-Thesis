@@ -84,7 +84,7 @@ galerkin_path = [filesep 'Galerkin Coeff' filesep];
 galerkin_path = [direct, galerkin_path];
 files = dir(galerkin_path);
 
-% Skip . and ..
+% % Skip . and ..
 for i = 3:length(files)
     close all
     if ~files(i).isdir
@@ -153,6 +153,9 @@ for i = 3:length(files)
         for k = 1:sub_models  
             % Calculate TKE and pack results
             modal_amp_sim = integration.modal_amp.(m{j}).(s{k})(:,2:end);
+            if isstruct(modal_amp_sim)
+                continue
+            end
             if target_freq ~= 0
                 frequency = compare_freq(frequency, modal_amp_sim, sample_freq, ...
                     completed, target_freq, m{j}, s{k}, files(i));
@@ -182,7 +185,7 @@ mod_path = [filesep 'Mod Galerkin Coeff' filesep];
 mod_path = [direct, mod_path];
 files = dir(mod_path);
 
-if score_mod
+% if score_mod
 for i = 3:length(files)
     close all
     if ~files(i).isdir
@@ -213,6 +216,8 @@ for i = 3:length(files)
     else
         continue;
     end
+    
+    MOD = true;
     
     % Back calculate tspan and multiplier eventually can remove
     [tspan, multiplier] = back_calc_tspan(exp_sampling_rate, integration, modal_amp);
@@ -255,6 +260,9 @@ for i = 3:length(files)
         
         for k = 1:sub_models
             modal_amp_sim = integration.modal_amp.(m{j}).(s{k});
+            if isstruct(modal_amp_sim)
+                continue
+            end
             if target_freq ~= 0
                 frequency = compare_freq(frequency, modal_amp_sim, sample_freq, ...
                     completed, target_freq, m{j}, s{k}, files(i));
@@ -274,7 +282,7 @@ for i = 3:length(files)
         end
     end
 end
-end
+
 
 clusters_info.results_scores    = results_scores;
 clusters_info.TKE               = TKE;
@@ -288,6 +296,13 @@ clusters_info.direct            = direct;
 relations = cluster_plots(clusters_info);
 
 results_scores.relations = relations;
+
+if ~exist([direct filesep 'Score' filesep num2str(num_clusters) 'cluster'], 'dir') 
+    mkdir([direct filesep 'Score' filesep num2str(num_clusters) 'cluster']);
+end
+
+save([direct filesep 'Score' filesep num2str(num_clusters) 'cluster' filesep ...
+    'scores_' num2str(run_num)], 'results_scores', '-v7.3');
 
 if nargout == 1
     res_scores = results_scores;

@@ -13,7 +13,7 @@ problem_cavity.num_clusters = 10;
 % POD_Gen(problem_cavity);
 
 problem_cavity.int_time = 3600;
-problem_cavity.tspan = {'test', 200, 4};
+problem_cavity.tspan = {'test', 800, 16};
 problem_cavity.num_modesG = 4:6;
 Galerkin_Proj(problem_cavity);
 
