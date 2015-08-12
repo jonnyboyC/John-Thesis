@@ -6,6 +6,11 @@ if isempty(problem.run_num) || (~isscalar(problem.run_num) && ~ischar(problem.ru
     problem.run_num = 'first';        % use 10 modes
 end
 
+if isempty(problem.phase) || (~isvector(problem.phase) && ~isequal(size(problem.phase), [1, 2]));
+    fprintf('Using default values for phase\nproblem.phase = []\n\n');
+    problem.phase = [];
+end
+
 % Default for direct
 if isempty(problem.direct) || ~ischar(problem.direct) 
     fprintf('Using default values for direct\nproblem.direct = ""\n\n');

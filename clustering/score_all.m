@@ -8,7 +8,7 @@ clc;
 
 fields = {  'run_num',      'direct',       'num_clusters' , ...
             'num_cores',    'outlier_mode', 'score_mod', ...
-            'target_freq'};
+            'target_freq',  'phase'};
     
 % Parse problem structure provided to set it up correctly
 if nargin == 1
@@ -27,6 +27,7 @@ num_cores = problem.num_cores;
 score_mod = problem.score_mod;
 target_freq = problem.target_freq;
 outlier_mode = problem.outlier_mode;
+phase = problem.phase;
 
 % Setup MATLAB to a max number of cores
 setup_cores(num_cores);
@@ -73,9 +74,11 @@ end
 
 results_scores  = struct;
 TKE             = struct;
-frequency       = struct;
 amplitude1      = struct;
 amplitude2      = struct;
+phase_comp      = struct;
+frequency       = struct;
+
 
 galerkin_path = [filesep 'Galerkin Coeff' filesep];
 galerkin_path = [direct, galerkin_path];
@@ -155,6 +158,11 @@ for i = 3:length(files)
                     completed, target_freq, m{j}, s{k}, files(i));
             end
             
+            if ~isempty(phase)
+                phase_comp = phase_comparision(phase_comp, phase, modal_amp_sim, ...
+                    modal_amp, m{j}, s{k}, files(i), modes, completed);
+            end
+            
             % Caculate TKE and pack results
             TKE = calc_energy(TKE, modal_amp_sim, completed, modal_amp, m{j}, ...
                 s{k}, files(i), modes);
@@ -196,9 +204,15 @@ for i = 3:length(files)
     vars = load([full_path filesep file]);
     
     % Unpack variables
-    integration = vars.results_mod_int.integration;
-    modes = vars.results_mod_coef.modes;
-    MOD = true;
+    if isfield(vars.results_mod_int, 'integration') || ...
+            isfield(vars.results_mod_coef, 'modes') || ...
+            isfield(vars.results_mod_coef, 'system');
+        integration = vars.results_mod_int.integration;
+        modes = vars.results_mod_coef.modes;
+        modal_amp_til = vars.results_mod_coef.system.modal_amp_til;
+    else
+        continue;
+    end
     
     % Back calculate tspan and multiplier eventually can remove
     [tspan, multiplier] = back_calc_tspan(exp_sampling_rate, integration, modal_amp);
@@ -214,11 +228,10 @@ for i = 3:length(files)
     score_info.num_cores = num_cores;
     score_info.outlier_mode = outlier_mode;
     score_info.modes = modes;
-    score_info.modes = vars.results_mod_coef.modes;
     score_info.direct = direct;
     score_info.multiplier = multiplier;
     score_info.MOD = MOD;
-    score_info.modal_amp_til = vars.results_mod_coef.system.modal_amp_til;
+    score_info.modal_amp_til = modal_amp_til;
     
     % Can eventually remove this as well
     if strcmp(files(i).name, 'custom')
@@ -266,14 +279,15 @@ end
 clusters_info.results_scores    = results_scores;
 clusters_info.TKE               = TKE;
 clusters_info.frequency         = frequency;
+clusters_info.phase_comp        = phase_comp;
 clusters_info.amplitude1        = amplitude1;
 clusters_info.amplitude2        = amplitude2;
 clusters_info.num_clusters      = num_clusters;
 clusters_info.direct            = direct;
 
-cluster_plots(clusters_info)
+relations = cluster_plots(clusters_info);
 
-% derp = strncmp(model, 'GM3', 3)
+results_scores.relations = relations;
 
 if nargout == 1
     res_scores = results_scores;

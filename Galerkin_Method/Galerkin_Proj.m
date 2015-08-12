@@ -162,16 +162,16 @@ if calc_coef
 end
 
 if time_int && score
-    if isfield(vars, 'results_clust');
-        km = vars.results_clust.km; % k-means cluster information
-        gmm = vars.results_clust.gmm; % gaussian mixture model cluster information
-        num_clusters = vars.results_clust.num_clusters; % number of clustered used
-    else
+%     if isfield(vars, 'results_clust');
+%         km = vars.results_clust.km; % k-means cluster information
+%         gmm = vars.results_clust.gmm; % gaussian mixture model cluster information
+%         num_clusters = vars.results_clust.num_clusters; % number of clustered used
+%     else
         % Fill with stub if empty
         km = struct;
         gmm = struct;
         num_clusters = 10;
-    end
+%     end
 end
 
 % Free memory

@@ -6,18 +6,14 @@ function frequency = compare_freq(frequency, modal_amp, sample_freq, completed, 
 %   frequency = FREQ_SCORE(frequency, modal_amp, sample_freq, target_freq,
 %       model, sub_mode, file)
 
-frequency.(file.name).(model).(sub_model).diff = inf;
-frequency.(file.name).(model).(sub_model).val = inf;
-frequency.(file.name).(model).(sub_model).mode = 0;
 
-[~, ~, peaks, loc] = calc_FRF2(modal_amp, sample_freq, 10);
-for i = 1:size(peaks,2)
+[~, ~, ~, loc] = calc_FRF2(modal_amp, sample_freq, 10);
+
+for i = 1:3
     [best, distance] = knnsearch(loc(:,i), target_freq);
-    if distance < frequency.(file.name).(model).(sub_model).diff
-        frequency.(file.name).(model).(sub_model).diff = distance;
-        frequency.(file.name).(model).(sub_model).val = loc(best,i);
-        frequency.(file.name).(model).(sub_model).mode = i;
-    end
+    frequency.(file.name).(model).(sub_model).(['amp' num2str(i) '_diff']) = distance;
+    frequency.(file.name).(model).(sub_model).(['amp' num2str(i) '_val']) = loc(best,i);
+    frequency.(file.name).(model).(sub_model).mode = i;
 end
 frequency.(file.name).(model).(sub_model).completed = completed.(model).(sub_model);
 end

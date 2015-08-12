@@ -1,5 +1,5 @@
 function [h, R2, R, p] = score_plot(full_name, sub_name, score, var, xaxis, yaxis, ...
-    top_title, direct, num_clusters, save_name)
+    top_title, direct, num_clusters, save_name, scale)
 
 % Set up figure
 h = figure;
@@ -43,8 +43,11 @@ delete(fh(1));
 [R, p] = corrcoef(score, var);
 R2 = fitted_model.Rsquared.Ordinary;
 
+lh = legend;
+lh.String{1} = [lh.String{1} '   R2: ' num2str(R2,3)];
+
 % Format plot
-ax.YScale = 'log';
+ax.YScale = scale;
 ax.XLabel = xlabel(xaxis, 'Interpreter', 'tex');
 ax.YLabel = ylabel(yaxis, 'Interpreter', 'tex');
 ax.Title = title([top_title ', Correlation: ' num2str(R(2,1))], 'Interpreter', 'tex');

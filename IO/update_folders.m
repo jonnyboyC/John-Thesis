@@ -16,6 +16,9 @@ end
 if ~exist([direct filesep 'Raw Data'], 'dir')
     mkdir([direct filesep 'Raw Data']);
 end
+if ~exist([direct filesep 'Scores'], 'dir');
+    mkdir([direct filesep 'Scores']);
+end
 if ~exist([direct filesep 'POD Data'], 'dir')
     mkdir([direct filesep 'POD Data']);
 end
