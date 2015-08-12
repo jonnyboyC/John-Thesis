@@ -1,4 +1,4 @@
-function h = cluster_plot(modal_amp, km, cluster_modes, k, direct, save_figures)
+function h = km_cluster_plot(modal_amp, km, cluster_modes, k, direct, save_figures)
 % Create 2D representation of clusters centers
 
 % Create new figure and axis handles

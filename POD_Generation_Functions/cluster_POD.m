@@ -28,15 +28,11 @@ for i = 1:length(cluster_range);
     
     % in 2D phase space plot clusters
     if i == 1 && ~isempty(save_figures)
-        cluster_plot(modal_amp, km{i}, cluster_modes, num_clusters, ...
+        km_cluster_plot(modal_amp, km{i}, cluster_modes, num_clusters, ...
             direct, save_figures);
-        gm_cluster_plot(modal_amp, gmm{i}, cluster_modes, num_clusters, ...
+        gmm_cluster_plot(modal_amp, gmm{i}, cluster_modes, num_clusters, ...
             direct, save_figures);
     end
-    
-    % Get stationary distrubtion
-    km{i} = stationary(km{i});
-    gmm{i} = stationary(gmm{i});
     
     % Plot transition matrices
     plot_stochastic_matrix(km{i}, save_figures, direct, h_stoch);

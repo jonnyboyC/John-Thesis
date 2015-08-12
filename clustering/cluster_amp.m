@@ -1,4 +1,4 @@
-function [km_groups, km_centers, gmm_models, gmm_groups] = cluster_amp(modal_amp, modes, num_clusters, varargin)
+function [km, gmm] = cluster_amp(modal_amp, modes, num_clusters, varargin)
 % CLUSTER_AMP produces clusters for k-mean and gaussian mixture model for k
 % clusters
 %
@@ -7,6 +7,9 @@ function [km_groups, km_centers, gmm_models, gmm_groups] = cluster_amp(modal_amp
 %
 %   [km_groups, km_centers, gm_models, gm_groups] ...
 %       = CLUSTER_AMP(modal_amp, modes, num_clusters, num_cores)
+
+km = struct;
+gmm = struct;
 
 if nargin == 3
     num_cores = 2;
@@ -29,18 +32,18 @@ k_replicate = 50;
 gm_replicate = 10;
 
 % Cluster based on k-mean
-[km_groups, km_centers] = kmeans(modal_amp(:,modes), ...
+[km.groups, km.centers] = kmeans(modal_amp(:,modes), ...
     num_clusters, 'Replicates', k_replicate, 'Options', options);
 
 % Fit gaussian mixture model
 try 
     % First attempt to produce a fit with independent covariance matrix
-    gmm_models = fitgmdist(modal_amp(:,modes), num_clusters, ...
+    gmm.models = fitgmdist(modal_amp(:,modes), num_clusters, ...
         'Replicates', gm_replicate, 'SharedCov', false, 'Options', gm_options);
 catch error_msg
     % If it fails fall backed to shared covariance matrices
     if (strcmp(error_msg.identifier, 'stats:gmdistribution:IllCondCovAllReps'))
-        gmm_models = fitgmdist(modal_amp(:,modes), num_clusters, ...
+        gmm.models = fitgmdist(modal_amp(:,modes), num_clusters, ...
             'Replicates', gm_replicate, 'SharedCov', true, 'Options', gm_options);
     else
         rethrow(error_msg);
@@ -48,5 +51,5 @@ catch error_msg
 end
 
 % Cluster based on gaussian mixture model
-gmm_groups = cluster(gmm_models, modal_amp(:,modes));
+gmm.groups = cluster(gmm.models, modal_amp(:,modes));
 end
