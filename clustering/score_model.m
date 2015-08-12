@@ -47,6 +47,9 @@ if ~MOD
     
     % Post thesis we can change this back
     [gmm, km] = gen_clusters(modal_amp, modes, num_clusters, num_cores, outlier_mode);
+    
+    %%%%%%%%%%%%%%%%%% TODO REVERSE AFTER THESIS %%%%%%%%%%%%%%%%%%%%%%%%%%
+    
 %     if custom
 %         [gmm, km] = gen_clusters(modal_amp, modes, num_clusters, num_cores);
 %     else
@@ -58,6 +61,8 @@ if ~MOD
 %             [gmm, km] = gen_clusters(modal_amp, modes, num_clusters, num_cores);
 %         end
 %     end
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
     
 

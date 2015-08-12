@@ -43,6 +43,9 @@ end
 if ~exist([direct filesep 'Figures' filesep 'POD' filesep 'Clusters'], 'dir')
    mkdir([direct filesep 'Figures' filesep 'POD' filesep 'Clusters']);
 end
+if ~exist([direct filesep 'Figures' filesep 'Scores'], 'dir')
+   mkdir([direct filesep 'Figures' filesep 'Scores']);
+end
 if ~exist([direct filesep 'Figures' filesep 'Galerkin'], 'dir')
    mkdir([direct filesep 'Figures' filesep 'Galerkin']);
 end  

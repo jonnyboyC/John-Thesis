@@ -50,15 +50,21 @@ modal_amp = vars.results_pod.modal_amp;
 exp_sampling_rate = vars.results_pod.exp_sampling_rate;
 
 if isfield(vars, 'results_clust');
-    temp_clusters = vars.results_clust.num_clusters; % number of clustered used
-    if temp_clusters == num_clusters
-        km = vars.results_clust.km; % k-means cluster information
-        gmm = vars.results_clust.gmm; % gaussian mixture model cluster information
-    else
+    
+    %%%%%%%%%%%%%%%%%TODO reverse post thesis%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+%     temp_clusters = vars.results_clust.num_clusters; % number of clustered used
+%     if temp_clusters == num_clusters
+%         km = vars.results_clust.km; % k-means cluster information
+%         gmm = vars.results_clust.gmm; % gaussian mixture model cluster information
+%     else
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
         % Fill with stub if dissimilar
         km = struct;
         gmm = struct;
-    end
+%     end
 else
     % Fill with stub if empty
     km = struct;
@@ -257,14 +263,15 @@ for i = 3:length(files)
 end
 end
 
-[fkm_list, model]  = merge_struct(results_scores, 'frob_km');
-[fgmm_list, ~] = merge_struct(results_scores, 'frob_gmm');
-[pkm_list, ~] = merge_struct(results_scores, 'like_km');
-[pgmm_list, ~] = merge_struct(results_scores, 'like_gmm');
-[tke_list, ~] = merge_struct(TKE, 'mean_diff');
-[tke2_list, ~] = merge_struct(TKE, 'std_diff');
-[fft_list, ~] = merge_struct(frequency, 'diff');
-[fft2_list, ~] = merge_struct(frequency, 'mode');
+clusters_info.results_scores    = results_scores;
+clusters_info.TKE               = TKE;
+clusters_info.frequency         = frequency;
+clusters_info.amplitude1        = amplitude1;
+clusters_info.amplitude2        = amplitude2;
+clusters_info.num_clusters      = num_clusters;
+clusters_info.direct            = direct;
+
+cluster_plots(clusters_info)
 
 % derp = strncmp(model, 'GM3', 3)
 

@@ -1,14 +1,16 @@
-addpath(genpath('/home/chabotja/Thesis/John-Thesis'))
+% addpath(genpath('/home/chabotja/Thesis/John-Thesis'))
 
-direct = '/home/chabotja/Thesis/PIVData/Cavity/2005_10_20/M030f2900v600a';
+% direct = '/home/chabotja/Thesis/PIVData/Cavity/2005_10_20/M030f2900v600a';
+direct = 'D:\thesis\PIVData\cavity\2005_10_20\M030f2900v600a';
 
 setup_pod;
 setup_proj;
 
 problem_cavity.direct = direct;
+problem_cavity.run_num = 6400;
 
 problem_cavity.num_clusters = 10;
-POD_Gen(problem_cavity);
+% POD_Gen(problem_cavity);
 
 problem_cavity.int_time = 3600;
 problem_cavity.tspan = {'test', 200, 4};
@@ -21,9 +23,9 @@ Galerkin_Proj(problem_cavity);
 problem_cavity.num_modesG = 14:16;
 Galerkin_Proj(problem_cavity);
 
-problem_cavity.models = {'GM', 'GM1'};
-problem_cavity.num_modes = 5;
-Mod_POD(problem_cavity);
-
-problem_cavity.num_modes = 8;
-Mod_POD(problem_cavity);
+% problem_cavity.models = {'GM', 'GM1'};
+% problem_cavity.num_modes = 5;
+% Mod_POD(problem_cavity);
+% 
+% problem_cavity.num_modes = 8;
+% Mod_POD(problem_cavity);
