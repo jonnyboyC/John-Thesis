@@ -11,19 +11,11 @@ switch extras
     case 2
         multiplier = varargin{1};
         classify = varargin{2};
-    case 3
-        multiplier = varargin{1};
-        classify = varargin{2};
-        outlier_mode = varargin{3};
 end
 
-% If we are using a outlier mode add extra row/column
-if ~isempty(outlier_mode.km)
-    model.stoch = zeros(num_clusters + 1);
-    num_clusters = num_clusters + 1;
-else
-    model.stoch = zeros(num_clusters);
-end
+% Add an extra outlier mode
+model.stoch = zeros(num_clusters + 1);
+num_clusters = num_clusters + 1;
 
 % Add values to each entry
 for i = 1:multiplier

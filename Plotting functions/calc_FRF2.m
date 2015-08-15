@@ -12,7 +12,7 @@ else
 end
 
 if nargout >= 3 
-    count = find(fspan > 5, 1,'first');
+    count = find(fspan > 50, 1,'first');
     peaks = zeros(pks, modes);
     loc = zeros(pks,modes);
     for i = 1:modes

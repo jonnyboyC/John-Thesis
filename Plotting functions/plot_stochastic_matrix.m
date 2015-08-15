@@ -10,6 +10,8 @@ end
 
 if ~isvalid(h)
     h = figure;
+else
+    figure(h);
 end
 
 groups = model.groups;
@@ -17,11 +19,11 @@ stoch = model.stoch;
 
 clusters = length(stoch);
 
-temp = zeros(clusters+1);
-temp(1:clusters,1:clusters) = stoch;
+with_outlier = zeros(clusters+1);
+with_outlier(1:clusters,1:clusters) = stoch;
 
 % plot transition matrix
-pcolor(temp);
+pcolor(with_outlier);
 ax = gca;
 colorbar;
 
@@ -30,9 +32,10 @@ ax.XLabel = xlabel('Next State');
 ax.YLabel = ylabel('Current State');
 
 Label = cell(clusters, 1);
-for i = 1:clusters
+for i = 1:clusters-1
     Label{i} = num2str(i);
 end
+Label{end} = 'Out';
 
 ax.XTick = (1:clusters) + 0.5;
 ax.YTick = (1:clusters) + 0.5;
