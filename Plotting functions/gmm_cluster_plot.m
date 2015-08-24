@@ -22,7 +22,7 @@ for i = 1:k
 end
 
 % Plot prosterior probability contour lines
-ezcontour(@(x1,x2)pdf(models,[x1 x2]),[ax.XLim, ax.YLim], 100);
+ezcontour(@(x1,x2)pdf(models,[x1 x2]),[ax.XLim, ax.YLim], 500);
 
 for i = 1:k
     uistack(sub_ax{i}, 'top');

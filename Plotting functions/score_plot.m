@@ -1,10 +1,11 @@
-function [h, R2, R, p] = score_plot(full_name, sub_name, score, var, xaxis, yaxis, ...
+function [h, R2, R, p] = score_plot(full_name, sub_name, steady, score, var, xaxis, yaxis, ...
     top_title, direct, num_clusters, save_name, scale)
 
 if length(full_name) <= 1
     R2 = 0;
     R = 0;
     p = 0;
+    h = 0;
     return;
 end
 
@@ -35,15 +36,15 @@ for i = 1:length(models)
         end
     end
 end
-catch 
-    R2 = 0;
-    R = 0;
-    p = 0;
-    return;
-end 
 
-direct_ext = [direct filesep 'Figures' filesep 'Scores' filesep 'clusters_' ...
-    num2str(num_clusters)];
+
+if steady
+    direct_ext = [direct filesep 'Figures' filesep 'Scores' filesep 'steady' filesep 'clusters_' ...
+        num2str(num_clusters)];
+else
+    direct_ext = [direct filesep 'Figures' filesep 'Scores' filesep 'not steady' filesep 'clusters_' ...
+        num2str(num_clusters)];
+end
 
 if ~exist(direct_ext, 'dir') 
     mkdir(direct_ext);
@@ -71,6 +72,12 @@ ax.XLabel.FontSize = 16;
 ax.YLabel.FontSize = 16;
 ax.Title.FontSize = 18;
 
+if length(score) < 10
+    R2 = 0;
+    R = 0;
+    p = 0;
+end
+
 % Save figure
 file_name = [direct_ext filesep save_name];
 
@@ -78,4 +85,10 @@ file_name = [direct_ext filesep save_name];
 saveas(h, file_name, 'fig');
 saveas(h, file_name, 'png');
 
+catch 
+    R2 = 0;
+    R = 0;
+    p = 0;
+    return;
+end 
 end

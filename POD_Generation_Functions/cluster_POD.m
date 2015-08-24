@@ -24,7 +24,7 @@ for i = 1:length(cluster_range);
     modes = 1:cluster_range(i);
     
     % Generate clusters for the empirical data
-    [gmm{i}, km{i}] = gen_clusters(modal_amp, modes, num_clusters, num_cores, outlier_mode);
+    [gmm{i}, km{i}] = gen_clusters(modal_amp, modes, num_clusters, num_cores);
     
     % in 2D phase space plot clusters
     if i == 1 && ~isempty(save_figures)

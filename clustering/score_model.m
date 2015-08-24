@@ -51,7 +51,7 @@ modal_amp = modal_amp(:,2:end);
 if ~MOD
     
     % Post thesis we can change this back
-    [gmm, km] = gen_clusters(modal_amp, modes, num_clusters, num_cores, outlier_mode);
+    [gmm, km] = gen_clusters(modal_amp, modes, num_clusters, num_cores);
     
     %%%%%%%%%%%%%%%%%% TODO REVERSE AFTER THESIS %%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -113,8 +113,8 @@ for j = 1:m_comps
         gmm_sim = gen_stochastic_matrix(gmm_sim, num_clusters, multiplier, classify, outlier_mode);
         
         % log probability of observing the simulate chain using MLE model
-        km_sim = calc_likelihood(km_sim);
-        gmm_sim = calc_likelihood(gmm_sim);
+        km_sim.like = calc_likelihood(km.groups, km_sim.stoch);
+        gmm_sim.like = calc_likelihood(gmm.groups, gmm_sim.stoch);
         
         % Frobenius norm of transition matrices
         frob_km.(m{j}).(s{k}) = norm(km_sim.stoch - km.stoch, 'fro');

@@ -112,7 +112,7 @@ for i = 3:length(files)
     integration = vars.results_int.integration;
     modes = vars.results_coef.modes;
     MOD = false;
-    sample_freq = vars.results_coef.sample_freq;
+    sample_freq = 8000;%vars.results_coef.sample_freq;
     
     [tspan, multiplier] = back_calc_tspan(exp_sampling_rate, integration, modal_amp);
     
@@ -309,13 +309,17 @@ clusters_info.steady            = steady;
 relations = cluster_plots(clusters_info);
 
 results_scores.relations = relations;
-
-if ~exist([direct filesep 'Score' filesep num2str(num_clusters) 'cluster'], 'dir') 
-    mkdir([direct filesep 'Score' filesep num2str(num_clusters) 'cluster']);
+if steady
+    direct_ext = [direct filesep 'Scores' filesep 'steady' filesep num2str(num_clusters) 'cluster'];
+else
+    direct_ext = [direct filesep 'Scores' filesep 'not steady' filesep num2str(num_clusters) 'cluster'];
 end
 
-save([direct filesep 'Score' filesep num2str(num_clusters) 'cluster' filesep ...
-    'scores_' num2str(run_num)], 'results_scores', '-v7.3');
+if ~exist(direct_ext, 'dir') 
+    mkdir(direct_ext);
+end
+
+save([direct_ext filesep 'scores_' num2str(run_num)], 'results_scores', '-v7.3');
 
 if nargout == 1
     res_scores = results_scores;
