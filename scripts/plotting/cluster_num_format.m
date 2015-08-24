@@ -11,8 +11,8 @@ for j = 1:length(ax.Children)
     end
 end
 ax.XLabel = xlabel('Number Clusters');
-ax.XLabel.FontSize = 16;
-ax.YLabel.FontSize = 16;
-ax.Title.FontSize = 18;
+ax.XLabel.FontSize = 20;
+ax.YLabel.FontSize = 20;
+ax.Title.FontSize = 22;
 ax.FontSize = 14;
 axis tight

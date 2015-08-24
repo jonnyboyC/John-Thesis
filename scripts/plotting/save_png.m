@@ -8,7 +8,7 @@ for i = 1:length(files)
     ax = gca;
 
     % FORMAT
-    cluster_num_format(ax)
+%     corr_format(ax)
     % FORMAT
     
     name = files(i).name;

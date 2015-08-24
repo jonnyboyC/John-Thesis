@@ -17,7 +17,7 @@ models = {'GM_', 'GM1', 'GM2', 'GM3'};
 model_color = {'m', 'k', 'g', 'r'};
 sub_models = {'NL_', 'til_', ''};
 sub_shape = {'x', 'o', 's'};
-
+$ 
 try 
 for i = 1:length(models)
     for j = 1:length(sub_models)
