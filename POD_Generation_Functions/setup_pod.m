@@ -1,3 +1,4 @@
+% Defaults for mixing layer
 problem_mixing.num_images = 2000;
 problem_mixing.load_raw = false;
 problem_mixing.save_pod = true;
@@ -10,6 +11,7 @@ problem_mixing.load_handle = @load_LaVision;
 problem_mixing.flow_flip = {'x', 'u'};
 problem_mixing.exp_sampling_rate = 10;
 
+% Defaults for airfoil
 problem_airfoil.num_images = 2000;
 problem_airfoil.load_raw = false;
 problem_airfoil.save_pod = true;
@@ -22,6 +24,7 @@ problem_airfoil.u_scale_gen = @u_scale_gen_airfoil;
 problem_airfoil.flow_flip = {'x', 'u'};
 problem_airfoil.exp_sampling_rate = 10;
 
+% Defaults for cavity
 problem_cavity.num_images = 2000;
 problem_cavity.load_raw = false;
 problem_cavity.load_handle = @load_cavity_dat;
@@ -33,6 +36,7 @@ problem_cavity.u_scale_gen = @u_scale_gen_shear;
 problem_cavity.l_scale = 0.0127;
 problem_cavity.exp_sampling_rate = 10;
 
+% Defaults for jet
 problem_jet.num_images = 860;
 problem_jet.load_raw = false;
 problem_jet.load_handle = @load_jet_dat;

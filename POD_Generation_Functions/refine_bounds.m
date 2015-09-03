@@ -1,9 +1,9 @@
 function [bnd_X, bnd_idx] = refine_bounds(X, U, mean_U, direct, streamlines, update_bnds)
 % REFINE_BOUNDS determine the location of various boundaries in the flow
 %
-% [bnd_x, bnd_y, bnd_idx] = REFINE_BOUNDS(x, y, u, v, mean_u, mean_v,
-% direct, update_bnds) will launch a GUI interface to select the proper
-% bounds if information is not already cached to a mat file
+% [bnd_X, bnd_idx] = REFINE_BOUNDS(X, U, mean_U, direct, update_bnds) 
+%   will launch a GUI interface to select the proper bounds if information 
+%   is not already cached to a mat file
 
 % Load boundaries if already determined
 if ~update_bnds && exist([direct filesep 'Processed Data' filesep 'Mask' filesep 'Mask.mat'], 'file') 

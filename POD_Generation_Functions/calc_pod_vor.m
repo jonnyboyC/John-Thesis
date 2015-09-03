@@ -12,6 +12,8 @@ function [pod_W, mean_W] = calc_pod_vor(U, mean_U, dimensions, ...
 UdX = derivatives(U, bnd_idx, bnd_X, X, dimensions); %
 mean_UdX = derivatives(mean_U, bnd_idx, bnd_X, X, dimensions);
 
+
+% Calculate each vorticity component based on the present flow components
 if any(strcmp(u, 'w')) && any(strcmp(u, 'v'))
     pod_W.u = UdX.w.y - UdX.v.z;
     mean_W.u = mean_UdX.w.y - mean_UdX.v.z;

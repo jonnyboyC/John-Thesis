@@ -1,10 +1,8 @@
 function uniform = check_mesh(X)
 % CHECK_MESH determine if the mesh contains uniform spacing
 %
-% uniform = CHECK_MESH(X) determine if the mesh is uniform by checking
-% that the step different standard deviation is below 1e-6 that of the mean
-
-% Check to ensure that the mesh is consistently spaced
+%   uniform = CHECK_MESH(X) determine if the mesh is uniform by checking
+%   that the step different standard deviation is below 1e-6 that of the mean
 
 % Get number of active dimensions
 dims = flow_dims(X);
@@ -27,7 +25,7 @@ for i = 1:dims
     end
 end
 
-% if ration between mean and std_dev is small assume mesh is uniform
+% if ratio between mean and std_dev is small assume mesh is uniform
 if all(abs(std_step./(mean_step+eps)) < 1e-6)
     uniform = true;
 else

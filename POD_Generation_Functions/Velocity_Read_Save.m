@@ -2,8 +2,11 @@ function [X, U] = Velocity_Read_Save(num_images, load_raw, load_handle, direct)
 % VELOCITY_READ_PLOT_SAVE read raw num_images number of images from a selected
 % directory in either .dat .vc7 or .mat formats
 %
-%   [x, y, u, v] = VELOCITY_READ_PLOT_SAVE(num_images, load_raw, image_range, flip, direct)
-% 
+%   [X, U] = VELOCITY_READ_PLOT_SAVE(num_images, load_raw, load_handle,
+%   direct) checks if velocity data has already been stored in a .mat
+%   otherwise uses load_handle to load velocity data
+
+%#ok<*NASGU>
 
 % Check to see if a saved file exists
 if exist([direct filesep 'Processed Data' filesep 'Processed.mat'], 'file') == 2
@@ -17,7 +20,7 @@ end
 
 % Load variables using appropriate method provided by the function handle
 [X, U] = load_handle(num_images, direct);
-num_processed = num_images;
+num_processed = num_images; 
 
 % Save Data to processed folder
 save([direct filesep 'Processed Data' filesep 'Processed.mat'], 'X', 'U', 'num_processed', '-v7.3');

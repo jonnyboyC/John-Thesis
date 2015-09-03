@@ -1,11 +1,10 @@
 function covariance = cal_covariance_mat(flux_U, volume, bnd_idx, num_images)
 % CAL_COVARIANCE_MAT Calculate covariance matrix of ensemble data
 %
-% CAL_COVARIANCE_MAT(FLUX_U, FLUX_V, volume, BND_IDX) calculates
-% covariance matrix of ensembles images based on the flucatating components
-% of ensembles based on volume occupied by each elemented dicatated by
-% volume. Reduces problem sized by stripping points from within the
-% boundary from BND_IDX
+% CAL_COVARIANCE_MAT(flux_U, FLUX_V, volume, bnd_idx, num_images)
+% calculates the covariance matrix of the fluctuating component of the
+% velocity field flux_U, strips off values that are not in the flow for
+% additional speed.
 
 % Remove data within boundaries
 [flux_U, volume] = strip_boundaries(bnd_idx, flux_U, volume);

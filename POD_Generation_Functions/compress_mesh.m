@@ -1,9 +1,8 @@
 function [X, U] = compress_mesh(X, U)
 % COMPRESS_MESH reduce a mesh by a factor of 2 in both directions
 %
-% [x, y, u, v] = COMPRESS_MESH(x, y, u, v) given raw PIV data provided by
-% x, y, u, v average the quanitites in a 2x2 grid into a new mesh of halve
-% the original resolution
+%   [X, U] = COMPRESS_MESH(X, U) given raw PIV data create a new reduced size
+%       mesh that is the average of 2x2 grid
 
 [x, u] = flow_comps(X, U);
 comps = flow_ncomps(X);

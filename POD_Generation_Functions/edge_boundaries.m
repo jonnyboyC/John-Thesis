@@ -1,9 +1,8 @@
 function [bnd_X] = edge_boundaries(bnd_idx, X)
 % EDGE_BOUNDARIES determine the velocity normal direction for the flow
 %
-% [bnd_x, bnd_y] = EDGE_BOUNDARIES(bnd_idx) given the boundary index found
-% from FLOW_BOUNDARIES determine the velocity normal direction bnd_x, and
-% bnd_y
+%   bnd_X = EDGE_BOUNDARIES(bnd_idx) given the boundary index found
+%       from FLOW_BOUNDARIES determine the velocity normal direction bnd_X
 
 x = flow_comps_ns(X);
 dims = flow_dims(X);

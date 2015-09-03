@@ -1,5 +1,5 @@
 function varargout = mean_comps(varargin)
-% MEAN_COMPS provides essentially same function as mean but for all
+% MEAN_COMPS provides same function as mean but for all
 % components in X, U, etc
 % 
 %   MEAN_X = MEAN_COMPS(X) takes the mean along dimensions 1

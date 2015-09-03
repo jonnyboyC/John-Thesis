@@ -1,8 +1,8 @@
 function [bnd_X, bnd_idx] = mask_gen(data, U, streamlines)
 % MASK_GEN generate a mask for the raw PIV data
-% [bnd_x, bnd_y, bnd_idx] = MASK_GEN(data, bnd_x, bnd_y, u, v) open a 
-% GUI to exclude sections of the flow images that may be causing problems
-% as well as correctly identifying where open flow boundaries are occuring
+% [bnd_X, bnd_idx] = MASK_GEN(data, U, streamlines) open a 
+%   GUI to exclude sections of the flow images that may be causing problems
+%   as well as correctly identifying where open flow boundaries are occuring
 
 %  Create and then hide the GUI as it is being constructed.
 f = figure('Visible','on','Position',[500, 500, 900, 500]);

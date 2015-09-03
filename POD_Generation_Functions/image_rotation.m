@@ -1,5 +1,9 @@
 function [X, U] = image_rotation(X, U, flow_flip)
-%% Rotation PIV images, if data is originally presented in a flipped format
+% IMAGE_ROTATION performs various mirroring of the data to get the desired 
+% orientation
+% 
+%   [X, U] = image_rotation(X, U, flow_flips) flips mesh grid X and flow
+%   field U by flow_flips
 
 % Get fields
 [x, u] = flow_comps(X, U);

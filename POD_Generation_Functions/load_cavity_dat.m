@@ -1,10 +1,7 @@
 function [X, U] = load_cavity_dat(num_images, direct)
 % LOAD_CAVITY_DAT load dat files in the format of the cavity into matlab 
 %
-%   [x, y, u, v] = LOAD_CAVITY_DAT(img_files, num_found, num_images,
-%   image_range, flip, direct) see help POD_GEN for information
-
-% Check the now set up folders for data
+%   [X, U] = LOAD_CAVITY_DAT(num_images, direct)
 img_files = dir([direct filesep 'Raw Data' filesep '*']);
 
 % Remove any directories from results
@@ -38,21 +35,21 @@ v = zeros(num_x, num_y, num_found);
 for i = 1:num_found
     % Show current progress
     file_name = update_progress(img_files(i));
+    
+    % Open .dat file and read velocity snapshot
     data_file = fopen([direct filesep 'Raw Data' filesep file_name]);
     fgets(data_file); fgets(data_file); fgets(data_file);
     data = fscanf(data_file,'%g %g %g %g', [4 inf]);
     fclose(data_file);
     
-    % Original file also takes the any additional files that contain a
-    % * concatentated onto the end; such as B00001.vc7*. It also took
-    % the file absolute path, currently these are not included
-
+    % Store each image into a matrix
     x = reshape(data(1,:), num_x_org, num_y_org);
     y = reshape(data(2,:), num_x_org, num_y_org);
     u(:,:,i) = reshape(data(3,:), num_x_org, num_y_org);
     v(:,:,i) = reshape(data(4,:), num_x_org, num_y_org);  
 end   
 
+% Place values into structure form
 X.x = x;
 X.y = y;
 

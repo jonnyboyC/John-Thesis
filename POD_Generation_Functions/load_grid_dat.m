@@ -35,6 +35,8 @@ y = [];
 z = [];
 
 for zone = 1:num_zones
+    
+    % Scan file for values
     x_temp = reshape(grid((1:prod(dimensions))+offset), dimensions);
     offset = offset + prod(dimensions); % offset x
     
@@ -56,6 +58,7 @@ for zone = 1:num_zones
     end
 end
 
+% Place data into structure, convert to metric units
 X.x = x*ft2meters;
 X.y = y*ft2meters;
 X.z = z*ft2meters;

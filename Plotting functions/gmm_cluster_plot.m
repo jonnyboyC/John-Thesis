@@ -13,12 +13,11 @@ groups = gmm.groups;
 models = gmm.models;
 
 % Loop through and plot each cluster
-colors = {'r', 'b', 'c', 'm', 'g', 'y'};
 hold(ax, 'on');
 for i = 1:k
     figure(h);
-    sub_ax{i} = plot(ax, modal_amp(groups == i, modes(1)), modal_amp(groups == i, modes(2)), ['.' colors{i}]);%, ...
-%         'MarkerFaceColor', rand(1,3), 'MarkerEdgeColor', rand(1,3));
+    sub_ax{i} = plot(ax, modal_amp(groups == i, modes(1)), modal_amp(groups == i, modes(2)), '.', ...
+         'MarkerFaceColor', rand(1,3), 'MarkerEdgeColor', rand(1,3));
 end
 
 % Plot prosterior probability contour lines

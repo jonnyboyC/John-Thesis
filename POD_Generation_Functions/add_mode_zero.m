@@ -1,7 +1,10 @@
 function [modal_amp, lambda, pod_U, pod_W] = ... 
     add_mode_zero(modal_amp, lambda, pod_U, mean_U, pod_W, mean_W)
-% ADD_MODE_ZERO add an additional mode corresponding to the mean flow, use
-% edit for details on input, output
+% ADD_MODE_ZERO add an additional mode corresponding to the mean flow
+%
+%   [modal_amp, lambda, pod_U, pod_W] = ADD_MODE_ZERO(modal_amp, lambda,
+%   pod_U, mean_U, pod_W, mean_W), add values from the mean quantities to
+%   the POD quantity structures
 
 % Number of snapshots
 num_images = size(modal_amp,2);

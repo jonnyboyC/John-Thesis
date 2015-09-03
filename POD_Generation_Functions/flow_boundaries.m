@@ -1,9 +1,9 @@
 function bnd_idx = flow_boundaries(U)
 % FLOW_BOUNDARIES determine flow boundaries
 %
-% bnd_idx = FLOW_BOUNDARIES(u,v) given raw flow data u and v, return
-% bnd_idx represented the different flow regions. 1 represents in flow, -1
-% represents uncaptured space, and 0 represented boundaries between the two
+% bnd_idx = FLOW_BOUNDARIES(U) given raw flow data U, return
+%   bnd_idx represented the different flow regions. 1 represents in flow, -1
+%   represents uncaptured space, and 0 represented boundaries between the two
 
 % Get information about components dimensions, and snapshots
 u = flow_comps(U);

@@ -19,6 +19,7 @@ end
 % Get dimensions of image
 lavdata = readimx([direct filesep 'Raw Data' filesep img_files(1).name]);
 
+% Get mesh dimensions
 num_x = lavdata.Nx;
 num_y = lavdata.Ny;
 
@@ -30,17 +31,16 @@ v = zeros(num_x, num_y, num_found);
 
 % Load images
 for i = 1:num_found
+    
     % Show current progress
     file_name = update_progress(img_files(i));
 
-    % Original file also takes the any additional files that contain a
-    % * concatentated onto the end; such as B00001.vc7*. It also took
-    % the file absolute path, currently these are not included
-
+    % Use proprietary readimx to get velocity data from im7 and bc7 files
     lavdata = readimx([direct filesep 'Raw Data' filesep file_name]);
     [x, y, u(:,:,i), v(:,:,i)] = showimx_mod(lavdata);
 end
 
+% Place quantities into structure
 X.x = x;
 X.y = y;
 

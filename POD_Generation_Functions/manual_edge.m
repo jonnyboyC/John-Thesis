@@ -1,6 +1,7 @@
 function bnd_idx = manual_edge(bnd_idx)
 % MANUAL_EDGE determine flow boundaries not determined using built in edge
 % detection
+%
 % bnd_idx = MANUAL_EDGE(bnd_idx) updates bnd_idx returned from MATLAB's
 % edge function to update points along edge of image.
 

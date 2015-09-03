@@ -12,7 +12,7 @@ u = flow_comps(U);
 % Generate index
 idx = flow_index([1 1], dims(end), U);
 
-% Perform filtering
+% Perform filtering TODO update this
 for i = 1:num_images
     for j = 1:comps
         idx{end} = i;

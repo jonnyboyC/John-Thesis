@@ -80,6 +80,7 @@ for zone = 1:num_zones
     end
 end
 
+% Place components into strcutre and convert to metric
 U.u = u*ft2meters;
 U.v = v*ft2meters;
 U.w = w*ft2meters;

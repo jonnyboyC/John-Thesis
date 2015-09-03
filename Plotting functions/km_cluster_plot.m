@@ -10,11 +10,11 @@ groups = km.groups;
 
 % Loop through and plot each cluster
 hold(ax, 'on');
-colors = {'r', 'b', 'c', 'm', 'g', 'y'};
+
 for i = 1:k
     figure(h);
-    plot(ax, modal_amp(groups == i, cluster_modes(1)), modal_amp(groups == i, cluster_modes(2)), ['.' colors{i}]) %, ...
-%         'MarkerFaceColor', rand(1,3), 'MarkerEdgeColor', rand(1,3));
+    plot(ax, modal_amp(groups == i, cluster_modes(1)), modal_amp(groups == i, cluster_modes(2)), '.', ...
+         'MarkerFaceColor', rand(1,3), 'MarkerEdgeColor', rand(1,3));
     plot(ax, centers(i,cluster_modes(1)), centers(i,cluster_modes(2)), 'kx');
 end
 

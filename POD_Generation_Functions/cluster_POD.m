@@ -1,4 +1,4 @@
-function [km, gmm] = cluster_POD(modal_amp, num_clusters, num_cores, outlier_mode, direct, save_figures)
+function [km, gmm] = cluster_POD(modal_amp, num_clusters, num_cores, direct, save_figures)
 % CLUSTER_POD return clusters of the POD modal amplitudes by k-mean and
 % gaussian mixture. Generates modes for 2-40 modes, with plots
 %
