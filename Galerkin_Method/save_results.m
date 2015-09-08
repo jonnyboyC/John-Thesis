@@ -1,5 +1,7 @@
 function save_results(num_modes, direct, folder, custom, varargin)
-% check if folder exist create if empty
+% SAVE_RESULTS generate .mat file name and write all results to file
+%
+%   SAVE_RESULTS(num_modes, direct, folder, custom, var1, var2, ...)
 if custom
     direct_ext = [direct filesep folder filesep 'custom_modes_' num2str(num_modes)];
 else

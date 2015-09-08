@@ -1,8 +1,8 @@
 function mod_coeff = ode_coefficients(num_modes, Gal_coeff, MOD)
-% Creating linear row of coefficients for eachs modes linear and quadratic
-% terms
-% ODE_COEFFICENTS(NUM_MODES, FCUH) created a row vector of coefficients for
-% every mode in FCUH for NUM_MODES modes.
+% ODE_COEFFICENTS convert the system coefficeients into a single row for 
+% use in time integration
+%
+%   mod_coeff = ODE_COEFFICIENTS(num_modes, Gal_coeff, MOD)
 
 
 if MOD

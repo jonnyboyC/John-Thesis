@@ -1,5 +1,7 @@
 function problem = setdefaults_proj(problem)
-% Function to set defaults for Galerkin_Proj
+% SETDEFAULTS_PROJ set the defaults values for GALERKIN_PROJ
+%
+%   problem = SETDEFAUTLS_PROJ(problem)
 
 % Default for num_pod 
 if isempty(problem.num_modesG) || ~isnumeric(problem.num_modesG) && ~iscell(problem.num_modesG) 

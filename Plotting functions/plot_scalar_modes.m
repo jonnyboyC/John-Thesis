@@ -35,7 +35,7 @@ for i = 1:comps
     
     for j = 1:num_modes
         % Update pod data
-        data.pod = reshape(U.(u{i})(:,j),dimensions);
+        data.field = reshape(U.(u{i})(:,j),dimensions);
         
         % After Originally generating 4 plots, update values
         if plot_img_num > 4

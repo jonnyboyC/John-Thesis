@@ -1,4 +1,5 @@
 function [s1, s2, s3, s4, s5, s6, s7, s8, s9] = thirdOrder(x1, x2, x3, x4, position)
+% THIRDORDER third order finite difference methods for GENERATE_STENCIL
 if position == 1
     x  = x1;
     s1 = 0;

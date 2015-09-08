@@ -316,7 +316,7 @@ for i = 1:length(num_modesG)
         % Averaged energy balance detailed by Noack
         if ismember('Averaged', dissapation);
             for j = 1:s_comps
-            [system{i}.eddy.GM2.(s{j}), system{i}.eddy.GM1.(s{j})] = viscous_dis(modal_amp, ...
+            [system{i}.eddy.GM2.(s{j}), system{i}.eddy.GM1.(s{j})] = eddy_vis_avg(modal_amp, ...
                 num_modes, lambda, system{i}.l.(s{j}), system{i}.q.(s{j}), system{i}.vis);
             end
         end
@@ -324,7 +324,7 @@ for i = 1:length(num_modesG)
         % Energy balance via least squares solution detailed by Couplet
         if ismember('Least Squares', dissapation);
             for j = 1:s_comps
-            system{i}.eddy.GM3.(s{j}) = viscous_dis_couplet(modal_amp, num_modes, modes, ...
+            system{i}.eddy.GM3.(s{j}) = eddy_vis_ls(modal_amp, num_modes, modes, ...
                             cutoff_coef.l.(s{j}), cutoff_coef.q.(s{j}), system{i}.vis);
             end
         end

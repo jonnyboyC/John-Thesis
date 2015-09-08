@@ -26,7 +26,7 @@ if ~isvector(dims)
 end
 
 % Check that a struct cooresponding to X, U, or POD
-if ~all(cellfun(@isstruct, varargin) | cellfun(@ismatrix, varargin))
+if ~all(cellfun(@isstruct, varargin) | cellfun(@isnumeric, varargin))
     error('Must supply structures of matrices or matrices with the same dimensions');
 end
 

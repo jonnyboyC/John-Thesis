@@ -1,7 +1,7 @@
 problem_mixing.num_modesG = 10;
 problem_mixing.tspan = {'test', 100};
 problem_mixing.odesolver = @ode113;
-problem_mixing.Re0_gen = @Re0_gen_shear;
+problem_mixing.Re0_gen = @Re0_gen_mixing;
 
 problem_cavity.num_modesG = 10;
 problem_cavity.tspan = {'test', 100};

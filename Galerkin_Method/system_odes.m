@@ -1,8 +1,8 @@
 function da = system_odes(~, a, model_coef)
-% System of ode for time evolution of POD/Galerkin system
+% SYSTEM_ODES determine 1st derivative of the POD-Galerkin system fully
+% vectorized
 %
-% SYSTEM_ODES(~, A, MODEL_COEF) returns the the changes in modal amplitudes
-% for the system modes
+%   da = SYSTEM_ODES(~, A, MODEL_COEF) 
 
 num_modes = (size(model_coef,1));
 da = zeros(num_modes, 1);

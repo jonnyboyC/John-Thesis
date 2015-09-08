@@ -1,4 +1,4 @@
-function [s_X, nstencil] = generate_stencil(X, methods_X, dimensions)
+function [s_X, nstencil] = generate_stencil_new(X, methods_X, dimensions)
 % GENERATE_STENCIL generate the appropriate weights for each grid point
 % when evaulating the derivtives
 %
@@ -6,77 +6,99 @@ function [s_X, nstencil] = generate_stencil(X, methods_X, dimensions)
 %       produces a matrix size = [dimesions, 9] representing the weights of
 %       each point when included in derivatives calculations.
 
+
+% Get structure components
 xi = flow_comps_ip(X);
 x_dims = flow_comps_ip(methods_X);
-x = X.(xi{1});
-y = X.(xi{2});
 
-methodsX = methods_X.(x_dims{1});
-methodsY = methods_X.(x_dims{2});
+% Get flow dimensions
+dims = flow_dims(X);
 
-sX = zeros([dimensions, 9]);
-sY = zeros([dimensions(2), dimensions(1), 9]);
+% TODO in the future could be dynamic
+finite_order = 4;
+nstencil = 2*finite_order + 1;
 
-% Add padding
-x = [zeros(4,dimensions(2)); x; zeros(4,dimensions(2))];
-y = [zeros(dimensions(1),4), y, zeros(dimensions(1),4)]';
-methodsY = methodsY';
+% dimension index
+dim_idx = 1:dims;
 
-[sX(:,:,1), sX(:,:,2), sX(:,:,3), sX(:,:,4), sX(:,:,5), sX(:,:,6), sX(:,:,7), sX(:,:,8), sX(:,:,9)] = ...
-    arrayfun(@stencil, x(1:end-8,:), x(2:end-7,:), x(3:end-6,:), x(4:end-5,:), ...
-    x(5:end-4,:), x(6:end-3,:), x(7:end-2,:), x(8:end-1,:), x(9:end,:), methodsX);
+% Generate stencile along each dimmension
+for i = 1:dims
+    
+    % Prefill stencile structure
+    temp_idx = [dimensions(circshift(dim_idx, i-1, 2)), 9];
+    s_X.(x_dims{i}) = zeros(temp_idx);
 
-[sY(:,:,1), sY(:,:,2), sY(:,:,3), sY(:,:,4), sY(:,:,5), sY(:,:,6), sY(:,:,7), sY(:,:,8), sY(:,:,9)] = ...
-    arrayfun(@stencil, y(1:end-8,:), y(2:end-7,:), y(3:end-6,:), y(4:end-5,:), ...
-    y(5:end-4,:), y(6:end-3,:), y(7:end-2,:), y(8:end-1,:), y(9:end,:), methodsY);
+    % Generate padding
+    temp_dimensions = dimensions;
+    temp_dimensions(i) = finite_order;
+    padding = zeros(temp_dimensions);  
+    
+    % Pad mesh struture
+    X.(xi{i}) = permute(cat(i, padding, X.(xi{i}), padding), circshift(dim_idx, -(i-1), 2)); 
 
-sY = -permute(sY, [2,1,3]);
-sX = -sX;
-
-sY(isnan(sY) | isinf(sY)) = 0;
-sX(isnan(sX) | isinf(sX)) = 0;
-
-s_X.(x_dims{1}) = sX;
-s_X.(x_dims{2}) = sY;
-
-if nargout == 2
-    nstencil = size(sX);
-    nstencil = nstencil(end);
+    % Permute methods structure to have methods along dimension 1
+    temp_methods = permute(methods_X.(x_dims{i}), circshift(dim_idx, i-1, 2));
+    
+    input = cell(1,nstencil);
+    output = cell(1,nstencil);
+    
+    % Fill input cell
+    for j = 1:length(input)
+        idx = flow_index([j, j-9], 1, X.(xi{i}));
+        input{j} = X.(xi{i})(idx{:});
+    end
+    
+    [output{:}] = arrayfun(@stencil, input{:}, temp_methods);
+    
+    % Fill stencile structe from outputs
+    idx = flow_index([1 1], ndims(s_X.(x_dims{i})), s_X.(x_dims{i}));
+    for j = 1:length(output)
+        idx{end} = j;
+        s_X.(x_dims{i})(idx{:}) = output{j};
+    end
+    
+    % Permute stencile back to original dims, remove NaN's
+    s_X.(x_dims{i}) = -permute(s_X.(x_dims{i}), [circshift(dim_idx, i-1, 2),dims+1]);
+    s_X.(x_dims{i})(isnan(s_X.(x_dims{i})) | isinf(s_X.(x_dims{i}))) = 0;
 end
 end
 
 function [s1, s2, s3, s4, s5, s6, s7, s8, s9] = stencil(x1, x2, x3, x4, x5, x6, x7, x8, x9, method)
+% STENCIL determine the coefficients for each points at the point of
+% interest and 4 points shifted in both direction that much be summed to
+% get the derivative of interest
+
 switch method
     case 0
         % In boundary
         s1 = 0; s2 = 0; s3 = 0; s4 = 0; s5 = 0; s6 = 0; s7 = 0; s8 = 0; s9 = 0;
-    case 1 
-        % Forward 1st order
-        [s1, s2, s3, s4, s5, s6, s7, s8, s9] = firstOrder(x5, x6, 1);
-    case 2 
-        % Forward 2nd order
-        [s1, s2, s3, s4, s5, s6, s7, s8, s9] = secondOrder(x5, x6, x7, 1);
-    case 3
-        % Forward 3rd order
-        [s1, s2, s3, s4, s5, s6, s7, s8, s9] = thirdOrder(x5, x6, x7, x8, 1);
-    case 4
-        % Forward 4th order
-        [s1, s2, s3, s4, s5, s6, s7, s8, s9] = fourthOrder(x5, x6, x7, x8, x9, 1);
-    case 5
-        % Forward biased 3rd order
-        [s1, s2, s3, s4, s5, s6, s7, s8, s9] = thirdOrder(x4, x5, x6, x7, 2);
-    case 6
-        % Forward biased 4th order
-        [s1, s2, s3, s4, s5, s6, s7, s8, s9] = fourthOrder(x4, x5, x6, x7, x8, 2);
-    case 7
-        % 1 point stencil
-        s1 = 0; s2 = 0; s3 = 0; s4 = 0; s5 = 0; s6 = 0; s7 = 0; s8 = 0; s9 = 0;
-    case 8
-        % Central 2nd order
-        [s1, s2, s3, s4, s5, s6, s7, s8, s9] = secondOrder(x4, x5, x6, 2);
-    case 9
+    case 1
         % Central 4th order
         [s1, s2, s3, s4, s5, s6, s7, s8, s9] = fourthOrder(x3, x4, x5, x6, x7, 3);
+    case 2 
+        % Forward 1st order
+        [s1, s2, s3, s4, s5, s6, s7, s8, s9] = firstOrder(x5, x6, 1);
+    case 3 
+        % Forward 2nd order
+        [s1, s2, s3, s4, s5, s6, s7, s8, s9] = secondOrder(x5, x6, x7, 1);
+    case 4
+        % Forward 3rd order
+        [s1, s2, s3, s4, s5, s6, s7, s8, s9] = thirdOrder(x5, x6, x7, x8, 1);
+    case 5
+        % Forward 4th order
+        [s1, s2, s3, s4, s5, s6, s7, s8, s9] = fourthOrder(x5, x6, x7, x8, x9, 1);
+    case 6
+        % Forward biased 3rd order
+        [s1, s2, s3, s4, s5, s6, s7, s8, s9] = thirdOrder(x4, x5, x6, x7, 2);
+    case 7
+        % Forward biased 4th order
+        [s1, s2, s3, s4, s5, s6, s7, s8, s9] = fourthOrder(x4, x5, x6, x7, x8, 2);
+    case 8
+        % 1 point stencil
+        s1 = 0; s2 = 0; s3 = 0; s4 = 0; s5 = 0; s6 = 0; s7 = 0; s8 = 0; s9 = 0;
+    case 9
+        % Central 2nd order
+        [s1, s2, s3, s4, s5, s6, s7, s8, s9] = secondOrder(x4, x5, x6, 2);
     case 10
         % Backwards biased 3rd order
         [s1, s2, s3, s4, s5, s6, s7, s8, s9] = thirdOrder(x3, x4, x5, x6, 3);

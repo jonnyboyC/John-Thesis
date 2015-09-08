@@ -1,12 +1,12 @@
 function system = integration_setup(system, i, num_modes)
-% INTEGRATION_SETUP convert the system coefficients from thier logical form
-% to that used by the system solve TIME_INTEGRATION
+% INTEGRATION_SETUP perform finally system structure rearranging to prepare
+% for intergration
 %
-%   [reduced_model_coeff] = integration_setup(eddy, vis, l, q, i,
-%       total_models, linear_models, num_modes);
+%   system = integration_setup(system, i, num_modes);
 
 Mod = false;
 
+% Get strucutre names
 s = flow_comps(system{i}.l);
 s_comps = flow_ncomps(system{i}.l);
 

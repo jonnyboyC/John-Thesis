@@ -13,15 +13,15 @@ x = flow_comps_ip(X);
 dimensions = size(bnd_idx);
 
 % Set all points for open flow on edge to on boundary 
-exterior = false(size(bnd_idx));
+exterior = zeros(size(bnd_idx));
 for i = 1:dims
     idx_1 = flow_index([1, 1], i, exterior);
     idx_end = flow_index([0, 0], i, exterior);
     
-    exterior(idx_1{:}) = true;
-    exterior(idx_end{:}) = true;
+    exterior(idx_1{:}) = 1;
+    exterior(idx_end{:}) = 1;
 end
-bnd_idx(exterior & bnd_idx == 1) = 0;
+bnd_idx(logical(exterior) & bnd_idx == 1) = 0;
 
 % Wrap exterior with in boundary points
 bnd_temp = bnd_idx;

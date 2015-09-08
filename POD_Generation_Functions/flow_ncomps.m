@@ -1,9 +1,9 @@
 function varargout = flow_ncomps(varargin)
-% FLOW_NDIMS get the number of flow dimensions i.e x, y or x y z
+% FLOW_NCOMPS get the number of flow dimensions i.e x, y or x y z
 %
-%   xdims = FLOW_NDIMS(X)
-%   udims = FLOW_NDIMS(U)
-%   [xdims, udims] = FLOW_NDIMS(X,U)
+%   xdims = FLOW_NCOMPS(X)
+%   udims = FLOW_NCOMPS(U)
+%   [xdims, udims] = FLOW_NCOMPS(X,U)
 
 varargout = cell(length(varargin));
 

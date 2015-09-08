@@ -1,7 +1,7 @@
 function system_coefs = load_coef(direct, run_num, num_modes, custom)
-% LOAD_COEF load the coefficients of a previous run for time integration
+% LOAD_COEF load the system coefficients of a previous run for time integration
 %
-% system_coefs = LOAD_COEF(direct, run_num, custom)
+%   system_coefs = LOAD_COEF(direct, run_num, num_modes, custom)
 
 % load from custom folder if requested
 if custom

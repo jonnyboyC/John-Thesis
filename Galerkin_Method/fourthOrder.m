@@ -1,4 +1,5 @@
 function [s1, s2, s3, s4, s5, s6, s7, s8, s9]= fourthOrder(x1, x2, x3, x4, x5, position)
+% FOURTHORDER fourth order finite difference methods for GENERATE_STENCIL
 if position == 1
     x  = x1;
     s1 = -(3*x^2*x2 + 3*x^2*x3 + 3*x^2*x4 + 3*x^2*x5 - 4*x^3 ...

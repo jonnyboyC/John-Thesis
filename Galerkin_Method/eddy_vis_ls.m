@@ -1,5 +1,8 @@
-function modal_eddy_vis = viscous_dis_couplet(modal_amp, num_modes, modes, l, q, vis)
-% Determine modal visous disspation according the Couplet et al. 2004
+function ls_eddy_vis = eddy_vis_ls(modal_amp, num_modes, modes, l, q, vis)
+% EDDY_VIS_LS calculate eddy visocity in a least squares fashion according 
+% to Couplet et a. 2004
+%
+%   ls_eddy_vis = EDDY_VIS_LS(modal_amp, num_modes, modes, l, q, vis)
 
 num_images = size(modal_amp, 1);    % Number of snapshots
 num_cutoff = size(q,1);             % Number of modes used for cutoff
@@ -39,9 +42,9 @@ end
 % Total unresolved system
 P_unres = L_unres + Q_unres;
 
-modal_eddy_vis = zeros(num_modes, 1);
+ls_eddy_vis = zeros(num_modes, 1);
 
 % modal_eddy_vis1 = mean((P_unres(:,sum_i).*L_res(:,sum_i)),1)'./mean((L_res(:,sum_i).^2),1)';
-modal_eddy_vis(2:end) = mean(((modal_amp(:,sum_i)).^2.*P_unres(:,2:num_modes).*L_res(:,2:num_modes)),1)'./mean((modal_amp(:,sum_i).*L_res(:,2:num_modes)).^2,1)';
+ls_eddy_vis(2:end) = mean(((modal_amp(:,sum_i)).^2.*P_unres(:,2:num_modes).*L_res(:,2:num_modes)),1)'./mean((modal_amp(:,sum_i).*L_res(:,2:num_modes)).^2,1)';
 % modal_eddy_vis(2:end) = (mean((modal_amp(:,sum_i).*P_unres(:,sum_i)),1)./mean((modal_amp(:,sum_i).*L_res(:,sum_i)),1))';
 end

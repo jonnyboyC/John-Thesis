@@ -16,19 +16,10 @@ function [UdX, Ud2X] = derivatives(U, bnd_idx, bnd_X, X, dimensions)
 
 %% Preprocessing 
 
-
 % Get information on the components and the grid provided
-
 [x, u] = flow_comps_ip(X, U);    % Get grid components i.e x, y etc.
 dims = flow_dims(X);        % Number of active dimensions
 full_dims = size(X.(x{1})); % Mesh dimensions
-
-
-% TODO can only work with 2D grids at the moment
-if dims > 2
-    error(['This function can only handle two dimensional derivatives, a modification' ...
-        'is needed to solve for 3D']);
-end
 
 % Determine number of vector fields present
 fields = size(U.(u{1}), 2);
@@ -58,7 +49,7 @@ end
 %% Method selection and parametric transform setup
 
 % Select finite element method and produce mesh stenciles
-methods_X = select_method(bnd_idx, bnd_X, dimensions, x);
+methods_X = select_method_new(bnd_idx, bnd_X, dimensions, x);
 
 % Set parametric transform
     
@@ -80,8 +71,8 @@ end
 xi = flow_comps(Xi);
 
 % Select finite element method and produce mesh stenciles
-[methods_Xi] = select_method(ones(dimensions), bnd_X, dimensions, xi);
-[stencil_Xi, nstencil] = generate_stencil(Xi, methods_Xi, dimensions);
+[methods_Xi] = select_method_new(ones(dimensions), bnd_X, dimensions, xi);
+[stencil_Xi, nstencil] = generate_stencil_new(Xi, methods_Xi, dimensions);
 
 % Preallocate indices derivatives
 for i = 1:dims
@@ -118,7 +109,7 @@ end
 transform = inverse_jacobian(XdXi, dimensions);
 
 % Use computation domain mesh to generate stencil
-[stencil_X, nstencil] = generate_stencil(Xi, methods_X, dimensions);
+[stencil_X, nstencil] = generate_stencil_new(Xi, methods_X, dimensions);
 
 %% Calculate Derivatives
 
@@ -130,36 +121,41 @@ for i = 1:dims
     temp_dimensions(i) = floor(nstencil/2);
     padding = zeros(temp_dimensions);
     
-    % index the stencil matrix
+    % Index the stencil matrix
     stencil_idx = flow_index([1 1], ndims(stencil_X.(x{1})), stencil_X);
+    
+    % Index the derivative matrix
+    U_idx = flow_index([1, 1], ndims(stencil_X.(x{1})), stencil_X);
     
     % Loop through each component and each field to be calculated
     for j = 1:dims
     for k = 1:fields
 
+        U_idx{end} = k;
+        
         % Pad variable
         padded_var = cat(i, padding, reshape(U.(u{j})(:,k), dimensions), padding);
         
         % 1st order terms
         for l = 1:nstencil
             stencil_idx{end} = l;
-            idx = flow_index([10-l, 1-l], i, padded_var);
-            UdX.(u{j}).(x{i})(:,:,k) = UdX.(u{j}).(x{i})(:,:,k) + ...
-                    padded_var(idx{:}).*stencil_X.(x{i})(stencil_idx{:});
+            idx2 = flow_index([10-l, 1-l], i, padded_var);
+            UdX.(u{j}).(x{i})(U_idx{:}) = UdX.(u{j}).(x{i})(U_idx{:}) + ...
+                    padded_var(idx2{:}).*stencil_X.(x{i})(stencil_idx{:});
         end
         
         % Calculate 2nd order term if requested
         if nargout == 2
             
             % Padd variable derivative
-            padded_var = cat(i, padding, UdX.(u{j}).(x{j})(:,:,k), padding);
+            padded_var = cat(i, padding, UdX.(u{j}).(x{j})(U_idx{:}), padding);
             
             % 2nd order derivative
             for l = 1:nstencil
                 stencil_idx{end} = l;
-                idx = flow_index([10-l, 1-l], i, padded_var);
-                Ud2X.(u{j}).(x{i})(:,:,k) = Ud2X.(u{j}).(x{i})(:,:,k) + ...
-                        padded_var(idx{:}).*stencil_X.(x{i})(stencil_idx{:});
+                idx2 = flow_index([10-l, 1-l], i, padded_var);
+                Ud2X.(u{j}).(x{i})(U_idx{:}) = Ud2X.(u{j}).(x{i})(U_idx{:}) + ...
+                        padded_var(idx2{:}).*stencil_X.(x{i})(stencil_idx{:});
             end
         end
     end

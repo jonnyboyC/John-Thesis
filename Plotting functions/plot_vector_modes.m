@@ -47,7 +47,7 @@ movegui(h,'center')
 
 for i = 1:num_modes
     % Update pod data
-    data.pod = reshape(magnitude(:,i),dimensions);
+    data.field = reshape(magnitude(:,i),dimensions);
     for j = 1:dims 
         data.U.(u{j}) = reshape(U.(u{j})(:,i), dimensions);
     end

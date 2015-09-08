@@ -5,14 +5,14 @@ function [h_magnitude, cax] = plot_scalar_field(data, h_mag)
 % [h_magnitude, cax] = PLOT_SCALAR_FIELD(data, h_mag)
 
 % Create pseudo color plot, for flow visualization with included boundaries
-if nargin == 1 || all(isfield(data, {'bnd_x', 'bnd_y'}))
+if nargin == 1 || all(isfield(data, {'bnd_X'}))
     ax = newplot;    
     
     X = data.X;
     x = flow_comps_ns(X);
     dimensions = size(X.(x{1}));
     
-    h_mag = surface(X.(x{1}), X.(x{2}), zeros(dimensions), data.pod);
+    h_mag = surface(X.(x{1}), X.(x{2}), zeros(dimensions), data.field);
     h_mag.FaceColor = 'interp';
     h_mag.EdgeColor = 'none';
     
@@ -65,7 +65,7 @@ if nargin == 1 || all(isfield(data, {'bnd_x', 'bnd_y'}))
     axis(ax, 'manual');
 else
     % If plot already present update values
-    h_mag.CData = data.pod;
+    h_mag.CData = data.field;
 end
 drawnow;
 

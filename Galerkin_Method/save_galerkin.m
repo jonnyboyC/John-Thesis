@@ -1,6 +1,6 @@
 function futures = save_galerkin(direct, custom, time_int, calc_coef, classify_sim, ...
     i, futures, num_modes, results_coef, results_int, results_scores)
-% SAVE_COEF save all coefficients from the request computation, saves all
+% SAVE_GALKERIN save all coefficients from the requested computation, saves all
 % values on a separate thread so system isn't bottlenecked by harddrive
 %
 % futures = save_coef(direct, custom, time_int, calc_coef, i, futures,

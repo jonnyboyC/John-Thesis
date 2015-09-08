@@ -1,4 +1,8 @@
 function [s1, s2, s3, s4, s5, s6, s7, s8, s9] = secondOrder(x1, x2, x3, position)
+% SECONDORDER calculate the coefficients for a 2nd order finite difference
+% method
+%
+%   [s1, s2, s3, s4, s5, s6, s7, s8, s9] = SECONDORDER(x1, x2, x3, position)
 if position == 1
     x  = x1;
     s1 = 0;

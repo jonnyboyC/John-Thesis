@@ -1,13 +1,15 @@
-function [pod_2D] = regroup(pod, dimensions)
-%% Transform 2D matrix of ensembles back to sets of 2D images
-pod_modes = size(pod,2);
-x_dim = dimensions(1);
-y_dim = dimensions(2);
+function var_full = regroup(var, dimensions)
+% REGROUP transform vector from of a variable back into full dimensions
+%
+%   var_full = REGROUP(var, dimensions)
+images = size(var,2);
 
-pod_2D = zeros(x_dim, y_dim, pod_modes);
+var_full = zeros([dimensions, images]);
 
+var_idx = flow_index([1, 1], ndims(var_full), var_full);
 % Convert from 2D to 3D
-for i = 1:pod_modes
-    pod_2D(:,:,i) = reshape(pod(:,i), dimensions);
+for i = 1:images
+    var_idx{end} = i;
+    var_full(var_idx{:}) = reshape(var(:,i), dimensions);
 end
 

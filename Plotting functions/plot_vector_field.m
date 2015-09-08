@@ -11,7 +11,7 @@ if dims ~= 2
 end
     
 % If no magnitude value is provided calculate the value
-if ~isfield(data, 'pod')
+if ~isfield(data, 'field')
     
     %  Check that at least two components were passed in
     if isfield(data, {'U'}) && flow_ncomps(data.U) >= 2
@@ -21,7 +21,7 @@ if ~isfield(data, 'pod')
         for i = 1:dims
             mag = mag + data.U.(u{i}).^2;
         end
-        data.pod = sqrt(mag);
+        data.field = sqrt(mag);
     else
         error('Must provide structure DATA with either u and v fields or pod field');
     end

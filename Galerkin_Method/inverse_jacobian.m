@@ -1,4 +1,8 @@
 function transform = inverse_jacobian(XdXi, dimensions)
+% INVERSE_JACOBAIN produce the jacobian transform used in DERIVATIVES to
+% deal with non-orthogonal meshes
+%
+%   transform = INVERSE_JACOBIAN(XdXi, dimensions)
 
 % Get flow information
 xi = flow_comps(XdXi);

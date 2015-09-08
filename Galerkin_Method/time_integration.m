@@ -1,5 +1,12 @@
 function [integration, time] = time_integration(odesolver, system, integration, modal_TKE, ...
                                             i, ao, t_scale, tspan, int_time, options)
+% TIME_INTEGRATION time intergration of all POD-Galerkin models,
+% intergration performed in parrallel 
+%
+%   [integration, time] = time_intergration(odesolver, system,
+%       intergration, modal_TKE, i, ao, t_scale, tspan, int_time, options)
+                                        
+                                        
 %#ok<*PFBNS>
 tic;
 pool = gcp('nocreate');
