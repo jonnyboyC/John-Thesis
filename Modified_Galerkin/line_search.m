@@ -2,8 +2,7 @@ function [epsilon_low, epsilon_high, transfer, found_flip] = line_search(problem
 % LINE_SEARCH brute force sweep of an area around the initial condition
 % suggested by balajawecz.
 %
-% [epsilon_low, epsilon_high, transfer, flip] = LINE_SEARCH(problem) edit
-% line_search for input details
+%   [epsilon_low, epsilon_high, transfer, flip] = LINE_SEARCH(problem) 
 
 % Unpack structure
 C           = problem.C;
@@ -29,12 +28,10 @@ found_flip = false;
 % Find initial value for line search and plot
 transfer(1) = optimal_rotation(epsilon_0, C, L, Q, num_modes, basis_modes, lambda, modal_amp, t_scale, tspan, init, 64000);
 
-% Brute force Line Search, rough pass parrallel loop. Idea is to quickly
-% sweep a large area to look for sign changes to use for a finer pass in
-% fzero
-
-% Find out if a pool is currently created
+% Find status of parallel pool
 pool = gcp('nocreate');
+
+% Perform brute force sweep of critical transfer term
 if ~isempty(pool)
     
     % Create jobs for the points in the vicinity of our initial guess
@@ -51,7 +48,7 @@ if ~isempty(pool)
             C, L, Q, num_modes, basis_modes, lambda, modal_amp, t_scale, tspan, init, 6000);
     end
 
-
+    % Parallel brute for sweep
     for i = 1:line_range
         
         % Retreive results as they become available
@@ -121,6 +118,8 @@ if ~isempty(pool)
         end
     end
 else
+    
+    % Serial brute force sweep
     for i = 1:line_range      
         % Test points extending out from initial guess
         if mod(i,2) 

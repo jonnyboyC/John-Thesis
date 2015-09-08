@@ -211,7 +211,7 @@ for i = 1:length(models)
         modal_ampt = modal_amp(:, modes);
         
         
-        % Creat line search problem
+        % Create line search problem
         line_problem.C = C;
         line_problem.L = L;
         line_problem.Q = Q;
@@ -225,7 +225,7 @@ for i = 1:length(models)
         line_problem.line_range = line_range;
 
         
-%         % Brute force line search
+        % Brute force line search
         [epsilon_low, epsilon_high, ~, flip] = line_search(line_problem);
         
         if flip == true

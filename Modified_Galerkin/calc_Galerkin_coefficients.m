@@ -1,4 +1,5 @@
 function calc_Galerkin_coefficients(varargin)
+% Don't remember what this is probably should delete
 
 % Set format, clear figures, and set up correct directory
 format long g

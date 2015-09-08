@@ -1,4 +1,7 @@
 function problem = setdefaults_mod(problem)
+% SETDEFAULTS_MOD setup the defaults for MOD_POD
+%
+%   problem = SETDEFAULTS_MOD(problem)
 
 % Default for Reduced num_modes 
 if isempty(problem.num_modes) || ~isscalar(problem.num_modes)

@@ -1,12 +1,18 @@
 function [residual, X, C_til, L_til, Q_til, modal_amp_til, t] = ...
     optimal_rotation(epsilon, C, L, Q, num_modes, basis_modes, lambda, modal_amp, t_scale, tspan, init, evals)
-%% Find Optimal Rotation 
+% OPTIMAL_ROTATION calculate an optimal rotation for a given critical
+% transfer term 
+%
+%   [residual, X, C_til, L_til, Q_til, modal_amp_til, t] =
+%       OPTIMAL_ROTATION(epsilong, C, L, Q, num-modes, basis_modes, lambda,
+%       modal_amp, t_scale, tspan, init, evals)
 
 timers = tic;
+
+% Performation optimal rotation
 [X, flag] = constrained_POD(lambda, L, num_modes, basis_modes, epsilon, evals);
-%inputs of constrained_POD are the POD temporal coefficients,modal_amp',
-%the linear Galerkin matrix, l, the transformation dimensions N and
-%n, and the transfer term parameter epsi
+
+% Calculate rotated energy terms
 lambda_til = X'*diag(lambda(1:basis_modes))*X;
 
 % Modified reduced order model coefficients
@@ -15,6 +21,7 @@ C_til = X'*C;
 Q_til=zeros(num_modes,num_modes,num_modes);
 Q = reshape(Q,basis_modes,basis_modes,basis_modes);
 
+% TODO Has to be some means of vectorizing this
 for i = 1:num_modes
     for j = 1:num_modes
         for k = 1:num_modes

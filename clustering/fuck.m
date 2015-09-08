@@ -1,4 +1,4 @@
-function res_scores = score_all(varargin)
+function res_scores = Score_all(varargin)
 % SCORE_ALL perform generate and score surrogate markov models for each
 % model present in a given folder
 

@@ -1,12 +1,12 @@
 function [frob_km, frob_gm, like_km, like_gm, completed, km_steady, gmm_steady] = score_model(score_info)
-%  SCORE_GAL generate model scores based on method outline in John Chabot's
+%  SCORE_MODEL generate model scores based on method outline in John Chabot's
 %  Thesis 2015 classify simulated data then apply score metrics. If
-%  clusters were not precompiled from POD_Gen will generate them here
+%  clusters were not precompiled from POD_Gen they will generate them here
 %
-% [frob_km, frob_gm, like_km, like_gm, completed] = SCORE_GAL(km, gmm, ...
-%   integration, tspan, num_clusters, mutiplier, int_time, it, direct)
+%   [frob_km, frob_gm, like_km, like_gm, completed, km_steady, gmm_steady] 
+%       = SCORE_MODEL(score_info)
 
-% unpack variables
+% Unpack variables
 km              = score_info.km;
 gmm             = score_info.gmm;
 integration     = score_info.integration;

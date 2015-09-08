@@ -1,5 +1,7 @@
 function [c,ceq] = constraint(x, L, lambda, epsilon)
-% Contraint function for basis transformation
+% CONSTRAINT constraint function of constrained_POD
+%
+%   [c, ceq] = constraint(x, L, lambda, epsilon)
 
 % Regenerate transformation matrix
 X = x*(x'*x)^(-1/2);

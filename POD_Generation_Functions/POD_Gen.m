@@ -1,7 +1,7 @@
 function [res_pod, res_clust] = POD_Gen(varargin)
-% POD_GEN Creates and sets up proper folder format for vc7 images
-% files, produces .mat files for processed vc7 files, and produced a
-% requested number of POD modes with some simulaition specifications
+% POD_GEN generate a POD basis from a set of flow snapshots by the POD
+% method of snapshots. Sets up folder structure for subsesqent use by
+% Galerkin_Proj, Mod_POD, and score_all
 %
 %   POD_GEN() prompts user for vc7 file path will process up to 1000
 %   images and producing figures of POD modes, without saving any 
@@ -290,7 +290,9 @@ end
 
 % Add mode zero
 [modal_amp, lambda, pod_U,  pod_W] = ... ,
-    add_mode_zero(modal_amp, lambda, pod_U, mean_U, pod_W, mean_W); %
+    add_mode_zero(modal_amp, lambda, pod_U, mean_U, pod_W, mean_W);
+
+
 
 %% Save / Return variables
 run_num = floor(100000*rand(1));

@@ -1,5 +1,7 @@
 function goal = objective(x, lambda)
-% Generate a new matrix from the pseudo inverse to garentee that X'X = I
+% OBJECTIVE objective function for constrained_POD
+%
+%   goal = OBJECTIVE(x, lambda)
 X = x*(x'*x)^(-1/2);
 
 % Take the sum of lambdas original ie original energy
