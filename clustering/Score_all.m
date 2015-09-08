@@ -1,11 +1,55 @@
 function res_scores = Score_all(varargin)
-% SCORE_ALL perform generate and score surrogate markov models for each
-% model present in a given folder
+% SCORE_ALL  Produces scores for all modes of a given data set, currently
+% genrates cluster at runtime so scores may vary slightly between runs
+%
+%   SCORE_ALL() Generates scores for all models of a given data set prompts
+%   user for analysis folder and using default values detailed below
+%
+%   SCORE_ALL(problem) Gerneate scores for all models with flags specified 
+%   by the structure problem specified below
+%
+%   res_scores = SCORE_ALL(problem) return a structure containing
+%   information about for each model
+%
+%   problem.run_num = 'first
+%   Specify which run this Galerkn Projection should be based from, default
+%   is to use the most recent
+%  
+%   problem.direct = ''
+%   Specify directory that will be searched for POD data, default is to
+%   prompt user
+%
+%   problem.num_clusters = 10
+%   Set the number of clsuter that should be determined.
+% 
+%   problem.num_cores  = 'auto'
+%   Set the max number of cores to be used for POD_Gen, auto will set this
+%   to the number of cores in the computer.
+%
+%   problem.outlier_mode.km = []
+%   problem.outlier_mode.gmm = []
+%   Set the distance of the outlier mode for km and gmm clustering, default
+%   is to include no outlier mode, see John Chabot Thesis 2015 for details
+%
+%   problem.score_mod = false
+%   Boolean value to determine if basis transformed models will be scored
+%
+%   problem.target_freq = 0 
+%   Set a target frequency to see how close a model gets to a particular
+%   frequency value, default is to not check
+%
+%   problem.phase = []
+%   Currently somewhat of a stub, default is to not check phase
+%
+%   problem.steady = false
+%   Boolean flag to restrict models of interest to just those that do not
+%   come to a fixed point, default is to include all models.
 
 format long g
 close all
 clc;
 
+% Problem structure fields
 fields = {  'run_num',      'direct',       'num_clusters' , ...
             'num_cores',    'outlier_mode', 'score_mod', ...
             'target_freq',  'phase',        'steady'};

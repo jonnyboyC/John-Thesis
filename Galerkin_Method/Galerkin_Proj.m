@@ -9,6 +9,15 @@ function [res_coef, res_int, res_scores] = Galerkin_Proj(varargin)
 %   GALERKIN_PROJ(problem) Using fields provided in the structure PROBLEM
 %   sets up analysis specified by PROBLEM. all unfilled fields go to defaults
 %
+%   res_coef = GALERKIN_PROJ(problem) returns a structure containing
+%   information about the calculated galerkin coefficients
+%
+%   [res_coef, res_int] = GALERKIN_PROJ(problem) returns an additional
+%   structrue containing information on the produced time integration
+%
+%   [res_coef, res_int, res_scores] = GALRKIN_PROJ(problem) returns a third
+%   structure containing information about each models scores 
+%
 %   problem.num_modesG = 10
 %   Specify the number of modes that will calculated in Galerkin projection
 %

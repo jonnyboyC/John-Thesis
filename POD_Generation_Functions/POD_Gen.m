@@ -1,14 +1,19 @@
 function [res_pod, res_clust] = POD_Gen(varargin)
 % POD_GEN generate a POD basis from a set of flow snapshots by the POD
 % method of snapshots. Sets up folder structure for subsesqent use by
-% Galerkin_Proj, Mod_POD, and score_all
+% Galerkin_Proj, Mod_POD, and Score_all
 %
-%   POD_GEN() prompts user for vc7 file path will process up to 1000
-%   images and producing figures of POD modes, without saving any 
-%   information
+%   POD_GEN() Uses default values for everything will prompt user for
+%   folder of raw data
 % 
 %   POD_GEN(problem) Using fields provided in the stucture PROBLEM sets up
 %   simulation to specified by PROBLEM, all unfilled fields go to defaults
+%
+%   res_pod = POD_GEN(problem) return a structure of variable related to
+%   POD
+%
+%   [res_pod, res_clust] = POD_GEN(problem) return an additional structure
+%   contaning informationa about the clustering results
 %
 %   problem has the following format with example values for default values
 %
