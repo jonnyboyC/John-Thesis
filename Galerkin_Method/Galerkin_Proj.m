@@ -260,9 +260,9 @@ end
 % Initialize scores if clustering
 if score
     frob_km     = cell(length(num_modesG), 1);
-    frob_gmm     = cell(length(num_modesG), 1);
+    frob_gmm    = cell(length(num_modesG), 1);
     like_km     = cell(length(num_modesG), 1);    
-    like_gmm     = cell(length(num_modesG), 1);
+    like_gmm    = cell(length(num_modesG), 1);
     completed   = cell(length(num_modesG), 1);
 end
 

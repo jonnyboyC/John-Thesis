@@ -196,13 +196,15 @@ end
 
 % Exactly define flow boundaries
 [bnd_X, bnd_idx] = refine_bounds(X_dis, U, mean_U, direct, streamlines, update_bnds);
+
+% Load data in .mat and create flow mask only
 if load_only
     res_pod.X = X;
     res_pod.U = U;
     return;
 end
 
-% TODO filter bit
+% TODO filter not really the best
 % Filter raw images, to attempt to remove artifacts
 if filter
     [U, mean_U] = filter_images(U, bnd_idx, num_images, ensemble_dim);
