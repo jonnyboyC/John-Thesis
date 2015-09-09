@@ -39,15 +39,11 @@ end
 bnd_idx(bnd_idx > images/100) = -1;
 bnd_idx(bnd_idx >= 0) = 1;
 
-% TODO another point where this needs to be updated to work for full 3D
-% Current thoughts is to manually apply individiual 1D convolutions of the
-% sobel filter using image and passing in the 1D vectors. At this point the
-% edge will be more than 1 pixel thick so an edge thinning algorithm will
-% need to be implemented to attempt to replicate the computeedge function
-% buried in MATLAB's edge function.
+% Uses Matlab community canny function for 2D-3D edge detection
+bnd_edge = canny(bnd_idx, 0, 0, 'Centred', false);
 
 % Use built in edge detection to boundary points change edge points to 0
-bnd_idx(edge(bnd_idx, 'sobel')) = 0;
+bnd_idx(bnd_edge) = 0;
 
 % Manual edge detection on image boundary
 bnd_idx = manual_edge(bnd_idx);
